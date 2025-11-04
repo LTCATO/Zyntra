@@ -11,6 +11,8 @@
     <meta name="author" content="">
     <meta name="keywords" content="">
     <meta name="description" content="">
+    <meta name="user-authenticated" content="{{ 'true' if g.authenticated else 'false' }}">
+    <meta name="user-role" content="{{ g.authenticated.role_id if g.authenticated else '0' }}">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
     <!-- bootstrap cdn -->

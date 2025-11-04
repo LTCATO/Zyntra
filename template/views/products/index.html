@@ -75,7 +75,7 @@
                                                 <button type="button" 
                                                         class="btn btn-sm btn-outline-danger" 
                                                         title="Delete"
-                                                        onclick="deleteProduct({{ product.product_id }})">
+                                                        onclick="deleteProduct('{{ product.product_id }}')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -121,7 +121,7 @@ function deleteProduct(productId) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
         })
         .then(response => response.json())
         .then(data => {

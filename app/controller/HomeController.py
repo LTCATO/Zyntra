@@ -139,9 +139,9 @@ def categoryPage(category_id):
 
     # Check if products list is empty
     if not products:
-        return render_template('/views/categories.html', data=[], cat_data=categories)  # Pass an empty list
+        return render_template('views/category.html', data=[], cat_data=categories)  # Pass an empty list
 
-    return render_template('/views/categories.html', data=products, cat_data=categories)
+    return render_template('views/category.html', data=products, cat_data=categories)
 
 def getProductsInCategoryGrouped(category_id, page=1, per_page=10):
     offset = (page - 1) * per_page
@@ -154,11 +154,15 @@ def getProductsInCategoryGrouped(category_id, page=1, per_page=10):
     for product in results:
         product['formatted_price'] = locale.format_string("%0.2f", product['price'], grouping=True)
         if 'attachment' in product and product['attachment'] is not None:
-            product['attachment'] = url_for('static', filename='images/uploads/' + product['attachment'])
+            # Remove any leading slashes or backslashes from the attachment path
+            attachment_path = product['attachment'].lstrip('/\\')
+            product['attachment'] = url_for('static', filename=attachment_path)
             print(f"Image URL for {product['product_name']}: {product['attachment']}")
         else:
             product['attachment'] = None
             print(f"No image for {product['product_name']}")
+    
+    return results
     return results
 
 def cart():

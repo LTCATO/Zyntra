@@ -21,17 +21,17 @@ def seller_management_routes(app):
     @app.route('/admin/sellers')
     @login_required
     def all_sellers():
-        return render_template('admin/all_seller.html', menu='seller-list')
+        return render_template('/views/dashboard/admin/all_seller.html', menu='seller-list')
 
     @app.route('/admin/sellers/pending')
     @login_required
     def pending_sellers():
-        return render_template('admin/pending_approval.html', menu='seller-pending')
+        return render_template('/views/dashboard/admin/pending_approval.html', menu='seller-pending')
 
     @app.route('/admin/sellers/approved')
     @login_required
     def approved_sellers():
-        return render_template('admin/approved_seller.html', menu='seller-approved')
+        return render_template('/views/dashboard/admin/approved_seller.html', menu='seller-approved')
 
 
 

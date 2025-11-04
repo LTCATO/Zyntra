@@ -1,0 +1,229 @@
+{% extends 'base.html' %} 
+{% block title %}{% if data and data[0] %}{{ data[0].get('category_name', 'Category') }} - Zyntra{% else %}Category - Zyntra{% endif %}{% endblock %} 
+
+{% block content %}
+<!-- Category Header -->
+<section class="category-header text-center">
+  <div class="container">
+    <h1 class="category-title display-5 fw-bold mb-3">
+      {% if data and data[0] %}{{ data[0].get('category_name', 'Category') }}{% else %}Category{% endif %}
+    </h1>
+    <p class="category-description">
+      Browse our collection of premium electronics and gadgets in this category.
+      Find the best deals on the latest technology.
+    </p>
+  </div>
+</section>
+
+<!-- Products Grid -->
+<section class="py-3 py-md-4">
+  <div class="container-fluid px-0 px-md-3">
+    <div class="row g-2 g-md-3" id="product-grid">
+      {% if not data or data|length == 0 %}
+        <div class="col-12">
+          <div class="no-products">
+            <div class="no-products-content">
+              <div class="bg-light p-4 rounded-4 mb-4">
+                <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                <h4 class="mb-3">No Products Found</h4>
+                <p class="text-muted mb-4">There are currently no products available in this category. Please check back later or explore other categories.</p>
+                <a href="{{ url_for('home_page') }}" class="btn btn-primary px-4">
+                  <i class="bi bi-arrow-left me-2"></i>Back to Home
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        {% for product in data %}
+        <div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-2">
+          <div class="product-card h-100">
+            <div class="product-image-container">
+              {% if product.discount_percentage %}
+                <span class="product-badge">-{{ product.discount_percentage }}% OFF</span>
+              {% endif %}
+              <a href="{{ url_for('view_product', product_id=product.product_id) }}">
+                <img 
+                  src="{{ product.attachment }}" 
+                  alt="{{ product.product_name }}" 
+                  class="product-image"
+                  loading="lazy"
+                >
+              </a>
+            </div>
+            <div class="product-details">
+              <h3 class="product-title" title="{{ product.product_name }}">
+                <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="text-decoration-none">
+                  {{ product.product_name|truncate(40) }}
+                </a>
+              </h3>
+              <div class="product-price">₱{{ "{:,.2f}".format(product.price|float) }}</div>
+              <div class="product-actions">
+                <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="btn-view">
+                  <i class="bi bi-eye-fill me-1"></i> View
+                </a>
+                <button class="btn-add-cart" 
+                        data-product-id="{{ product.product_id }}"
+                        {% if product.qty == 0 %}disabled{% endif %}>
+                  <i class="bi bi-cart-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Load More Button -->
+    {% if data and data|length > 0 %}
+    <div class="text-center mt-5">
+      <button 
+        id="load-more" 
+        class="btn btn-outline-primary px-4 py-2 fw-semibold"
+        data-page="1"
+      >
+        <i class="bi bi-arrow-down-circle me-2"></i>Load More
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() {
+  var loadedProductIds = [];
+  var isLoading = false;
+  var hasMore = true;
+  
+  // Initialize loaded product IDs
+  $('.product-card').each(function() {
+    var productId = $(this).find('a[href^="/product/view/"]').attr('href').split('/').pop();
+    if (productId) loadedProductIds.push(parseInt(productId));
+  });
+  
+  // Load more products on button click
+  $("#load-more").on("click", function() {
+    if (isLoading || !hasMore) return;
+    
+    var $button = $(this);
+    var page = parseInt($button.data('page')) + 1;
+    
+    loadMoreProducts(page, $button);
+  });
+  
+  // Function to load more products
+  function loadMoreProducts(page, $button) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    $button.prop('disabled', true);
+    $button.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...');
+    
+    var url = "/load_more_products?page=" + page + "&category_id={{ data[0].get('category_id', '') if data and data[0] else '' }}";
+    
+    $.ajax({
+      url: url,
+      method: 'GET',
+      data: { 
+        loaded_product_ids: loadedProductIds,
+        category_id: '{{ data[0].get("category_id", "") if data and data[0] else "" }}'
+      },
+      success: function(response) {
+        if (response.status === "success" && response.data && response.data.length > 0) {
+          var productGrid = $("#product-grid");
+          var newProducts = [];
+          
+          // Filter out already loaded products
+          response.data.forEach(function(product) {
+            if (!loadedProductIds.includes(parseInt(product.product_id))) {
+              newProducts.push(product);
+              loadedProductIds.push(parseInt(product.product_id));
+            }
+          });
+          
+          if (newProducts.length > 0) {
+            // Append new products
+            var productsHtml = newProducts.map(function(product) {
+              return `
+                <div class="col-xxl-2 col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6" data-id="${product.product_id}">
+                  <div class="product-card h-100">
+                    <div class="product-image-container">
+                      ${product.discount_percentage ? 
+                        `<span class="product-badge">-${product.discount_percentage}% OFF</span>` : ''}
+                      <a href="/product/view/${product.product_id}">
+                        <img 
+                          src="${product.attachment}" 
+                          alt="${product.product_name}" 
+                          class="product-image"
+                          loading="lazy"
+                        >
+                      </a>
+                    </div>
+                    <div class="product-details">
+                      <h3 class="product-title" title="${product.product_name}">
+                        <a href="/product/view/${product.product_id}" class="text-decoration-none">
+                          ${product.product_name}
+                        </a>
+                      </h3>
+                      <div class="product-price">
+                        ₱${parseFloat(product.price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                      </div>
+                      <div class="product-actions">
+                        <a href="/product/view/${product.product_id}" class="btn-view">
+                          <i class="bi bi-eye-fill"></i> View
+                        </a>
+                        <button class="btn-add-cart" 
+                                data-product-id="${product.product_id}"
+                                ${product.qty == 0 ? 'disabled' : ''}>
+                          <i class="bi bi-cart-plus"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>`;
+            }).join('');
+            
+            productGrid.append(productsHtml);
+            
+            // Update page number
+            $button.data('page', page);
+            
+            // Hide load more button if we've reached the end
+            if (response.data.length < 24) { // Assuming 24 is the default per page
+              hasMore = false;
+              $button.hide();
+            }
+          } else {
+            // No new products
+            hasMore = false;
+            $button.hide();
+          }
+        } else {
+          // No more products or error
+          hasMore = false;
+          $button.hide();
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error("Error loading more products:", error);
+        showNotification('Error loading more products. Please try again.', 'danger');
+      },
+      complete: function() {
+        isLoading = false;
+        $button.prop('disabled', false);
+        $button.html('<i class="bi bi-arrow-down-circle me-2"></i>Load More');
+      }
+    });
+  }
+  
+  // Show notification function
+  function showNotification(message, type = 'success') {
+    // You can implement a toast notification here
+    alert(message);
+  }
+});
+</script>
+{% endblock %}

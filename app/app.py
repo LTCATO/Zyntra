@@ -1,6 +1,7 @@
 from flask import Flask, session
 import os
 from flask_session import Session
+from helpers.template_filters import register_template_filters
 
 def create_app():
     app = Flask(__name__, template_folder='../template', static_folder='../static')
@@ -18,6 +19,9 @@ def create_app():
     # Import the routes and register them with the app
     from routes import setup_routes
     setup_routes(app)
+    
+    # Register template filters
+    register_template_filters(app)
     
     return app
 

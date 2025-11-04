@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 14, 2025 at 03:26 PM
+-- Generation Time: Nov 03, 2025 at 11:10 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -79,7 +79,12 @@ CREATE TABLE `delivery_partners` (
 
 INSERT INTO `delivery_partners` (`partner_id`, `user_id`, `full_name`, `email`, `phone`, `vehicle_type`, `plate_number`, `region`, `province`, `city`, `barangay`, `street`, `drivers_license_path`, `gov_id_path`, `created_at`, `updated_at`, `status`) VALUES
 (1, NULL, 'ASD ASD', 'asd@gmail.com', '09876543216', 'car', 'WEC 321', 'Region VIII (Eastern Visayas)', 'Eastern Samar', 'Llorente', 'Barangay 5 (Pob.)', '12', 'static/uploads/delivery_documents\\954826743318621.png', 'static/uploads/delivery_documents\\233030358315315.png', '2025-10-12 06:17:39', '2025-10-12 06:17:39', 0),
-(2, 6, 'Arce LC', 'ventre@gmail.com', '09876543217', 'motorcycle', 'WEC 321', 'Region V (Bicol Region)', 'Camarines Sur', 'Canaman', 'San Francisco', '12', 'static/uploads/delivery_documents\\678678243999425.JPG', 'static/uploads/delivery_documents\\564670080972360.png', '2025-10-12 06:25:02', '2025-10-12 06:25:02', 0);
+(2, 6, 'Arce LC', 'ventre@gmail.com', '09876543217', 'motorcycle', 'WEC 321', 'Region V (Bicol Region)', 'Camarines Sur', 'Canaman', 'San Francisco', '12', 'static/uploads/delivery_documents\\678678243999425.JPG', 'static/uploads/delivery_documents\\564670080972360.png', '2025-10-12 06:25:02', '2025-10-12 06:25:02', 0),
+(3, 11, 'Juan Dela Cruz', 'your112323@gmail.com', '+639123423442', 'motorcycle', '1234fdfsd', 'MIMAROPA', 'Oriental Mindoro', 'San Teodoro', 'Caagutayan', 'awdasd', 'static/uploads/delivery_documents\\606158676669815.jpg', 'static/uploads/delivery_documents\\948829948130404.jpg', '2025-10-19 12:16:14', '2025-10-19 12:16:14', 0),
+(4, 15, 'John Lloyd J. Bustria', 'lloydbustqweqweqria9@gmail.com', '+639692991918', 'motorcycle', 'qweqwe', 'National Capital Region (NCR)', 'Ncr, City Of Manila, First District', 'Santa Ana', 'Barangay 760', 'qwe', 'static/uploads/delivery_documents\\858699063267528.jpg', 'static/uploads/delivery_documents\\800479614633300.jpg', '2025-10-21 06:14:32', '2025-10-21 06:14:32', 0),
+(5, 18, 'Lloyd', 'leloyd@gmail.com', '092939872939', 'motorcycle', '123', 'National Capital Region (NCR)', 'Ncr, City Of Manila, First District', 'Santa Ana', 'Barangay 761', '123', 'static/uploads/delivery_documents\\704485561520456.jpg', 'static/uploads/delivery_documents\\825082006708596.jpg', '2025-10-21 14:08:56', '2025-10-21 14:08:56', 0),
+(6, 20, 'qwe', 'qweasd@gmail.com', '09592882817', 'motorcycle', 'qwe', 'Cordillera Administrative Region (CAR)', 'Apayao', 'Luna', 'San Isidro Sur', 'qwe', 'static/uploads/delivery_documents\\460881311677105.jpg', 'static/uploads/delivery_documents\\939714424737417.jpg', '2025-10-22 16:39:00', '2025-10-22 16:39:00', 0),
+(7, 22, 'John Kaith', 'pogese@gmail.com', '09876543218', 'car', 'WEC 327', 'Region VII (Central Visayas)', 'Cebu', 'Borbon', 'Poblacion', 'N/A', 'static/uploads/delivery_documents\\873519154793761.jpg', 'static/uploads/delivery_documents\\777731177533426.jpg', '2025-10-25 15:32:36', '2025-10-25 15:32:36', 0);
 
 -- --------------------------------------------------------
 
@@ -100,6 +105,13 @@ CREATE TABLE `products` (
   `status` int(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`product_id`, `user_id`, `category_id`, `product_name`, `description`, `price`, `qty`, `created_at`, `updated_at`, `status`) VALUES
+(19, 5, 3, 'Apple Sony WH-CH520 / WH CH520 Wireless Bluetooth Headphones', 'hehe', 1299.00, 31, '2025-10-29 04:17:39', '2025-10-29 12:17:39', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -114,6 +126,13 @@ CREATE TABLE `product_attachments` (
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `status` int(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product_attachments`
+--
+
+INSERT INTO `product_attachments` (`product_attachment_id`, `product_id`, `attachment`, `created_at`, `updated_at`, `status`) VALUES
+(29, 19, 'uploads/products/253e71dee4774d55bb6c185792e1c47c.jpg', '2025-10-29 04:17:39', '2025-10-29 12:17:39', 1);
 
 -- --------------------------------------------------------
 
@@ -165,7 +184,13 @@ CREATE TABLE `seller_details` (
 
 INSERT INTO `seller_details` (`seller_detail_id`, `user_id`, `store_name`, `description`, `region`, `province`, `city`, `barangay`, `street`, `gov_id_path`, `business_permit_path`, `created_at`, `updated_at`, `status`) VALUES
 (1, 5, 'Techonologia', NULL, 'Cordillera Administrative Region (CAR)', 'Ifugao', 'Mayoyao', 'Guinihon', '12', 'static/uploads/seller_documents\\770661652449458.jpg', NULL, '2025-10-10 18:10:13', '2025-10-10 18:10:13', 0),
-(2, 7, 'PATheTECH', NULL, 'Region I (Ilocos Region)', 'Pangasinan', 'Bugallon', 'Magtaking', '12', 'static/uploads/seller_documents\\452817055855753.JPG', 'static/uploads/seller_documents\\603101768859766.pdf', '2025-10-12 06:38:23', '2025-10-12 06:38:23', 0);
+(2, 7, 'PATheTECH', NULL, 'Region I (Ilocos Region)', 'Pangasinan', 'Bugallon', 'Magtaking', '12', 'static/uploads/seller_documents\\452817055855753.JPG', 'static/uploads/seller_documents\\603101768859766.pdf', '2025-10-12 06:38:23', '2025-10-12 06:38:23', 0),
+(3, 10, 'TechHub PH', NULL, 'Region IV-A (CALABARZON)', 'Laguna', 'Nagcarlan', 'Labangan', 'awdasd', 'static/uploads/seller_documents\\377705370899734.jpg', 'static/uploads/seller_documents\\609123171640162.jpg', '2025-10-19 12:13:56', '2025-10-19 12:13:56', 0),
+(4, 12, 'Lloyd Store', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato City', 'Cotabato City', 'Poblacion VII', 'Brgy.', 'static/uploads/seller_documents\\665100862423891.jpg', 'static/uploads/seller_documents\\146813614756320.jpg', '2025-10-21 02:39:35', '2025-10-21 02:39:35', 0),
+(5, 14, 'qweqwe', NULL, 'Region II (Cagayan Valley)', 'Isabela', 'Benito Soliven', 'Balliao', 'qwe', 'static/uploads/seller_documents\\676887450916208.jpg', 'static/uploads/seller_documents\\393220925025124.jpg', '2025-10-21 06:14:05', '2025-10-21 06:14:05', 0),
+(6, 16, 'qwe', NULL, 'Region II (Cagayan Valley)', 'Cagayan', 'Enrile', 'Liwan Norte', 'qwe', 'static/uploads/seller_documents\\262530876034798.jpg', 'static/uploads/seller_documents\\752463259528736.jpg', '2025-10-21 06:15:54', '2025-10-21 06:15:54', 0),
+(7, 19, '123', NULL, 'National Capital Region (NCR)', 'Ncr, Fourth District', 'Pasay City', 'Barangay 112', 'qwe', 'static/uploads/seller_documents\\303962223639699.jpg', 'static/uploads/seller_documents\\899347496867168.jpg', '2025-10-22 16:38:15', '2025-10-22 16:38:15', 0),
+(8, 23, 'Techonologia', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato City', 'Cotabato City', 'Poblacion V', 'N/A', 'static/uploads/seller_documents\\305843389661724.jpg', 'static/uploads/seller_documents\\648361036578343.png', '2025-10-29 04:15:36', '2025-10-29 04:15:36', 0);
 
 -- --------------------------------------------------------
 
@@ -195,10 +220,41 @@ INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `pa
 (2, 2, 'Risu', 'Ame', 'oyencelis@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543212', '2025-10-10 14:45:45', '2025-10-10 22:45:45', 1),
 (3, 2, 'Risu', 'Ame', 'potanginanoellenanaman@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543213', '2025-10-10 15:13:39', '2025-10-10 23:13:39', 1),
 (4, 2, 'Xarco', 'Batumbakal', 'resu0510@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543214', '2025-10-10 17:00:16', '2025-10-11 01:00:16', 1),
-(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-10-10 18:10:13', '2025-10-11 02:10:13', 1),
-(6, 4, 'Arce', 'LC', 'ventre@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543217', '2025-10-12 06:25:02', '2025-10-12 14:25:02', 1),
-(7, 3, 'Lawrence', 'Celis', 'asdfghj@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-12 06:38:23', '2025-10-12 14:38:23', 1),
-(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1);
+(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-10-10 18:10:13', '2025-10-23 00:13:59', 1),
+(6, 4, 'Arce', 'LC', 'ventre@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543217', '2025-10-12 06:25:02', '2025-10-22 03:06:20', 2),
+(7, 3, 'Lawrence', 'Celis', 'asdfghj@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-12 06:38:23', '2025-10-23 00:10:06', 1),
+(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1),
+(9, 2, 'Juan', 'Dela Cruz', 'your@gmail.com', '9ab41da41b65eaea50b7323660b760b93bda7fe3aff8a6f8d54bb998b0342c85', '09123423442', '2025-10-19 12:10:07', '2025-10-19 20:10:07', 1),
+(10, 3, 'Juan', 'Dela Cruz', 'your123@gmail.com', '9ab41da41b65eaea50b7323660b760b93bda7fe3aff8a6f8d54bb998b0342c85', '+639123423442', '2025-10-19 12:13:56', '2025-10-23 00:35:38', 3),
+(11, 4, 'Juan', 'Dela Cruz', 'your112323@gmail.com', '932f3c1b56257ce8539ac269d7aab42550dacf8818d075f0bdf1990562aae3ef', '+639123423442', '2025-10-19 12:16:14', '2025-10-22 03:06:20', 2),
+(12, 3, 'John', 'Lloyd J. Bustria', 'lloydbustria9@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-10-21 02:39:35', '2025-10-22 03:07:08', 1),
+(13, 2, 'Lloyd', 'Bustria', 'your123123123@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09123423442', '2025-10-21 02:45:40', '2025-10-21 10:45:40', 1),
+(14, 3, 'qwe', '', 'qweqweqweqwe@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+6392938472726', '2025-10-21 06:14:05', '2025-10-23 00:35:34', 1),
+(15, 4, 'John', 'Lloyd J. Bustria', 'lloydbustqweqweqria9@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+639692991918', '2025-10-21 06:14:32', '2025-10-22 03:06:20', 2),
+(16, 3, 'qwe', '', 'qweqwe@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+6392938472726', '2025-10-21 06:15:54', '2025-10-23 00:32:42', 1),
+(17, 2, 'Lloyd', 'Bustria', 'lloyd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-10-21 12:55:11', '2025-10-21 20:55:11', 1),
+(18, 4, 'Lloyd', '', 'leloyd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '092939872939', '2025-10-21 14:08:56', '2025-10-22 03:06:52', 1),
+(19, 3, 'wert', '', 'wer@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '0929983745674', '2025-10-22 16:38:15', '2025-10-23 00:38:15', 2),
+(20, 4, 'qwe', '', 'qweasd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09592882817', '2025-10-22 16:39:00', '2025-10-23 00:39:00', 2),
+(21, 2, 'qwe', 'qwe', 'qwesdafa@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-10-22 16:39:23', '2025-10-23 00:39:23', 1),
+(22, 4, 'John', 'Kaith', 'pogese@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-25 15:32:36', '2025-10-25 23:32:36', 2),
+(23, 3, 'Lawrence', 'Celis', 'lc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-29 04:15:36', '2025-10-29 12:15:36', 2);
+
+--
+-- Triggers `users`
+--
+DELIMITER $$
+CREATE TRIGGER `set_default_status` BEFORE INSERT ON `users` FOR EACH ROW BEGIN
+    IF NEW.role_id = 2 THEN
+        SET NEW.status = 1; -- Buyer = Active
+    ELSEIF NEW.role_id = 3 OR NEW.role_id = 4 THEN
+        SET NEW.status = 2; -- Seller or Rider = Pending
+    ELSE
+        SET NEW.status = 1; -- Admin or any other role = Active
+    END IF;
+END
+$$
+DELIMITER ;
 
 --
 -- Indexes for dumped tables
@@ -268,19 +324,19 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `delivery_partners`
 --
 ALTER TABLE `delivery_partners`
-  MODIFY `partner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `partner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `product_attachments`
 --
 ALTER TABLE `product_attachments`
-  MODIFY `product_attachment_id` int(10) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_attachment_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -292,13 +348,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `seller_details`
 --
 ALTER TABLE `seller_details`
-  MODIFY `seller_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `seller_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Constraints for dumped tables

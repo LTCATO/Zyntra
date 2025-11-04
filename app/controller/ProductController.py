@@ -110,7 +110,7 @@ def addProduct():
             return responseData("error", "Please upload at least one product image", "", 400)
         
         # Create upload directory if it doesn't exist
-        upload_dir = os.path.join(os.getcwd(), 'static', 'uploads', 'products')
+        upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'static', 'uploads', 'products')
         os.makedirs(upload_dir, exist_ok=True)
         
         # Process and save images
@@ -236,11 +236,14 @@ def viewProduct(product_id):
         # Prepare image URL
         image_path = product['attachment']
         if image_path and image_path != 'no-image.jpg':
-            product_image_url = '/static/images/uploads/' + image_path
+            # Remove any duplicate 'uploads/' in the path
+            if image_path.startswith('uploads/'):
+                image_path = image_path.replace('uploads/', '')
+            product_image_url = '/static/uploads/' + image_path
         else:
             product_image_url = '/static/images/no-image.jpg'
         
-        return render_template('views/Products/view-products.html',
+        return render_template('/views/products/view.html',
                              product_name=product['product_name'],
                              product_description=product['description'],
                              product_price=product['price'],

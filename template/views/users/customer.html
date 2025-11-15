@@ -1,0 +1,114 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Customer Table{% endblock %}
+
+{% block content %}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+
+    <div class="card">
+        <h5 class="card-header">Buyer Management</h5>
+        <div class="table-responsive text-nowrap p-5">
+            <table class="table table-striped" id="DataTables_Table_0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Buyer Name</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Status</th>
+                    <th data-order="updated_at">Approval Date</th>
+                    <th>Actions</th> <!-- Make sure this is the last column -->
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                {% for buyer in buyer_data %}
+                <tr>
+                    <td><span class="fw-bold text-capitalize">{{ buyer.firstname }} {{ buyer.lastname }}</span></td>
+                    <td><span class="text">{{ buyer.email }}</span></td>
+                    <td><span>{{ buyer.phone }}</span></td>
+                    <td>
+                    {% if buyer.status == 1 %}
+                        <span class="badge bg-label-success me-1">Active</span>
+                    {% elif buyer.status == 2 %}
+                        <span class="badge bg-label-danger ms-1">Disabled</span>
+                    {% endif %}
+                </td>
+                
+                    <td><span class="created_at">{{ buyer.updated_at }}</span></td>
+                    <td>
+                        <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                {% if buyer.status == 1 %}
+                                    <a class="dropdown-item change-status" data-status-to="2" data-role="{{ buyer.role_id }}" data-id="{{ buyer.user_id }}" href="javascript:void(0);">
+                                        <i class='bx bx-user-x'></i>Disable
+                                    </a>
+                                {% else %}
+                                    <a class="dropdown-item change-status" data-status-to="1" data-role="{{ buyer.role_id }}" data-id="{{ buyer.user_id }}" href="javascript:void(0);">
+                                        <i class='bx bx-user-check'></i>Enable
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    
+        
+      </div>
+    </div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+
+$(document).ready(function() {
+    $('#DataTables_Table_0').DataTable();
+
+    $(".change-status").click(function(e) {
+        e.preventDefault();
+
+        var user_id = $(this).attr("data-id");
+        var status_to = $(this).attr("data-status-to");
+        var message;
+        if (status_to == "1") {
+            message = 'Do you want to enable this seller?';
+        } else if (status_to == "2") {
+            message = 'Do you want to disable this seller?';
+        }  else {
+            console.error("Invalid status_to value:", status_to);
+            return;
+        }
+
+        $.SystemScript.swalConfirmMessage('Are you sure?', message, 'question').done(function(response) {
+            if (response) {
+                let url = `/update-buyer?user_id=${user_id}&status_to=${status_to}`;
+                $.SystemScript.executeGet(url).done((response) => {
+                    console.log(response.data);
+                    if (response.data.status === 'success') {
+                        $.SystemScript.swalAlertMessage('Success', response.data.message, 'success');
+                        $('.swal2-confirm').click(function(){
+                            location.reload();
+                        });
+                    } else {
+                        $.SystemScript.swalAlertMessage('Error', response.data.message, 'error');
+                    }
+                }).fail((jqXHR, textStatus) => {
+                    $.SystemScript.swalAlertMessage('Error', 'Failed to update status: ' + textStatus, 'error');
+                });
+            }
+        });
+    });
+
+});
+
+
+</script>
+
+{% endblock %}

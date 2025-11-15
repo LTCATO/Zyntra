@@ -10,7 +10,22 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'images', 'uploads')
+# Get the base directory of the project
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'products')
+
+# Debug information
+print("Current working directory:", os.getcwd())
+print("Base directory:", BASE_DIR)
+print("Upload folder:", UPLOAD_FOLDER)
+
+# Create the directory if it doesn't exist
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    print(f"Successfully created or verified directory: {UPLOAD_FOLDER}")
+except Exception as e:
+    print(f"Error creating directory {UPLOAD_FOLDER}: {str(e)}")
+    raise
 
 def products():
     active_menu = ['product', 'products']
@@ -29,7 +44,7 @@ def products():
         images = executeGet(query, (product_id,))
         product['images'] = [img['attachment'] for img in images]
     
-    return render_template('seller/all_products.html', 
+    return render_template('/views/Products/index.html', 
                          menu=active_menu, 
                          categories=categories, 
                          products=products,
@@ -79,119 +94,116 @@ def getProducts(condition):
 
 def addProduct():
     try:
-        # Get form data
         product_name = request.form.get('productName')
         user_id = g.authenticated.get('user_id')
         category_id = request.form.get('category_menu')
         description = request.form.get('description')
         price = request.form.get('price')
         quantity = request.form.get('quantity')
-        
-        # Get uploaded files
-        if 'productImages' not in request.files:
-            return responseData("error", "No file part", "", 400)
-            
-        files = request.files.getlist('productImages')
-        
-        # Validate inputs
+        images = request.files.getlist('productImages[]')
+        image_names = []
+
+        # Input validation
         if not all([product_name, category_id, description, price, quantity]):
-            return responseData("error", "All fields are required", "", 400)
+            return responseData("error", "All fields are required", "", 200)
             
+        if description.strip() in ["", "<p><br></p>"]:
+            return responseData("error", "Please provide a description", "", 200)
+            
+        if not images or not images[0].filename:
+            return responseData("error", "Please select at least one image", "", 200)
+
+        # Ensure upload directory exists
         try:
-            price = float(price)
-            quantity = int(quantity)
-            if price <= 0 or quantity < 0:
-                raise ValueError("Price and quantity must be positive numbers")
-        except ValueError as e:
-            return responseData("error", "Invalid price or quantity", "", 400)
-        
-        # Validate at least one image is uploaded
-        if not files or not any(file.filename for file in files):
-            return responseData("error", "Please upload at least one product image", "", 400)
-        
-        # Create upload directory if it doesn't exist
-        upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'static', 'uploads', 'products')
-        os.makedirs(upload_dir, exist_ok=True)
-        
-        # Process and save images
-        saved_files = []
-        for i, file in enumerate(files):
-            if file.filename == '':
-                continue
+            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+            print(f"Upload directory: {UPLOAD_FOLDER}")
+        except Exception as e:
+            print(f"Error creating upload directory: {str(e)}")
+            return responseData("error", "Error setting up file storage", "", 500)
+
+        # Process each image
+        for image in images:
+            if not image or not allowed_image_file(image.filename):
+                continue  # Skip invalid files instead of failing the entire upload
                 
-            if not allowed_image_file(file.filename):
-                # Clean up any already saved files
-                for saved_file in saved_files:
-                    try:
-                        os.remove(os.path.join(upload_dir, saved_file['filename']))
-                    except:
-                        pass
-                return responseData("error", "Invalid file type. Only JPG, JPEG, PNG & GIF are allowed.", "", 400)
-            
-            # Generate unique filename
-            file_ext = os.path.splitext(secure_filename(file.filename))[1].lower()
-            filename = f"{uuid.uuid4().hex}{file_ext}"
-            filepath = os.path.join(upload_dir, filename)
+            # Generate secure filename with a more unique pattern
+            file_ext = os.path.splitext(secure_filename(image.filename))[1].lower()
+            random_filename = f"{uuid.uuid4().hex}{file_ext}"  # Use UUID for better uniqueness
+            file_path = os.path.join(UPLOAD_FOLDER, random_filename)
             
             try:
-                file.save(filepath)
-                saved_files.append({
-                    'filename': filename,
-                    'is_primary': i == 0  # First image is primary
-                })
+                # Save the file
+                image.save(file_path)
+                print(f"Saved file: {file_path}")
+                # Store relative path in the format that matches the working product
+                relative_path = f"uploads/products/{random_filename}"
+                image_names.append(relative_path)
             except Exception as e:
-                # Clean up any already saved files
-                for saved_file in saved_files:
-                    try:
-                        os.remove(os.path.join(upload_dir, saved_file['filename']))
-                    except:
-                        pass
-                return responseData("error", f"Error saving file: {str(e)}", "", 500)
+                print(f"Error saving file {image.filename}: {str(e)}")
+                continue
         
-        # Insert product into database
+        if not image_names:
+            return responseData("error", "No valid images were uploaded", "", 200)
+        
+        # Insert product
         insert_query = """
             INSERT INTO products 
-            (user_id, category_id, product_name, description, price, qty, status)
-            VALUES (%s, %s, %s, %s, %s, %s, 1)
+            (category_id, user_id, product_name, description, price, qty) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        result = executePost(insert_query, 
+                           (category_id, user_id, product_name, description, price, quantity))
+        
+        if not result or 'last_inserted_id' not in result:
+            # Clean up uploaded files if product insertion failed
+            for img_path in image_names:
+                try:
+                    filename = img_path.split('/')[-1]  # Get just the filename
+                    os.remove(os.path.join(UPLOAD_FOLDER, filename))
+                except Exception as e:
+                    print(f"Error cleaning up file {img_path}: {str(e)}")
+            return responseData("error", "Failed to save product information", "", 500)
+        
+        # Save image references to database
+        product_id = result['last_inserted_id']
+        attachment_query = """
+            INSERT INTO product_attachments 
+            (product_id, attachment) 
+            VALUES (%s, %s)
         """
         
-        result = executePost(
-            insert_query, 
-            (user_id, category_id, product_name, description, price, quantity)
-        )
-        
-        if "last_inserted_id" not in result:
-            # Clean up uploaded files if database insert fails
-            for saved_file in saved_files:
-                try:
-                    os.remove(os.path.join(upload_dir, saved_file['filename']))
-                except:
-                    pass
-            return responseData("error", "Failed to save product to database", "", 500)
-        
-        # Save image records to database
-        product_id = result['last_inserted_id']
-        for saved_file in saved_files:
-            attachment_query = """
-                INSERT INTO product_attachments 
-                (product_id, attachment, status)
-                VALUES (%s, %s, 1)
-            """
+        success_count = 0
+        for img_path in image_names:
             try:
-                relative_path = f"uploads/products/{saved_file['filename']}"
-                executePost(
-                    attachment_query,
-                    (product_id, relative_path)
-                )
+                executePost(attachment_query, (product_id, img_path))
+                success_count += 1
             except Exception as e:
-                print(f"Error saving image record: {str(e)}")
-                # Continue with other images even if one fails
+                print(f"Error saving attachment {img_path}: {str(e)}")
+                # Try to clean up the file if database insertion failed
+                try:
+                    filename = img_path.split('/')[-1]
+                    os.remove(os.path.join(UPLOAD_FOLDER, filename))
+                except Exception as file_error:
+                    print(f"Error cleaning up file {img_path}: {str(file_error)}")
+        
+        if success_count == 0:
+            # If no attachments were saved, clean up the product record
+            executePost("DELETE FROM products WHERE product_id = %s", (product_id,))
+            return responseData("error", "Failed to save product images", "", 500)
         
         return responseData("success", "Product added successfully", {"product_id": product_id}, 200)
         
     except Exception as e:
-        print(f"Error in addProduct: {str(e)}")
-        return responseData("error", "An unexpected error occurred. Please try again.", str(e), 500)
+        print(f"Unexpected error in addProduct: {str(e)}")
+        # Clean up any uploaded files if there was an error
+        if 'image_names' in locals():
+            for img_path in image_names:
+                try:
+                    filename = img_path.split('/')[-1]
+                    os.remove(os.path.join(UPLOAD_FOLDER, filename))
+                except Exception as file_error:
+                    print(f"Error cleaning up file {img_path}: {str(file_error)}")
+        return responseData("error", "An unexpected error occurred: " + str(e), "", 500)
     
 
 
@@ -217,15 +229,28 @@ def viewProduct(product_id):
     try:
         product_id = int(product_id)
         
-        # Updated query to include product images
-        query = "SELECT p.product_id, p.product_name, p.description, p.price, p.qty, COALESCE (pa.attachment, 'no-image.jpg') as attachment FROM products p LEFT JOIN product_attachments pa ON p.product_id = pa.product_id WHERE p.product_id = %s AND p.status = 1"
+        # Updated query to include product images and store name
+        query = """
+            SELECT 
+                p.product_id, 
+                p.product_name, 
+                p.description, 
+                p.price, 
+                p.qty, 
+                COALESCE(pa.attachment, 'no-image.jpg') as attachment,
+                sd.store_name
+            FROM 
+                products p 
+            LEFT JOIN 
+                product_attachments pa ON p.product_id = pa.product_id 
+            LEFT JOIN
+                seller_details sd ON p.user_id = sd.user_id
+            WHERE 
+                p.product_id = %s 
+                AND p.status = 1
+        """
         
         product = executeGet(query, (product_id,))
-        
-        # Fetch product images
-        images_query = "SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = %s"
-        product_images = executeGet(images_query, (product_id,))
-        product_images = [img['attachment'] for img in product_images]  # Extract image names
         
         if not product:
             print(f"No product found with ID: {product_id}")
@@ -233,17 +258,40 @@ def viewProduct(product_id):
             
         product = product[0]  # Get the first result
         
-        # Prepare image URL
+        # Prepare main image URL
         image_path = product['attachment']
         if image_path and image_path != 'no-image.jpg':
-            # Remove any duplicate 'uploads/' in the path
+            # Ensure the path is clean
             if image_path.startswith('uploads/'):
                 image_path = image_path.replace('uploads/', '')
-            product_image_url = '/static/uploads/' + image_path
+            if image_path.startswith('products/'):
+                image_path = image_path.replace('products/', '')
+            product_image_url = '/static/uploads/products/' + image_path
         else:
             product_image_url = '/static/images/no-image.jpg'
+            
+        # Fetch and prepare product images for the slider
+        images_query = "SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = %s"
+        product_images = executeGet(images_query, (product_id,))
         
-        return render_template('/views/products/view.html',
+        # If no additional images, use the main product image
+        if not product_images:
+            product_images = [{'attachment': product['attachment']}]
+            
+        # Clean up image paths
+        clean_images = []
+        for img in product_images:
+            img_path = img['attachment']
+            if img_path:
+                if img_path.startswith('uploads/'):
+                    img_path = img_path.replace('uploads/', '')
+                if img_path.startswith('products/'):
+                    img_path = img_path.replace('products/', '')
+                clean_images.append(img_path)
+                
+        product_images = clean_images
+        
+        return render_template('views/Products/view-product.html',
                              product_name=product['product_name'],
                              product_description=product['description'],
                              product_price=product['price'],
@@ -252,7 +300,8 @@ def viewProduct(product_id):
                              product_id=product_id,
                              cat_data=categories,
                              product_images=product_images,
-                             cart_items=cart_items)  # Pass images to template
+                             cart_items=cart_items,
+                             store_name=product.get('store_name', 'Zyntra Store'))  # Pass store name to template
     except Exception as e:
         print(f"Error in viewProduct: {str(e)}")
         return render_template('views/404.html'), 404
@@ -343,23 +392,47 @@ def updateProducts():
         "Category": category_id,
         "Description": description,
         "Price": price,
-        "Quantity": quantity
+        "Quantity": quantity,
+        "Product ID": product_id
     }
 
     for field_name, value in required_fields.items():
         if not value:
             return responseData("error", f"{field_name} is required", "", 200)
 
-    # Check for existing product name in the same category
-    products = getProductsByField("product_name", f"WHERE product_name = '{product_name}' AND category_id = {category_id}")
-    if products:
-        return responseData("error", "Product name already exists in this category", "", 200)
+    # Get the current product to check if the name is being changed
+    current_product = getProductsByField("product_name, category_id", f"WHERE product_id = {product_id}")
+    
+    if not current_product:
+        return responseData("error", "Product not found", "", 404)
+        
+    current_name = current_product[0]['product_name']
+    current_category = current_product[0]['category_id']
+    
+    # Only check for duplicate name if the name or category has changed
+    if product_name != current_name or int(category_id) != int(current_category):
+        # Check for existing product name in the same category, excluding the current product
+        products = getProductsByField("product_id", 
+            f"WHERE product_name = '{product_name}' AND category_id = {category_id} AND product_id != {product_id}")
+        if products:
+            return responseData("error", "Product name already exists in this category", "", 200)
 
-    # Perform the update query
-    query = "UPDATE products SET product_name = %s, category_id = %s, description = %s, price = %s, qty = %s WHERE product_id = %s"
-    executePost(query, (product_name, category_id, description, price, quantity, product_id))
-
-    return responseData("success", "Product has been updated.", "", 200)
+    try:
+        # Perform the update query
+        query = """
+            UPDATE products 
+            SET product_name = %s, 
+                category_id = %s, 
+                description = %s, 
+                price = %s, 
+                qty = %s 
+            WHERE product_id = %s
+        """
+        executePost(query, (product_name, category_id, description, price, quantity, product_id))
+        return responseData("success", "Product has been updated successfully.", "", 200)
+    except Exception as e:
+        print(f"Error updating product: {str(e)}")
+        return responseData("error", "An error occurred while updating the product", "", 500)
 
 def addToCart():
     product_id = request.form.get('product_id')

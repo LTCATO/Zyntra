@@ -1,0 +1,326 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Seller Table{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+
+<div class="card">
+    <h5 class="card-header">Seller Management</h5>
+    
+    <!-- Desktop table - hidden on mobile -->
+    <div class="table-responsive d-none d-md-block p-5">
+      <table class="table table-striped" id="DataTables_Table_0">
+        <thead class="table-dark">
+          <tr>
+            <th>Seller Name</th>
+            <th>Email</th>
+            <th>Store Name</th>
+            <th>Phone Number</th>
+            <th>Status</th>
+            <th data-order="updated_at">Approval Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-border-bottom-0">
+          {% for seller in sellers_data %}
+          <tr>
+            <td data-label="Seller Name"><span class="fw-bold text-capitalize">{{ seller.firstname }} {{ seller.lastname }}</span></td>
+            <td data-label="Email"><span class="text">{{ seller.email }}</span></td>
+            <td data-label="Store Name"><span>{{ seller.store_name }}</span></td>
+            <td data-label="Phone"><span class="text-start">{{ seller.phone }}</span></td>
+            <td>
+              {% if seller.seller_status == 0 %}
+                <span class="badge bg-label-warning me-1">Pending Approval</span>
+              {% elif seller.seller_status == 1 and seller.user_status == 1 %}
+                <span class="badge bg-label-success me-1">Active</span>
+              {% elif seller.seller_status == 1 and seller.user_status == 2 %}
+                <span class="badge bg-label-secondary me-1">Approved (Account Disabled)</span>
+              {% elif seller.seller_status == 2 %}
+                <span class="badge bg-label-danger me-1">Rejected</span>
+              {% else %}
+                <span class="badge bg-label-secondary me-1">Status: {{ seller.seller_status }}-{{ seller.user_status }}</span>
+              {% endif %}
+            </td>
+            <td data-label="Approval Date"><span class="updatedAt">{{ seller.updated_at }}</span></td>
+            <td>
+              <div class="dropdown">
+                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item view-documents" data-user-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-file-blank'></i>View Documents
+                  </a>
+                  {% if seller.seller_status == 0 %}
+                    <a class="dropdown-item change-status" data-status-to="1" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-user-check'></i>Approve
+                    </a>
+                    <a class="dropdown-item change-status" data-status-to="0" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-user-x'></i>Reject
+                    </a>
+                  {% elif seller.seller_status == 1 and seller.user_status == 1 %}
+                    <a class="dropdown-item change-status" data-status-to="3" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-user-x'></i>Disable
+                    </a>
+                  {% elif seller.seller_status == 1 and seller.user_status == 2 %}
+                    <a class="dropdown-item change-status" data-status-to="2" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-user-check'></i>Enable Account
+                    </a>
+                    <a class="dropdown-item change-status" data-status-to="0" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-trash'></i>Remove Seller
+                    </a>
+                  {% elif seller.seller_status == 2 %}
+                    <a class="dropdown-item change-status" data-status-to="1" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                      <i class='bx bx-user-check'></i>Approve
+                    </a>
+                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rejectionReasonModal" data-user-id="{{ seller.user_id }}">
+                      <i class='bx bx-info-circle'></i>View Rejection Reason
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile card view - shown only on mobile -->
+    <div class="d-md-none p-3">
+      {% for seller in sellers_data %}
+      <div class="card mb-3 border">
+        <div class="card-body p-3">
+          <!-- Seller Name -->
+          <div class="mb-2">
+            <strong class="text-muted small">Seller Name</strong>
+            <p class="mb-0 fw-bold text-capitalize">{{ seller.firstname }} {{ seller.lastname }}</p>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-2">
+            <strong class="text-muted small">Email</strong>
+            <p class="mb-0">{{ seller.email }}</p>
+          </div>
+
+          <!-- Store Name -->
+          <div class="mb-2">
+            <strong class="text-muted small">Store Name</strong>
+            <p class="mb-0">{{ seller.store_name }}</p>
+          </div>
+
+          <!-- Phone -->
+          <div class="mb-2">
+            <strong class="text-muted small">Phone</strong>
+            <p class="mb-0">{{ seller.phone }}</p>
+          </div>
+
+          <!-- Status -->
+          <div class="mb-2">
+            <strong class="text-muted small">Status</strong>
+            <p class="mb-0">
+              {% if seller.seller_status == 0 %}
+                <span class="badge bg-label-warning">Pending Approval</span>
+              {% elif seller.seller_status == 1 and seller.user_status == 1 %}
+                <span class="badge bg-label-success">Active</span>
+              {% elif seller.seller_status == 1 and seller.user_status == 2 %}
+                <span class="badge bg-label-secondary">Approved (Disabled)</span>
+              {% elif seller.seller_status == 2 %}
+                <span class="badge bg-label-danger">Rejected</span>
+              {% else %}
+                <span class="badge bg-label-secondary">{{ seller.seller_status }}-{{ seller.user_status }}</span>
+              {% endif %}
+            </p>
+          </div>
+
+          <!-- Approval Date -->
+          <div class="mb-2">
+            <strong class="text-muted small">Approval Date</strong>
+            <p class="mb-0"><span class="updatedAt">{{ seller.updated_at }}</span></p>
+          </div>
+
+          <!-- Actions Section -->
+          <div class="d-flex gap-2 flex-wrap mt-3 pt-2 border-top">
+            <div class="dropdown w-100">
+              <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bx bx-dots-vertical-rounded"></i> More Actions
+              </button>
+              <div class="dropdown-menu dropdown-menu-end w-100">
+                <a class="dropdown-item view-documents" data-user-id="{{ seller.user_id }}" href="javascript:void(0);">
+                  <i class='bx bx-file-blank'></i>View Documents
+                </a>
+                {% if seller.seller_status == 0 %}
+                  <a class="dropdown-item change-status" data-status-to="1" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-user-check'></i>Approve
+                  </a>
+                  <a class="dropdown-item change-status" data-status-to="0" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-user-x'></i>Reject
+                  </a>
+                {% elif seller.seller_status == 1 and seller.user_status == 1 %}
+                  <a class="dropdown-item change-status" data-status-to="3" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-user-x'></i>Disable
+                  </a>
+                {% elif seller.seller_status == 1 and seller.user_status == 2 %}
+                  <a class="dropdown-item change-status" data-status-to="2" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-user-check'></i>Enable Account
+                  </a>
+                  <a class="dropdown-item change-status" data-status-to="0" data-role="{{ seller.role_id }}" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-trash'></i>Remove Seller
+                  </a>
+                {% elif seller.seller_status == 2 %}
+                  <a class="dropdown-item change-status" data-status-to="1" data-role="3" data-id="{{ seller.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-user-check'></i>Approve
+                  </a>
+                  <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#rejectionReasonModal" data-user-id="{{ seller.user_id }}">
+                    <i class='bx bx-info-circle'></i>View Rejection Reason
+                  </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Documents Modal -->
+  <div class="modal fade" id="documentsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="documentsModalLabel">View Documents</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="documentsModalBody">
+          <!-- Documents will be loaded here dynamically -->
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading documents...</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <a href="#" id="downloadAllBtn" class="btn btn-primary d-none">
+            <i class='bx bx-download'></i> Download All
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+$(document).ready(function() {
+    // Initialize DataTable only for desktop table
+    if (window.innerWidth >= 768) {
+        $('#DataTables_Table_0').DataTable();
+    }
+
+    // Handle view documents click
+    const documentsModal = new bootstrap.Modal(document.getElementById('documentsModal'));
+    let currentUserId = null;
+
+    $('.view-documents').on('click', function(e) {
+        e.preventDefault();
+        currentUserId = $(this).data('user-id');
+        const userName = $(this).closest('tr').find('td:first-child span').text().trim();
+        
+        // Update modal title with user's name
+        $('#documentsModalLabel').text(`Documents - ${userName}`);
+        
+        // Show loading state
+        $('#documentsModalBody').html(`
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading documents...</p>
+          </div>
+        `);
+        
+        // Show the modal
+        documentsModal.show();
+        
+        // Here you would typically make an AJAX call to fetch the documents
+        // For now, we'll simulate a delay and show a message
+        setTimeout(() => {
+            $('#documentsModalBody').html(`
+              <div class="document-list">
+                <div class="alert alert-info">
+                  Document viewing functionality will be implemented here.<br>
+                  User ID: ${currentUserId}
+                </div>
+                <!-- Example document items -->
+                <div class="list-group">
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <i class='bx bx-file-pdf text-danger me-2'></i> Document 1.pdf
+                  </a>
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <i class='bx bx-image text-success me-2'></i> ID_Card.jpg
+                  </a>
+                </div>
+              </div>
+            `);
+            // Show download all button when documents are loaded
+            $('#downloadAllBtn').removeClass('d-none');
+        }, 1000);
+    });
+    
+    // Handle download all button click
+    $('#downloadAllBtn').on('click', function(e) {
+        e.preventDefault();
+        if (currentUserId) {
+            // Implement download all functionality
+            showToast('info', 'Download all documents functionality will be implemented here');
+        }
+    });
+
+
+    $(".change-status").click(function(e) {
+        e.preventDefault();
+
+        var user_id = $(this).attr("data-id");
+        var status_to = $(this).attr("data-status-to");
+        var message;
+        if (status_to == "1") {
+            message = 'Do you want to approve this seller?';
+        } else if (status_to == "2") {
+            message = 'Do you want to enable seller?';
+        } else if (status_to == "3") {
+            message = 'Do you want to disable this seller?';
+        } else if (status_to == "0") {
+            message = 'Do you want to remove this seller?';
+        } else {
+            console.error("Invalid status_to value:", status_to);
+            return;
+        }
+
+        $.SystemScript.swalConfirmMessage('Are you sure?', message, 'question').done(function(response) {
+            if (response) {
+                let url = `/update-seller?user_id=${user_id}&status_to=${status_to}`;
+                $.SystemScript.executeGet(url).done((response) => {
+                    console.log(response.data);
+                    if (response.data.status === 'success') {
+                        $.SystemScript.swalAlertMessage('Success', response.data.message, 'success');
+                        $('.swal2-confirm').click(function(){
+                            location.reload();
+                        });
+                    } else {
+                        $.SystemScript.swalAlertMessage('Error', response.data.message, 'error');
+                    }
+                }).fail((jqXHR, textStatus) => {
+                    $.SystemScript.swalAlertMessage('Error', 'Failed to update status: ' + textStatus, 'error');
+                });
+            }
+        });
+    });
+
+});
+</script>
+{% endblock %}

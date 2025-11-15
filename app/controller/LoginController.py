@@ -20,27 +20,45 @@ def LoginSubmit():
     email = request.form.get('email')
     password = request.form.get('password')
     hashedValue = hashing(password)
-    print(hashedValue)
-    query = "SELECT * FROM users WHERE email = %s AND password = %s"
+    
+    # First, check if user exists and get their basic info
+    query = """
+        SELECT u.*, 
+               s.status as seller_status
+        FROM users u
+        LEFT JOIN seller_details s ON u.user_id = s.user_id
+        WHERE u.email = %s AND u.password = %s
+    """
     user = executeGet(query, (email, hashedValue))
     
     if user:
         user = user[0]
         
-        if user['status'] == 1:
-            user_detail = {
-                'user_id': user['user_id'],
-                'role_id': user['role_id'],
-                'firstname': user['firstname'],
-                'lastname': user['lastname'],
-            }
+        if user['status'] != 1:
+            return responseData("error", "Your account is not active. Please contact support.", None, 200)
+            
+        # If user is a seller (role_id = 3), check if they're approved
+        if user['role_id'] == 3:  # Seller role
+            seller_status = user.get('seller_status')
+            if seller_status is None:
+                return responseData("error", "Seller account not properly set up. Please contact support.", None, 200)
+            elif seller_status == 0:  # Pending approval
+                return responseData("pending", "Your seller application is under review. We'll notify you once approved.", None, 200)
+            elif seller_status == 2:  # Rejected
+                return responseData("rejected", "Your seller application has been rejected. Please contact support for more information.", None, 200)
+        
+        # If we get here, user is either approved or not a seller
+        user_detail = {
+            'user_id': user['user_id'],
+            'role_id': user['role_id'],
+            'firstname': user['firstname'],
+            'lastname': user['lastname'],
+        }
 
-            setSession('authenticated', user_detail)
-            return responseData("success", "Login Successfully", user, 200)
-        else:
-            return responseData("error", "Your account is banned. Please contact support.", None, 200)
+        setSession('authenticated', user_detail)
+        return responseData("success", "Login Successful", user, 200)
     else:
-        return responseData("error", "Invalid username or password", None, 200)
+        return responseData("error", "Invalid email or password", None, 200)
 
 
 def signup():

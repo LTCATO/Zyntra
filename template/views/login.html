@@ -269,20 +269,46 @@ $(document).ready(function() {
 		let path = `/login`;
 
 		$.SystemScript.executePost(path, data).done((response) => {
-			console.log(response.data);
-			if (response.data.status == 'success') {
-				let role = response.data.data.role_id;
-				if (role == 1 || role == 3) {
-					window.location.href = '/dashboard';
-				} else if (role == 2) {
-					window.location.href = '/buyer';
-				} else {
-					window.location.href = '/';
-				}
-			} else {
-				$.SystemScript.swalAlertMessage('Oops!', `${response.data.message}`, 'error');
-				$("#password").val('');
+			console.log('Login response:', response);
+			
+			switch(response.data.status) {
+				case 'success':
+					let role = response.data.data.role_id;
+					if (role == 1 || role == 3) {
+						window.location.href = '/dashboard';
+					} else if (role == 2) {
+						window.location.href = '/buyer';
+					} else {
+						window.location.href = '/';
+					}
+					break;
+					
+				case 'pending':
+					$.SystemScript.swalAlertMessage(
+						'Application Under Review', 
+						'Your seller application is currently under review. We will notify you via email once your account has been approved. This typically takes 24-48 hours.', 
+						'info'
+					);
+					$("#password").val('');
+					break;
+					
+				case 'rejected':
+					$.SystemScript.swalAlertMessage(
+						'Application Rejected', 
+						'Your seller application has been reviewed and unfortunately not approved at this time. Please contact our support team for more information.', 
+						'warning'
+					);
+					$("#password").val('');
+					break;
+					
+				default:
+					// This handles 'error' and any other status
+					$.SystemScript.swalAlertMessage('Login Failed', response.data.message || 'An error occurred during login', 'error');
+					$("#password").val('');
 			}
+		}).fail((xhr, status, error) => {
+			console.error('Login error:', error);
+			$.SystemScript.swalAlertMessage('Error', 'An error occurred while processing your request. Please try again.', 'error');
 		});
 	});
 

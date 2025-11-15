@@ -14,7 +14,7 @@ from controller.LoginController import login, LoginSubmit, signup, signupSubmit,
 from controller.DashboardController import dashboardIndex
 from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
-from controller.UserController import seller, updateSeller, buyer, updateBuyer
+from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
 
 # Seller Management routes
 def seller_management_routes(app):
@@ -149,30 +149,13 @@ def setup_routes(app: Flask):
     def update_categories():
         return updateCategories()
     
-    @app.route('/products')
+    @app.route('/product')
     @login_required
     def products_page():
-        return redirect(url_for('seller_products'))
-        
-    @app.route('/seller/products')
-    @login_required
-    def seller_products():
         return products()
     
-    @app.route('/products/add', methods=['GET', 'POST'])
-    @app.route('/seller/products/add', methods=['GET', 'POST'])
-    @login_required
+    @app.route('/add-product', methods=['POST'])
     def add_product():
-        print("Debug: Entering add_product route")  # Debug log
-        print(f"Debug: Request method: {request.method}")  # Debug log
-        if request.method == 'GET':
-            print("Debug: Handling GET request")  # Debug log
-            from controller.ProductController import getCategories
-            categories = getCategories("")
-            print(f"Debug: Found {len(categories)} categories")  # Debug log
-            print(f"Debug: Template path: {app.template_folder}")  # Debug log
-            return render_template('seller/add_product.html', categories=categories)
-        print("Debug: Handling POST request")  # Debug log
         return addProduct()
     
     @app.route('/change-product-status', methods=['GET', 'POST'])
@@ -200,6 +183,17 @@ def setup_routes(app: Flask):
     @app.route('/update-buyer', methods=['GET', 'POST'])
     def update_buyer():
         return updateBuyer()
+        
+    # Rider routes
+    @app.route('/rider')
+    @login_required
+    def rider_dashboard():
+        return rider()
+        
+    @app.route('/update-rider', methods=['GET', 'POST'])
+    @login_required
+    def update_rider():
+        return updateRider()
     
     @app.route('/load_more_products', methods=['GET'])
     def load_more_products():

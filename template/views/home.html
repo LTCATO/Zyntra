@@ -231,10 +231,11 @@
                   </div>
                   <div class="card__subtitle">
                     {% if product.discount_percentage %}
-                      <div class="text-danger fw-bold">₱{{ "%.2f"|format(product.price * (1 - product.discount_percentage / 100)) }}</div>
-                      <small class="text-muted text-decoration-line-through">₱{{ "%.2f"|format(product.price) }}</small>
+                      {% set discounted_price = product.price * (1 - product.discount_percentage / 100) %}
+                      <div class="text-danger fw-bold">{{ discounted_price|currency }}</div>
+                      <small class="text-muted text-decoration-line-through">{{ product.price|currency }}</small>
                     {% else %}
-                      <div class="fw-bold">₱{{ "%.2f"|format(product.price) }}</div>
+                      <div class="fw-bold">{{ product.price|currency }}</div>
                     {% endif %}
                   </div>
                 </div>

@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% block title %}{{ product_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="product-view">
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-lg-6">
+                <div class="product-images">
+                    <!-- Main Image -->
+                    <div class="main-image">
+                        <img id="mainImage" src="{{ product_image_url }}" alt="{{ product_name }}" class="img-fluid" loading="lazy">
+                    </div>
+                    
+                    <!-- Thumbnails -->
+                    <div class="thumbnail-container">
+                        <div class="swiper thumbnail-swiper">
+                            <div class="swiper-wrapper">
+                                {% if product_images %}
+                                    {% for image in product_images %}
+                                    {% set image_url = '/static/uploads/products/' + image %}
+                                    <div class="swiper-slide" data-image-url="{{ image_url }}">
+                                        <img 
+                                            src="{{ image_url }}"
+                                            alt="{{ product_name }} - Thumbnail {{ loop.index }}"
+                                            class="thumbnail-img"
+                                            loading="lazy"
+                                            onerror="this.onerror=null; this.src='/static/images/no-image.jpg'"
+                                        >
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <!-- Fallback in case there are no images -->
+                                    <div class="swiper-slide" data-image-url="{{ product_image_url }}" onclick="changeMainImage(this.getAttribute('data-image-url'))">
+                                        <img 
+                                            src="{{ product_image_url }}"
+                                            alt="{{ product_name }}"
+                                            class="thumbnail-img"
+                                            loading="lazy"
+                                            onerror="this.onerror=null; this.src='/static/images/no-image.jpg'"
+                                        >
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <h1 class="product-title display-3 mb-2">{{ product_name }}</h1>
+                <h4 class="store-name text-muted mb-3">
+                    Sold by: 
+                    <a href="{{ url_for('store_products', seller_id=product.user_id) if product and product.user_id else '#' }}" class="text-decoration-none">
+                        {{ store_name if store_name else 'Zyntra Store' }}
+                    </a>
+                </h4>
+                <div class="product-price h2 text-primary">₱{{ "{:,.2f}".format(product_price) }}</div>
+                
+                <!-- Stock Status -->
+                <div class="stock-status {% if product_qty > 0 %}in-stock{% else %}out-of-stock{% endif %}">
+                    <i class="fas {% if product_qty > 0 %}fa-check-circle{% else %}fa-times-circle{% endif %} me-2"></i>
+                    {% if product_qty > 0 %}
+                        In Stock ({{ product_qty }} available)
+                    {% else %}
+                        Out of Stock
+                    {% endif %}
+                </div>
+
+                <!-- Add to Cart Form -->
+                <form action="/add-to-cart" method="POST" class="mt-4">
+                    <input type="hidden" name="product_id" value="{{ product_id }}">
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        {% if auth_user and auth_user.role_id == 2 %}
+                            <button type="submit" class="btn btn-primary btn-add-to-cart">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            </button>
+                        {% elif not auth_user %}
+                            <button type="button" class="btn btn-primary btn-add-to-cart" onclick="showLoginReminder()">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            </button>
+                        {% endif %}
+                        <button type="button" class="btn-wishlist" title="Add to Wishlist">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Delivery Info -->
+                <div class="delivery-info">
+                    <p><i class="fas fa-truck"></i> Free delivery for orders above ₱500</p>
+                    <p><i class="fas fa-clock"></i> Estimated delivery: 3-5 business days</p>
+                    <p><i class="fas fa-undo"></i> 30-day easy returns</p>
+                </div>
+
+                <!-- Share Buttons -->
+                <div class="share-buttons mt-4">
+                    <span class="me-2">Share:</span>
+                    <a href="#" class="text-muted me-3"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-muted me-3"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-muted me-3"><i class="fab fa-pinterest"></i></a>
+                    <a href="#" class="text-muted"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="product-tabs">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Description</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Reviews</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    <div class="product-description">
+                        {{ product_description|safe }}
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="specs" role="tabpanel" aria-labelledby="specs-tab">
+                    <p class="mb-0">Product specifications will be displayed here.</p>
+                </div>
+                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    <p class="mb-0">Customer reviews will be displayed here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Login Reminder Modal -->
+{% if not auth_user %}
+<div class="modal fade" id="loginReminderModal" tabindex="-1" role="dialog" aria-labelledby="loginReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="loginReminderModalLabel">Login Required</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-user-lock fa-4x text-primary mb-3"></i>
+                <p>Please log in to add items to your cart.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/login" class="btn btn-primary">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<!-- Swiper JS -->
+<script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+<script>
+    // Initialize Swiper when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Swiper
+        const swiper = new Swiper('.thumbnail-swiper', {
+            slidesPerView: 4,
+            spaceBetween: 10,
+            freeMode: true,
+            watchSlidesProgress: true,
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                320: {
+                    slidesPerView: 3,
+                    spaceBetween: 8
+                },
+                480: {
+                    slidesPerView: 4,
+                    spaceBetween: 10
+                },
+                768: {
+                    slidesPerView: 5,
+                    spaceBetween: 10
+                },
+                992: {
+                    slidesPerView: 4,
+                    spaceBetween: 10
+                }
+            },
+            on: {
+                init: function() {
+                    // Add active class to first slide
+                    this.slides[0].classList.add('swiper-slide-thumb-active');
+                }
+            }
+        });
+
+        // Handle thumbnail click
+        // Handle thumbnail click - using event delegation for better performance
+        const thumbnailContainer = document.querySelector('.thumbnail-swiper .swiper-wrapper');
+        if (thumbnailContainer) {
+            thumbnailContainer.addEventListener('click', function(e) {
+                // Find the closest swiper-slide element that was clicked
+                const slide = e.target.closest('.swiper-slide');
+                if (!slide) return;
+                
+                e.preventDefault();
+                
+                // Get the image URL from data attribute
+                const imgSrc = slide.getAttribute('data-image-url');
+                console.log('Thumbnail clicked, changing to:', imgSrc);
+                
+                // Remove active class from all thumbnails
+                document.querySelectorAll('.thumbnail-swiper .swiper-slide').forEach(el => {
+                    el.classList.remove('swiper-slide-thumb-active');
+                });
+                
+                // Add active class to clicked thumbnail
+                slide.classList.add('swiper-slide-thumb-active');
+                
+                // Change the main image
+                changeMainImage(imgSrc);
+            });
+            
+            console.log('Thumbnail click handler attached');
+        } else {
+            console.error('Could not find thumbnail container');
+        }
+
+        // Quantity handling removed - will be implemented in cart
+    });
+
+    // Change main image when thumbnail is clicked
+    function changeMainImage(src) {
+        console.log('changeMainImage called with src:', src);
+        const mainImage = document.getElementById('mainImage');
+        if (!mainImage) {
+            console.error('Main image element not found');
+            return;
+        }
+
+        console.log('Current main image src:', mainImage.src);
+        console.log('New image src:', src);
+
+        // Add fade out effect
+        mainImage.style.opacity = '0.5';
+        mainImage.style.transition = 'opacity 0.3s ease';
+        
+        // Create a new image for preloading
+        const img = new Image();
+        
+        img.onload = function() {
+            console.log('New image loaded successfully');
+            // Only update if the image loaded successfully
+            mainImage.src = src;
+            mainImage.style.opacity = '1';
+            
+            // Update active thumbnail based on data attribute for better reliability
+            document.querySelectorAll('.thumbnail-swiper .swiper-slide').forEach(thumb => {
+                const thumbSrc = thumb.getAttribute('data-image-url');
+                // Compare the full URLs to ensure they match
+                if (thumbSrc && new URL(thumbSrc, window.location.origin).href === new URL(src, window.location.origin).href) {
+                    thumb.classList.add('swiper-slide-thumb-active');
+                } else {
+                    thumb.classList.remove('swiper-slide-thumb-active');
+                }
+            });
+        };
+        
+        img.onerror = function() {
+            // If image fails to load, revert opacity and show error
+            console.error('Failed to load image:', src);
+            mainImage.style.opacity = '1';
+            
+            // Try to load the fallback image
+            mainImage.onerror = null;
+            mainImage.src = '/static/images/no-image.jpg';
+        };
+        
+        // Start loading the image
+        console.log('Starting to load image:', src);
+        img.src = src;
+    }
+
+    // Show login reminder modal
+    function showLoginReminder() {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginReminderModal'));
+        loginModal.show();
+    }
+</script>
+{% endblock %}

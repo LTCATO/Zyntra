@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 13, 2025 at 02:23 PM
+-- Generation Time: Nov 15, 2025 at 06:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -84,7 +84,8 @@ INSERT INTO `delivery_partners` (`partner_id`, `user_id`, `full_name`, `email`, 
 (4, 15, 'John Lloyd J. Bustria', 'lloydbustqweqweqria9@gmail.com', '+639692991918', 'motorcycle', 'qweqwe', 'National Capital Region (NCR)', 'Ncr, City Of Manila, First District', 'Santa Ana', 'Barangay 760', 'qwe', 'static/uploads/delivery_documents\\858699063267528.jpg', 'static/uploads/delivery_documents\\800479614633300.jpg', '2025-10-21 06:14:32', '2025-10-21 06:14:32', 0),
 (5, 18, 'Lloyd', 'leloyd@gmail.com', '092939872939', 'motorcycle', '123', 'National Capital Region (NCR)', 'Ncr, City Of Manila, First District', 'Santa Ana', 'Barangay 761', '123', 'static/uploads/delivery_documents\\704485561520456.jpg', 'static/uploads/delivery_documents\\825082006708596.jpg', '2025-10-21 14:08:56', '2025-10-21 14:08:56', 0),
 (6, 20, 'qwe', 'qweasd@gmail.com', '09592882817', 'motorcycle', 'qwe', 'Cordillera Administrative Region (CAR)', 'Apayao', 'Luna', 'San Isidro Sur', 'qwe', 'static/uploads/delivery_documents\\460881311677105.jpg', 'static/uploads/delivery_documents\\939714424737417.jpg', '2025-10-22 16:39:00', '2025-10-22 16:39:00', 0),
-(7, 22, 'John Kaith', 'pogese@gmail.com', '09876543218', 'car', 'WEC 327', 'Region VII (Central Visayas)', 'Cebu', 'Borbon', 'Poblacion', 'N/A', 'static/uploads/delivery_documents\\873519154793761.jpg', 'static/uploads/delivery_documents\\777731177533426.jpg', '2025-10-25 15:32:36', '2025-10-25 15:32:36', 0);
+(7, 22, 'John Kaith', 'pogese@gmail.com', '09876543218', 'car', 'WEC 327', 'Region VII (Central Visayas)', 'Cebu', 'Borbon', 'Poblacion', 'N/A', 'static/uploads/delivery_documents\\873519154793761.jpg', 'static/uploads/delivery_documents\\777731177533426.jpg', '2025-10-25 15:32:36', '2025-10-25 15:32:36', 0),
+(8, 25, 'Delivery', 'driver@gmail.com', '09692991918', 'motorcycle', 'qweqwe', 'National Capital Region (NCR)', 'City Of Manila', 'San Nicolas', 'Barangay 285', 'qwe', 'static/uploads/delivery_documents\\826498360863382.pdf', 'static/uploads/delivery_documents\\361721546715047.pdf', '2025-11-15 11:19:04', '2025-11-15 11:19:04', 0);
 
 -- --------------------------------------------------------
 
@@ -217,14 +218,15 @@ CREATE TABLE `seller_details` (
 --
 
 INSERT INTO `seller_details` (`seller_detail_id`, `user_id`, `store_name`, `description`, `region`, `province`, `city`, `barangay`, `street`, `gov_id_path`, `business_permit_path`, `created_at`, `updated_at`, `status`) VALUES
-(1, 5, 'Techonologia', NULL, 'Cordillera Administrative Region (CAR)', 'Ifugao', 'Mayoyao', 'Guinihon', '12', 'static/uploads/seller_documents\\770661652449458.jpg', NULL, '2025-10-10 18:10:13', '2025-10-10 18:10:13', 0),
+(1, 5, 'Techonologia', NULL, 'Cordillera Administrative Region (CAR)', 'Ifugao', 'Mayoyao', 'Guinihon', '12', 'static/uploads/seller_documents\\770661652449458.jpg', NULL, '2025-10-10 18:10:13', '2025-11-14 09:55:44', 1),
 (2, 7, 'PATheTECH', NULL, 'Region I (Ilocos Region)', 'Pangasinan', 'Bugallon', 'Magtaking', '12', 'static/uploads/seller_documents\\452817055855753.JPG', 'static/uploads/seller_documents\\603101768859766.pdf', '2025-10-12 06:38:23', '2025-10-12 06:38:23', 0),
 (3, 10, 'TechHub PH', NULL, 'Region IV-A (CALABARZON)', 'Laguna', 'Nagcarlan', 'Labangan', 'awdasd', 'static/uploads/seller_documents\\377705370899734.jpg', 'static/uploads/seller_documents\\609123171640162.jpg', '2025-10-19 12:13:56', '2025-10-19 12:13:56', 0),
 (4, 12, 'Lloyd Store', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato City', 'Cotabato City', 'Poblacion VII', 'Brgy.', 'static/uploads/seller_documents\\665100862423891.jpg', 'static/uploads/seller_documents\\146813614756320.jpg', '2025-10-21 02:39:35', '2025-10-21 02:39:35', 0),
 (5, 14, 'qweqwe', NULL, 'Region II (Cagayan Valley)', 'Isabela', 'Benito Soliven', 'Balliao', 'qwe', 'static/uploads/seller_documents\\676887450916208.jpg', 'static/uploads/seller_documents\\393220925025124.jpg', '2025-10-21 06:14:05', '2025-10-21 06:14:05', 0),
-(6, 16, 'qwe', NULL, 'Region II (Cagayan Valley)', 'Cagayan', 'Enrile', 'Liwan Norte', 'qwe', 'static/uploads/seller_documents\\262530876034798.jpg', 'static/uploads/seller_documents\\752463259528736.jpg', '2025-10-21 06:15:54', '2025-10-21 06:15:54', 0),
-(7, 19, '123', NULL, 'National Capital Region (NCR)', 'Ncr, Fourth District', 'Pasay City', 'Barangay 112', 'qwe', 'static/uploads/seller_documents\\303962223639699.jpg', 'static/uploads/seller_documents\\899347496867168.jpg', '2025-10-22 16:38:15', '2025-10-22 16:38:15', 0),
-(8, 23, 'Techonologia', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato City', 'Cotabato City', 'Poblacion V', 'N/A', 'static/uploads/seller_documents\\305843389661724.jpg', 'static/uploads/seller_documents\\648361036578343.png', '2025-10-29 04:15:36', '2025-10-29 04:15:36', 0);
+(6, 16, 'qwe', NULL, 'Region II (Cagayan Valley)', 'Cagayan', 'Enrile', 'Liwan Norte', 'qwe', 'static/uploads/seller_documents\\262530876034798.jpg', 'static/uploads/seller_documents\\752463259528736.jpg', '2025-10-21 06:15:54', '2025-11-14 10:12:37', 1),
+(7, 19, '123', NULL, 'National Capital Region (NCR)', 'Ncr, Fourth District', 'Pasay City', 'Barangay 112', 'qwe', 'static/uploads/seller_documents\\303962223639699.jpg', 'static/uploads/seller_documents\\899347496867168.jpg', '2025-10-22 16:38:15', '2025-11-15 17:21:42', 1),
+(8, 23, 'Techonologia', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato City', 'Cotabato City', 'Poblacion V', 'N/A', 'static/uploads/seller_documents\\305843389661724.jpg', 'static/uploads/seller_documents\\648361036578343.png', '2025-10-29 04:15:36', '2025-11-13 13:31:43', 1),
+(9, 24, 'Seller', NULL, 'Region XII (SOCCSKSARGEN)', 'Cotabato (North Cotabato)', 'Pigkawayan', 'Lower Pangangkalan', 'qwe', 'static/uploads/seller_documents\\465302976581719.pdf', 'static/uploads/seller_documents\\612746791708541.pdf', '2025-11-15 11:18:25', '2025-11-15 11:19:56', 1);
 
 -- --------------------------------------------------------
 
@@ -254,7 +256,7 @@ INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `pa
 (2, 2, 'Risu', 'Ame', 'oyencelis@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543212', '2025-10-10 14:45:45', '2025-10-10 22:45:45', 1),
 (3, 2, 'Risu', 'Ame', 'potanginanoellenanaman@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543213', '2025-10-10 15:13:39', '2025-10-10 23:13:39', 1),
 (4, 2, 'Xarco', 'Batumbakal', 'resu0510@gmail.com', '96fe0b44f128aa191ed0e7fd7af9f8f37541f96098f9e242f3f042aee465c6c8', '09876543214', '2025-10-10 17:00:16', '2025-10-11 01:00:16', 1),
-(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-10-10 18:10:13', '2025-10-23 00:13:59', 1),
+(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1),
 (6, 4, 'Arce', 'LC', 'ventre@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543217', '2025-10-12 06:25:02', '2025-10-22 03:06:20', 2),
 (7, 3, 'Lawrence', 'Celis', 'asdfghj@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-12 06:38:23', '2025-10-23 00:10:06', 1),
 (8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1),
@@ -265,14 +267,16 @@ INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `pa
 (13, 2, 'Lloyd', 'Bustria', 'your123123123@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09123423442', '2025-10-21 02:45:40', '2025-10-21 10:45:40', 1),
 (14, 3, 'qwe', '', 'qweqweqweqwe@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+6392938472726', '2025-10-21 06:14:05', '2025-10-23 00:35:34', 1),
 (15, 4, 'John', 'Lloyd J. Bustria', 'lloydbustqweqweqria9@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+639692991918', '2025-10-21 06:14:32', '2025-10-22 03:06:20', 2),
-(16, 3, 'qwe', '', 'qweqwe@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+6392938472726', '2025-10-21 06:15:54', '2025-10-23 00:32:42', 1),
+(16, 3, 'qwe', '', 'qweqwe@gmail.com', '0d1ea4c256cd50a2a7ccbfd22b3d9959f6fd30bd840b9ff3c7c65ee4e21df06d', '+6392938472726', '2025-10-21 06:15:54', '2025-11-14 18:12:37', 1),
 (17, 2, 'Lloyd', 'Bustria', 'lloyd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-10-21 12:55:11', '2025-11-13 20:58:03', 2),
 (18, 4, 'Lloyd', '', 'leloyd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '092939872939', '2025-10-21 14:08:56', '2025-10-22 03:06:52', 1),
-(19, 3, 'wert', '', 'wer@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '0929983745674', '2025-10-22 16:38:15', '2025-10-23 00:38:15', 2),
+(19, 3, 'wert', '', 'wer@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '0929983745674', '2025-10-22 16:38:15', '2025-11-16 01:21:42', 1),
 (20, 4, 'qwe', '', 'qweasd@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09592882817', '2025-10-22 16:39:00', '2025-10-23 00:39:00', 2),
 (21, 2, 'qwe', 'qwe', 'qwesdafa@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-10-22 16:39:23', '2025-10-23 00:39:23', 1),
 (22, 4, 'John', 'Kaith', 'pogese@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-25 15:32:36', '2025-10-25 23:32:36', 2),
-(23, 3, 'Lawrence', 'Celis', 'lc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-29 04:15:36', '2025-10-29 12:15:36', 2);
+(23, 3, 'Lawrence', 'Celis', 'lc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-10-29 04:15:36', '2025-11-13 21:31:43', 1),
+(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-11-15 11:18:25', '2025-11-15 19:19:56', 1),
+(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-11-15 11:19:04', '2025-11-15 19:19:04', 2);
 
 --
 -- Triggers `users`
@@ -358,7 +362,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `delivery_partners`
 --
 ALTER TABLE `delivery_partners`
-  MODIFY `partner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `partner_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -382,13 +386,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `seller_details`
 --
 ALTER TABLE `seller_details`
-  MODIFY `seller_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `seller_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- Constraints for dumped tables

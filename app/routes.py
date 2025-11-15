@@ -9,7 +9,7 @@ from helpers.HelperFunction import responseData
 # Controllers
 from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop
 
-from controller.LoginController import login, LoginSubmit, signup, signupSubmit, sellerSignup, sellerSignupSubmit, deliveryPartnerSignup, deliveryPartnerSignupSubmit
+from controller.LoginController import login, LoginSubmit, signup, signupSubmit, sellerSignup, sellerSignupSubmit, deliveryPartnerSignup, deliveryPartnerSignupSubmit, getDeliveryPartnerDocuments, getSellerDocuments
 # Authenticate controllers
 from controller.DashboardController import dashboardIndex
 from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit
@@ -233,6 +233,16 @@ def setup_routes(app: Flask):
     @app.route('/update-cart', methods=['POST'])
     def update_cart():
         return updateCart()
+    
+    # API endpoint for fetching delivery partner documents
+    @app.route('/api/delivery-partners/<int:user_id>/documents', methods=['GET'])
+    def get_delivery_partner_documents(user_id):
+        return getDeliveryPartnerDocuments(user_id)
+    
+    # API endpoint for fetching seller documents
+    @app.route('/api/sellers/<int:user_id>/documents', methods=['GET'])
+    def get_seller_documents(user_id):
+        return getSellerDocuments(user_id)
     
     @app.route('/checkout')
     def checkout_page():

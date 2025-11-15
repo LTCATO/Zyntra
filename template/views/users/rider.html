@@ -250,33 +250,257 @@ $(document).ready(function() {
         // Show the modal
         documentsModal.show();
         
-        // Here you would typically make an AJAX call to fetch the documents
-        // For now, we'll simulate a delay and show a message
-        setTimeout(() => {
+        // Fetch actual documents from database
+        $.ajax({
+            url: `/api/delivery-partners/${currentUserId}/documents`,
+            method: 'GET',
+            success: function(response) {
+                displayDocuments(response.data);
+            },
+            error: function(xhr) {
+                console.error('Error fetching documents:', xhr);
+                $('#documentsModalBody').html(`
+                  <div class="alert alert-danger">
+                    <i class='bx bx-error-circle'></i> Failed to load documents. Please try again.
+                  </div>
+                `);
+            }
+        });
+    });
+    
+    // Function to display documents
+    function displayDocuments(documents) {
+        if (!documents || documents.length === 0) {
             $('#documentsModalBody').html(`
-              <div class="document-list">
-                <div class="alert alert-info">
-                  Document viewing functionality will be implemented here.<br>
-                  User ID: ${currentUserId}
-                </div>
-                <!-- Example document items -->
-                <div class="list-group">
-                  <a href="#" class="list-group-item list-group-item-action">
-                    <i class='bx bx-file-pdf text-danger me-2'></i> License_Document.pdf
-                  </a>
-                  <a href="#" class="list-group-item list-group-item-action">
-                    <i class='bx bx-id-card text-info me-2'></i> ID_Verification.jpg
-                  </a>
-                  <a href="#" class="list-group-item list-group-item-action">
-                    <i class='bx bx-car text-warning me-2'></i> Vehicle_Registration.pdf
-                  </a>
-                </div>
+              <div class="alert alert-info">
+                <i class='bx bx-info-circle'></i> No documents found for this delivery partner.
               </div>
             `);
+            return;
+        }
+        
+        let documentListHtml = '';
+        documents.forEach((doc, index) => {
+            const docType = getDocumentType(doc.file_path);
+            const docName = getDocumentName(doc.document_type, doc.file_path);
+            const docUrl = doc.file_path;
+            
+            documentListHtml += `
+              <a href="#" class="list-group-item list-group-item-action document-item" data-doc-type="${docType}" data-doc-name="${docName}" data-doc-url="${docUrl}">
+                <i class='${getDocumentIcon(docType)} me-2'></i> ${docName}
+                <span class="float-end">
+                  <button class="btn btn-sm btn-outline-primary view-doc-btn" data-doc-type="${docType}" data-doc-name="${docName}" data-doc-url="${docUrl}">
+                    <i class='bx bx-show'></i> View
+                  </button>
+                  <button class="btn btn-sm btn-outline-success download-doc-btn ms-1" data-doc-url="${docUrl}">
+                    <i class='bx bx-download'></i> Download
+                  </button>
+                </span>
+              </a>
+            `;
+        });
+        
+        $('#documentsModalBody').html(`
+          <div class="document-viewer">
+            <div class="alert alert-info">
+              Click on any document to view it in the viewer below.<br>
+              Delivery Partner ID: ${currentUserId}
+            </div>
+            <!-- Document list -->
+            <div class="list-group mb-3">
+              ${documentListHtml}
+            </div>
+            
+            <!-- Document viewer section -->
+            <div id="documentViewer" class="document-viewer-container d-none">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Document Viewer: <span id="viewerTitle"></span></h6>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="closeViewer">
+                  <i class='bx bx-x'></i> Close Viewer
+                </button>
+              </div>
+              <div class="border rounded p-2 bg-light" style="min-height: 400px; max-height: 600px; overflow: auto;">
+                <div id="viewerContent" class="text-center">
+                  <!-- Document content will be loaded here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        `);
             // Show download all button when documents are loaded
             $('#downloadAllBtn').removeClass('d-none');
-        }, 1000);
-    });
+            
+            // Attach event handlers for document viewer
+            attachDocumentViewerHandlers();
+    }
+    
+    // Helper function to get document type from file path
+    function getDocumentType(filePath) {
+        if (!filePath) return 'unknown';
+        const extension = filePath.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
+            return 'image';
+        } else if (['pdf'].includes(extension)) {
+            return 'pdf';
+        }
+        return 'unknown';
+    }
+    
+    // Helper function to get document icon based on type
+    function getDocumentIcon(docType) {
+        switch(docType) {
+            case 'pdf':
+                return 'bx bx-file-pdf text-danger';
+            case 'image':
+                return 'bx bx-image text-info';
+            default:
+                return 'bx bx-file text-secondary';
+        }
+    }
+    
+    // Helper function to get document name
+    function getDocumentName(docType, filePath) {
+        if (!filePath) return 'Unknown Document';
+        const fileName = filePath.split('\\').pop().split('/').pop();
+        
+        switch(docType) {
+            case 'license':
+                return `Driver's License - ${fileName}`;
+            case 'gov_id':
+                return `Government ID - ${fileName}`;
+            default:
+                return fileName;
+        }
+    }
+    
+    // Function to attach document viewer handlers
+    function attachDocumentViewerHandlers() {
+        // Handle view document button clicks
+        $('.view-doc-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const docType = $(this).data('doc-type');
+            const docName = $(this).data('doc-name');
+            const docUrl = $(this).data('doc-url');
+            
+            showDocumentViewer(docType, docName, docUrl);
+        });
+        
+        // Handle download document button clicks
+        $('.download-doc-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const docUrl = $(this).data('doc-url');
+            downloadDocument(docUrl);
+        });
+        
+        // Handle close viewer button
+        $('#closeViewer').on('click', function() {
+            hideDocumentViewer();
+        });
+    }
+    
+    // Function to show document viewer
+    function showDocumentViewer(docType, docName, docUrl) {
+        $('#viewerTitle').text(docName);
+        $('#documentViewer').removeClass('d-none');
+        
+        // Show loading state
+        $('#viewerContent').html(`
+            <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading document...</span>
+                </div>
+            </div>
+        `);
+        
+        // Load document based on type
+        setTimeout(() => {
+            if (docType === 'pdf') {
+                loadPdfDocument(docUrl);
+            } else if (docType === 'image') {
+                loadImageDocument(docUrl);
+            } else {
+                $('#viewerContent').html(`
+                    <div class="alert alert-warning">
+                        <i class='bx bx-error'></i> Unsupported document type: ${docType}
+                    </div>
+                `);
+            }
+        }, 500);
+    }
+    
+    // Function to load PDF document
+    function loadPdfDocument(docUrl) {
+        // For demo purposes, we'll show a PDF viewer iframe
+        // In production, this should use the actual document URL
+        $('#viewerContent').html(`
+            <div class="pdf-viewer">
+                <iframe src="${docUrl}" 
+                        style="width: 100%; height: 500px; border: none;" 
+                        onload="this.style.display='block';"
+                        onerror="handleDocumentLoadError('PDF', '${docUrl}');">
+                </iframe>
+                <div class="text-center mt-2">
+                    <small class="text-muted">If the document doesn't load, you may need to download it to view.</small>
+                </div>
+            </div>
+        `);
+    }
+    
+    // Function to load image document
+    function loadImageDocument(docUrl) {
+        // For demo purposes, we'll show an image
+        // In production, this should use the actual document URL
+        $('#viewerContent').html(`
+            <div class="image-viewer">
+                <img src="${docUrl}" 
+                     alt="Document" 
+                     class="img-fluid" 
+                     style="max-width: 100%; max-height: 500px; object-fit: contain;"
+                     onload="this.style.display='block';"
+                     onerror="handleDocumentLoadError('Image', '${docUrl}');">
+                <div class="text-center mt-2">
+                    <small class="text-muted">Image viewer - scroll to see full image if needed</small>
+                </div>
+            </div>
+        `);
+    }
+    
+    // Function to handle document load errors
+    window.handleDocumentLoadError = function(docType, docUrl) {
+        $('#viewerContent').html(`
+            <div class="alert alert-danger">
+                <i class='bx bx-error-circle'></i> Failed to load ${docType} document.
+                <br><small>The document may not be available or there might be a network issue.</small>
+                <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="downloadDocument('${docUrl}')">
+                    <i class='bx bx-download'></i> Download Instead
+                </button>
+            </div>
+        `);
+    };
+    
+    // Function to hide document viewer
+    function hideDocumentViewer() {
+        $('#documentViewer').addClass('d-none');
+        $('#viewerContent').empty();
+    }
+    
+    // Function to download document
+    function downloadDocument(docUrl) {
+        // Create a temporary link element to trigger download
+        const link = document.createElement('a');
+        link.href = docUrl;
+        link.download = ''; // Let the server determine filename
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('info', 'Download started...');
+    }
     
     // Handle download all button click
     $('#downloadAllBtn').on('click', function(e) {

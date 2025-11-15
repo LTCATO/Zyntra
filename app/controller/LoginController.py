@@ -346,3 +346,81 @@ def deliveryPartnerSignupSubmit():
 
     except Exception as e:
         return responseData("error", f"An error occurred: {str(e)}", "", 200)
+
+
+def getDeliveryPartnerDocuments(user_id):
+    """Fetch delivery partner documents from database"""
+    try:
+        # Query delivery partner documents
+        query = """
+            SELECT drivers_license_path, gov_id_path 
+            FROM delivery_partners 
+            WHERE user_id = %s
+        """
+        
+        result = executeGet(query, (user_id,))
+        
+        if result and len(result) > 0:
+            documents = []
+            
+            # Add driver's license if exists
+            if result[0]['drivers_license_path']:
+                documents.append({
+                    'document_type': 'license',
+                    'file_path': result[0]['drivers_license_path'],
+                    'file_name': result[0]['drivers_license_path'].split('\\').pop().split('/').pop()
+                })
+            
+            # Add government ID if exists
+            if result[0]['gov_id_path']:
+                documents.append({
+                    'document_type': 'gov_id',
+                    'file_path': result[0]['gov_id_path'],
+                    'file_name': result[0]['gov_id_path'].split('\\').pop().split('/').pop()
+                })
+            
+            return responseData("success", "Documents fetched successfully", documents, 200)
+        else:
+            return responseData("error", "No delivery partner found with this ID", [], 200)
+            
+    except Exception as e:
+        return responseData("error", f"Database error: {str(e)}", [], 200)
+
+
+def getSellerDocuments(user_id):
+    """Fetch seller documents from database"""
+    try:
+        # Query seller documents
+        query = """
+            SELECT gov_id_path, business_permit_path 
+            FROM seller_details 
+            WHERE user_id = %s
+        """
+        
+        result = executeGet(query, (user_id,))
+        
+        if result and len(result) > 0:
+            documents = []
+            
+            # Add government ID if exists
+            if result[0]['gov_id_path']:
+                documents.append({
+                    'document_type': 'gov_id',
+                    'file_path': result[0]['gov_id_path'],
+                    'file_name': result[0]['gov_id_path'].split('\\').pop().split('/').pop()
+                })
+            
+            # Add business permit if exists
+            if result[0]['business_permit_path']:
+                documents.append({
+                    'document_type': 'business_permit',
+                    'file_path': result[0]['business_permit_path'],
+                    'file_name': result[0]['business_permit_path'].split('\\').pop().split('/').pop()
+                })
+            
+            return responseData("success", "Documents fetched successfully", documents, 200)
+        else:
+            return responseData("error", "No seller found with this ID", [], 200)
+            
+    except Exception as e:
+        return responseData("error", f"Database error: {str(e)}", [], 200)

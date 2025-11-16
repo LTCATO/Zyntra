@@ -206,9 +206,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <a href="#" id="downloadAllBtn" class="btn btn-primary d-none">
-            <i class='bx bx-download'></i> Download All
-          </a>
         </div>
       </div>
     </div>
@@ -279,56 +276,40 @@ $(document).ready(function() {
             return;
         }
         
-        let documentListHtml = '';
-        documents.forEach((doc, index) => {
+        let documentsHtml = '<div class="document-list">';
+        documentsHtml += '<div class="mb-3"><h6><i class="bx bx-user me-2"></i>Delivery Partner Documents</h6></div>';
+        documentsHtml += '<div class="list-group">';
+        
+        documents.forEach(function(doc) {
             const docType = getDocumentType(doc.file_path);
+            const icon = getDocumentIcon(docType);
             const docName = getDocumentName(doc.document_type, doc.file_path);
-            const docUrl = doc.file_path;
             
-            documentListHtml += `
-              <a href="#" class="list-group-item list-group-item-action document-item" data-doc-type="${docType}" data-doc-name="${docName}" data-doc-url="${docUrl}">
-                <i class='${getDocumentIcon(docType)} me-2'></i> ${docName}
-                <span class="float-end">
-                  <button class="btn btn-sm btn-outline-primary view-doc-btn" data-doc-type="${docType}" data-doc-name="${docName}" data-doc-url="${docUrl}">
-                    <i class='bx bx-show'></i> View
-                  </button>
-                  <button class="btn btn-sm btn-outline-success download-doc-btn ms-1" data-doc-url="${docUrl}">
-                    <i class='bx bx-download'></i> Download
-                  </button>
-                </span>
-              </a>
+            documentsHtml += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="${icon} me-3 fs-4"></i>
+                        <div>
+                            <div class="fw-medium">${docName}</div>
+                            <small class="text-muted">${docType.toUpperCase()}</small>
+                        </div>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary view-document" data-file-path="${doc.file_path}" data-doc-type="${docType}">
+                            <i class='bx bx-show me-1'></i>View
+                        </button>
+                        <button class="btn btn-outline-success download-document" data-file-path="${doc.file_path}">
+                            <i class='bx bx-download me-1'></i>Download
+                        </button>
+                    </div>
+                </div>
             `;
         });
         
-        $('#documentsModalBody').html(`
-          <div class="document-viewer">
-            <div class="alert alert-info">
-              Click on any document to view it in the viewer below.<br>
-              Delivery Partner ID: ${currentUserId}
-            </div>
-            <!-- Document list -->
-            <div class="list-group mb-3">
-              ${documentListHtml}
-            </div>
-            
-            <!-- Document viewer section -->
-            <div id="documentViewer" class="document-viewer-container d-none">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">Document Viewer: <span id="viewerTitle"></span></h6>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="closeViewer">
-                  <i class='bx bx-x'></i> Close Viewer
-                </button>
-              </div>
-              <div class="border rounded p-2 bg-light" style="min-height: 400px; max-height: 600px; overflow: auto;">
-                <div id="viewerContent" class="text-center">
-                  <!-- Document content will be loaded here -->
-                </div>
-              </div>
-            </div>
-          </div>
-        `);
-            // Show download all button when documents are loaded
-            $('#downloadAllBtn').removeClass('d-none');
+        documentsHtml += '</div>';
+        documentsHtml += '</div>';
+        
+        $('#documentsModalBody').html(documentsHtml);
             
             // Attach event handlers for document viewer
             attachDocumentViewerHandlers();
@@ -375,73 +356,74 @@ $(document).ready(function() {
     
     // Function to attach document viewer handlers
     function attachDocumentViewerHandlers() {
-        // Handle view document button clicks
-        $('.view-doc-btn').on('click', function(e) {
+        // View document click handler
+        $('.view-document').on('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            
+            const filePath = $(this).data('file-path');
             const docType = $(this).data('doc-type');
-            const docName = $(this).data('doc-name');
-            const docUrl = $(this).data('doc-url');
-            
-            showDocumentViewer(docType, docName, docUrl);
+            showDocumentViewer(filePath, docType);
         });
-        
-        // Handle download document button clicks
-        $('.download-doc-btn').on('click', function(e) {
+
+        // Download document click handler
+        $('.download-document').on('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            
-            const docUrl = $(this).data('doc-url');
-            downloadDocument(docUrl);
-        });
-        
-        // Handle close viewer button
-        $('#closeViewer').on('click', function() {
-            hideDocumentViewer();
+            const filePath = $(this).data('file-path');
+            downloadDocument(filePath);
         });
     }
     
-    // Function to show document viewer
-    function showDocumentViewer(docType, docName, docUrl) {
-        $('#viewerTitle').text(docName);
-        $('#documentViewer').removeClass('d-none');
+    // Show document viewer
+    function showDocumentViewer(filePath, docType) {
+        // Store current file path globally for access in onclick handlers
+        window.currentDocumentPath = filePath;
         
-        // Show loading state
-        $('#viewerContent').html(`
-            <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading document...</span>
+        const viewerHtml = `
+            <div class="document-viewer">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">
+                        Document Viewer
+                    </h6>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="hideDocumentViewer()">
+                            <i class='bx bx-arrow-back me-1'></i> Back to Documents
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadDocument(window.currentDocumentPath)">
+                            <i class='bx bx-download me-1'></i> Download
+                        </button>
+                    </div>
+                </div>
+                <div class="border rounded p-2 bg-light" style="min-height: 400px; max-height: 600px; overflow: auto;">
+                    <div id="documentContent" class="text-center">
+                        <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading document...</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        `);
-        
+        `;
+
+        $('#documentsModalBody').html(viewerHtml);
+
         // Load document based on type
-        setTimeout(() => {
-            if (docType === 'pdf') {
-                loadPdfDocument(docUrl);
-            } else if (docType === 'image') {
-                loadImageDocument(docUrl);
-            } else {
-                $('#viewerContent').html(`
-                    <div class="alert alert-warning">
-                        <i class='bx bx-error'></i> Unsupported document type: ${docType}
-                    </div>
-                `);
-            }
-        }, 500);
+        if (docType === 'pdf') {
+            loadPdfDocument(filePath);
+        } else if (docType === 'image') {
+            loadImageDocument(filePath);
+        } else {
+            handleDocumentLoadError('Unsupported document type');
+        }
     }
     
-    // Function to load PDF document
-    function loadPdfDocument(docUrl) {
-        // For demo purposes, we'll show a PDF viewer iframe
-        // In production, this should use the actual document URL
-        $('#viewerContent').html(`
+    // Load PDF document
+    function loadPdfDocument(filePath) {
+        $('#documentContent').html(`
             <div class="pdf-viewer">
-                <iframe src="${docUrl}" 
+                <iframe src="${filePath}" 
                         style="width: 100%; height: 500px; border: none;" 
                         onload="this.style.display='block';"
-                        onerror="handleDocumentLoadError('PDF', '${docUrl}');">
+                        onerror="handleDocumentLoadError('PDF', '${filePath}');">
                 </iframe>
                 <div class="text-center mt-2">
                     <small class="text-muted">If the document doesn't load, you may need to download it to view.</small>
@@ -451,17 +433,15 @@ $(document).ready(function() {
     }
     
     // Function to load image document
-    function loadImageDocument(docUrl) {
-        // For demo purposes, we'll show an image
-        // In production, this should use the actual document URL
-        $('#viewerContent').html(`
+    function loadImageDocument(filePath) {
+        $('#documentContent').html(`
             <div class="image-viewer">
-                <img src="${docUrl}" 
+                <img src="${filePath}" 
                      alt="Document" 
                      class="img-fluid" 
                      style="max-width: 100%; max-height: 500px; object-fit: contain;"
                      onload="this.style.display='block';"
-                     onerror="handleDocumentLoadError('Image', '${docUrl}');">
+                     onerror="handleDocumentLoadError('Image', '${filePath}');">
                 <div class="text-center mt-2">
                     <small class="text-muted">Image viewer - scroll to see full image if needed</small>
                 </div>
@@ -469,30 +449,44 @@ $(document).ready(function() {
         `);
     }
     
-    // Function to handle document load errors
-    window.handleDocumentLoadError = function(docType, docUrl) {
-        $('#viewerContent').html(`
+    // Handle document load errors
+    window.handleDocumentLoadError = function(docType, filePath) {
+        $('#documentContent').html(`
             <div class="alert alert-danger">
                 <i class='bx bx-error-circle'></i> Failed to load ${docType} document.
                 <br><small>The document may not be available or there might be a network issue.</small>
-                <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="downloadDocument('${docUrl}')">
+                <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="downloadDocument('${filePath}')">
                     <i class='bx bx-download'></i> Download Instead
                 </button>
             </div>
         `);
     };
     
-    // Function to hide document viewer
+    // Hide document viewer
     function hideDocumentViewer() {
-        $('#documentViewer').addClass('d-none');
-        $('#viewerContent').empty();
+        // Reload the documents list
+        $.ajax({
+            url: `/api/delivery-partners/${currentUserId}/documents`,
+            method: 'GET',
+            success: function(response) {
+                displayDocuments(response.data);
+            },
+            error: function(xhr) {
+                console.error('Error fetching documents:', xhr);
+                $('#documentsModalBody').html(`
+                  <div class="alert alert-danger">
+                    <i class='bx bx-error-circle'></i> Failed to load documents. Please try again.
+                  </div>
+                `);
+            }
+        });
     }
     
-    // Function to download document
-    function downloadDocument(docUrl) {
+    // Download document
+    function downloadDocument(filePath) {
         // Create a temporary link element to trigger download
         const link = document.createElement('a');
-        link.href = docUrl;
+        link.href = filePath;
         link.download = ''; // Let the server determine filename
         link.target = '_blank';
         document.body.appendChild(link);
@@ -501,15 +495,6 @@ $(document).ready(function() {
         
         showToast('info', 'Download started...');
     }
-    
-    // Handle download all button click
-    $('#downloadAllBtn').on('click', function(e) {
-        e.preventDefault();
-        if (currentUserId) {
-            // Implement download all functionality
-            showToast('info', 'Download all documents functionality will be implemented here');
-        }
-    });
 
     $('.change-status').on('click', function(e) {
         e.preventDefault();

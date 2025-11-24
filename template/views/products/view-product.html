@@ -19,10 +19,9 @@
                             <div class="swiper-wrapper">
                                 {% if product_images %}
                                     {% for image in product_images %}
-                                    {% set image_url = '/static/uploads/products/' + image %}
-                                    <div class="swiper-slide" data-image-url="{{ image_url }}">
+                                    <div class="swiper-slide" data-image-url="{{ image }}">
                                         <img 
-                                            src="{{ image_url }}"
+                                            src="{{ image }}"
                                             alt="{{ product_name }} - Thumbnail {{ loop.index }}"
                                             class="thumbnail-img"
                                             loading="lazy"
@@ -43,8 +42,6 @@
                                     </div>
                                 {% endif %}
                             </div>
-                            <div class="swiper-button-next"></div>
-                            <div class="swiper-button-prev"></div>
                         </div>
                     </div>
                 </div>
@@ -55,9 +52,13 @@
                 <h1 class="product-title display-3 mb-2">{{ product_name }}</h1>
                 <h4 class="store-name text-muted mb-3">
                     Sold by: 
-                    <a href="{{ url_for('store_products', seller_id=product.user_id) if product and product.user_id else '#' }}" class="text-decoration-none">
+                    {% if seller_id %}
+                    <a href="{{ url_for('store_products', seller_id=seller_id) }}" class="text-decoration-none">
                         {{ store_name if store_name else 'Zyntra Store' }}
                     </a>
+                    {% else %}
+                    <span>{{ store_name if store_name else 'Zyntra Store' }}</span>
+                    {% endif %}
                 </h4>
                 <div class="product-price h2 text-primary">₱{{ "{:,.2f}".format(product_price) }}</div>
                 
@@ -72,23 +73,21 @@
                 </div>
 
                 <!-- Add to Cart Form -->
-                <form action="/add-to-cart" method="POST" class="mt-4">
+                <form action="/add-to-cart" method="POST" onsubmit="setCartQuantity();" class="mb-4">
                     <input type="hidden" name="product_id" value="{{ product_id }}">
-                    
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
+                    <input type="hidden" name="quantity" value="1" id="cart-quantity">
+                    <div class="d-flex gap-2">
                         {% if auth_user and auth_user.role_id == 2 %}
-                            <button type="submit" class="btn btn-primary btn-add-to-cart">
-                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1 d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%); border: none; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Add to Cart</span>
                             </button>
                         {% elif not auth_user %}
-                            <button type="button" class="btn btn-primary btn-add-to-cart" onclick="showLoginReminder()">
-                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                            <button type="button" class="btn btn-primary btn-lg flex-grow-1 d-flex align-items-center justify-content-center gap-2" onclick="showLoginReminder()" style="background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%); border: none; border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Add to Cart</span>
                             </button>
                         {% endif %}
-                        <button type="button" class="btn-wishlist" title="Add to Wishlist">
-                            <i class="far fa-heart"></i>
-                        </button>
                     </div>
                 </form>
 
@@ -123,7 +122,13 @@
             <div class="tab-content" id="productTabsContent">
                 <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
                     <div class="product-description">
-                        {{ product_description|safe }}
+                        <div class="rich-description" id="productDescriptionBody">
+                            {{ product_description|safe }}
+                        </div>
+                        <div class="description-fade" id="productDescriptionFade"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm description-toggle" id="toggleDescription">
+                            View More
+                        </button>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="specs" role="tabpanel" aria-labelledby="specs-tab">
@@ -160,139 +165,105 @@
 {% endif %}
 {% endblock %}
 
-{% block scripts %}
-<!-- Swiper JS -->
-<script src="https://unpkg.com/swiper@8/swiper-bundle.min.js"></script>
+{% block script %}
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script>
-    // Initialize Swiper when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Swiper
-        const swiper = new Swiper('.thumbnail-swiper', {
-            slidesPerView: 4,
-            spaceBetween: 10,
-            freeMode: true,
-            watchSlidesProgress: true,
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                320: {
-                    slidesPerView: 3,
-                    spaceBetween: 8
-                },
-                480: {
-                    slidesPerView: 4,
-                    spaceBetween: 10
-                },
-                768: {
-                    slidesPerView: 5,
-                    spaceBetween: 10
-                },
-                992: {
-                    slidesPerView: 4,
-                    spaceBetween: 10
-                }
-            },
-            on: {
-                init: function() {
-                    // Add active class to first slide
-                    this.slides[0].classList.add('swiper-slide-thumb-active');
-                }
-            }
-        });
-
-        // Handle thumbnail click
-        // Handle thumbnail click - using event delegation for better performance
-        const thumbnailContainer = document.querySelector('.thumbnail-swiper .swiper-wrapper');
-        if (thumbnailContainer) {
-            thumbnailContainer.addEventListener('click', function(e) {
-                // Find the closest swiper-slide element that was clicked
-                const slide = e.target.closest('.swiper-slide');
-                if (!slide) return;
-                
-                e.preventDefault();
-                
-                // Get the image URL from data attribute
-                const imgSrc = slide.getAttribute('data-image-url');
-                console.log('Thumbnail clicked, changing to:', imgSrc);
-                
-                // Remove active class from all thumbnails
-                document.querySelectorAll('.thumbnail-swiper .swiper-slide').forEach(el => {
-                    el.classList.remove('swiper-slide-thumb-active');
-                });
-                
-                // Add active class to clicked thumbnail
-                slide.classList.add('swiper-slide-thumb-active');
-                
-                // Change the main image
-                changeMainImage(imgSrc);
-            });
-            
-            console.log('Thumbnail click handler attached');
-        } else {
-            console.error('Could not find thumbnail container');
-        }
-
-        // Quantity handling removed - will be implemented in cart
+  $(document).ready(function () {
+    var swiper = new Swiper('.thumbnail-swiper', {
+      slidesPerView: 5,
+      spaceBetween: 10,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
     });
 
-    // Change main image when thumbnail is clicked
-    function changeMainImage(src) {
-        console.log('changeMainImage called with src:', src);
-        const mainImage = document.getElementById('mainImage');
-        if (!mainImage) {
-            console.error('Main image element not found');
-            return;
+    $('.thumbnail-swiper').on('click', '.swiper-slide', function() {
+      const imageUrl = $(this).data('image-url');
+      if (imageUrl) {
+        changeMainImage(imageUrl);
+      }
+    });
+
+    $(".quantity-left-minus").click(function () {
+      var quantity = parseInt($("#quantity").val());
+      if (quantity > 1) {
+        $("#quantity").val(quantity - 1);
+      }
+    });
+
+    $(".quantity-right-plus").click(function () {
+      var quantity = parseInt($("#quantity").val());
+      $("#quantity").val(quantity + 1);
+    });
+
+    const descriptionBody = $('#productDescriptionBody');
+    const descriptionWrapper = $('.product-description');
+    const toggleButton = $('#toggleDescription');
+    const descriptionFade = $('#productDescriptionFade');
+
+    function checkDescriptionOverflow() {
+      if (!descriptionBody.length) return;
+      const isOverflowing = descriptionBody[0].scrollHeight > descriptionBody[0].clientHeight;
+
+      if (isOverflowing) {
+        descriptionWrapper.addClass('has-overflow');
+        descriptionFade.show();
+        toggleButton.show();
+      } else {
+        descriptionWrapper.removeClass('has-overflow');
+        descriptionFade.hide();
+        toggleButton.hide();
+      }
+    }
+
+    toggleButton.on('click', function () {
+      const isExpanded = descriptionWrapper.toggleClass('is-expanded').hasClass('is-expanded');
+      $(this).text(isExpanded ? 'View Less' : 'View More');
+      descriptionFade.toggle(!isExpanded);
+    });
+
+    checkDescriptionOverflow();
+
+    let resizeTimeout;
+    $(window).on('resize', function () {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkDescriptionOverflow, 200);
+    });
+
+    $("form[action='/add-to-cart']").on('submit', function(e) {
+      e.preventDefault();
+
+      var data = $(this).serialize();
+      let url = $(this).attr('action');
+
+      $.post(url, data).done(function(response) {
+        if (response.status === 'success') {
+          $.SystemScript.swalAlertMessage('Success!', response.message, 'success').then(() => {
+            location.reload();
+          });
+        } else {
+          $.SystemScript.swalAlertMessage('Oops!', response.message, 'error');
         }
+      });
+    });
+  });
 
-        console.log('Current main image src:', mainImage.src);
-        console.log('New image src:', src);
+  function changeMainImage(src) {
+    $("#mainImage").attr("src", src);
+  }
 
-        // Add fade out effect
-        mainImage.style.opacity = '0.5';
-        mainImage.style.transition = 'opacity 0.3s ease';
-        
-        // Create a new image for preloading
-        const img = new Image();
-        
-        img.onload = function() {
-            console.log('New image loaded successfully');
-            // Only update if the image loaded successfully
-            mainImage.src = src;
-            mainImage.style.opacity = '1';
-            
-            // Update active thumbnail based on data attribute for better reliability
-            document.querySelectorAll('.thumbnail-swiper .swiper-slide').forEach(thumb => {
-                const thumbSrc = thumb.getAttribute('data-image-url');
-                // Compare the full URLs to ensure they match
-                if (thumbSrc && new URL(thumbSrc, window.location.origin).href === new URL(src, window.location.origin).href) {
-                    thumb.classList.add('swiper-slide-thumb-active');
-                } else {
-                    thumb.classList.remove('swiper-slide-thumb-active');
-                }
-            });
-        };
-        
-        img.onerror = function() {
-            // If image fails to load, revert opacity and show error
-            console.error('Failed to load image:', src);
-            mainImage.style.opacity = '1';
-            
-            // Try to load the fallback image
-            mainImage.onerror = null;
-            mainImage.src = '/static/images/no-image.jpg';
-        };
-        
-        // Start loading the image
-        console.log('Starting to load image:', src);
-        img.src = src;
-    }
+  function showLoginReminder() {
+    $('#loginReminderModal').modal('show');
+  }
 
-    // Show login reminder modal
-    function showLoginReminder() {
-        const loginModal = new bootstrap.Modal(document.getElementById('loginReminderModal'));
-        loginModal.show();
-    }
+  function closeModal() {
+    $('#loginReminderModal').modal('hide');
+  }
+
+  function setCartQuantity() {
+    var quantity = document.getElementById('quantity').value;
+    document.getElementById('cart-quantity').value = quantity;
+  }
 </script>
 {% endblock %}

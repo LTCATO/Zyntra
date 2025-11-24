@@ -274,10 +274,8 @@ $(document).ready(function() {
 			switch(response.data.status) {
 				case 'success':
 					let role = response.data.data.role_id;
-					if (role == 1 || role == 3) {
+					if (role == 1 || role == 3 || role == 4) {
 						window.location.href = '/dashboard';
-					} else if (role == 2) {
-						window.location.href = '/buyer';
 					} else {
 						window.location.href = '/';
 					}

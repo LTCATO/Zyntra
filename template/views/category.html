@@ -36,40 +36,26 @@
         </div>
       {% else %}
         {% for product in data %}
+        {% set base_price = product.price|float %}
+        {% if product.discount_percentage %}
+          {% set final_price = base_price * (1 - product.discount_percentage / 100) %}
+        {% else %}
+          {% set final_price = base_price %}
+        {% endif %}
         <div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-2">
-          <div class="product-card h-100">
-            <div class="product-image-container">
-              {% if product.discount_percentage %}
-                <span class="product-badge">-{{ product.discount_percentage }}% OFF</span>
-              {% endif %}
-              <a href="{{ url_for('view_product', product_id=product.product_id) }}">
-                <img 
-                  src="{{ product.attachment }}" 
-                  alt="{{ product.product_name }}" 
-                  class="product-image"
-                  loading="lazy"
-                >
-              </a>
+          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card text-decoration-none" data-product-id="{{ product.product_id }}">
+            <div class="product-minimal-img">
+              <img 
+                src="{{ product.attachment if product.attachment else url_for('static', filename='images/no-image.jpg') }}" 
+                alt="{{ product.product_name }}" 
+                loading="lazy"
+              >
             </div>
-            <div class="product-details">
-              <h3 class="product-title" title="{{ product.product_name }}">
-                <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="text-decoration-none">
-                  {{ product.product_name|truncate(40) }}
-                </a>
-              </h3>
-              <div class="product-price">₱{{ "{:,.2f}".format(product.price|float) }}</div>
-              <div class="product-actions">
-                <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="btn-view">
-                  <i class="bi bi-eye-fill me-1"></i> View
-                </a>
-                <button class="btn-add-cart" 
-                        data-product-id="{{ product.product_id }}"
-                        {% if product.qty == 0 %}disabled{% endif %}>
-                  <i class="bi bi-cart-plus"></i>
-                </button>
-              </div>
+            <div class="product-minimal-info">
+              <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(40) }}</h6>
+              <p class="product-minimal-price mb-0">{{ final_price|currency }}</p>
             </div>
-          </div>
+          </a>
         </div>
         {% endfor %}
       {% endif %}
@@ -99,8 +85,8 @@ $(document).ready(function() {
   var hasMore = true;
   
   // Initialize loaded product IDs
-  $('.product-card').each(function() {
-    var productId = $(this).find('a[href^="/product/view/"]').attr('href').split('/').pop();
+  $('.product-minimal-card').each(function() {
+    var productId = $(this).data('product-id');
     if (productId) loadedProductIds.push(parseInt(productId));
   });
   
@@ -147,42 +133,24 @@ $(document).ready(function() {
           if (newProducts.length > 0) {
             // Append new products
             var productsHtml = newProducts.map(function(product) {
+              var truncatedName = truncateString(product.product_name || '', 40);
+              var finalPrice = computeFinalPrice(product);
+              var imageSrc = product.attachment || "{{ url_for('static', filename='images/no-image.jpg') }}";
               return `
                 <div class="col-xxl-2 col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6" data-id="${product.product_id}">
-                  <div class="product-card h-100">
-                    <div class="product-image-container">
-                      ${product.discount_percentage ? 
-                        `<span class="product-badge">-${product.discount_percentage}% OFF</span>` : ''}
-                      <a href="/product/view/${product.product_id}">
-                        <img 
-                          src="${product.attachment}" 
-                          alt="${product.product_name}" 
-                          class="product-image"
-                          loading="lazy"
-                        >
-                      </a>
+                  <a href="/product/view/${product.product_id}" class="product-minimal-card text-decoration-none" data-product-id="${product.product_id}">
+                    <div class="product-minimal-img">
+                      <img 
+                        src="${imageSrc}" 
+                        alt="${truncatedName}" 
+                        loading="lazy"
+                      >
                     </div>
-                    <div class="product-details">
-                      <h3 class="product-title" title="${product.product_name}">
-                        <a href="/product/view/${product.product_id}" class="text-decoration-none">
-                          ${product.product_name}
-                        </a>
-                      </h3>
-                      <div class="product-price">
-                        ₱${parseFloat(product.price).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                      </div>
-                      <div class="product-actions">
-                        <a href="/product/view/${product.product_id}" class="btn-view">
-                          <i class="bi bi-eye-fill"></i> View
-                        </a>
-                        <button class="btn-add-cart" 
-                                data-product-id="${product.product_id}"
-                                ${product.qty == 0 ? 'disabled' : ''}>
-                          <i class="bi bi-cart-plus"></i>
-                        </button>
-                      </div>
+                    <div class="product-minimal-info">
+                      <h6 class="product-minimal-name mb-1" title="${product.product_name}">${truncatedName}</h6>
+                      <p class="product-minimal-price mb-0">${formatCurrency(finalPrice)}</p>
                     </div>
-                  </div>
+                  </a>
                 </div>`;
             }).join('');
             
@@ -209,7 +177,7 @@ $(document).ready(function() {
       },
       error: function(xhr, status, error) {
         console.error("Error loading more products:", error);
-        showNotification('Error loading more products. Please try again.', 'danger');
+        alert('Error loading more products. Please try again.');
       },
       complete: function() {
         isLoading = false;
@@ -219,10 +187,25 @@ $(document).ready(function() {
     });
   }
   
-  // Show notification function
-  function showNotification(message, type = 'success') {
-    // You can implement a toast notification here
-    alert(message);
+  function computeFinalPrice(product) {
+    var price = parseFloat(product.price) || 0;
+    var discount = parseFloat(product.discount_percentage) || 0;
+    if (discount > 0) {
+      return price * (1 - discount / 100);
+    }
+    return price;
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2
+    }).format(value || 0);
+  }
+
+  function truncateString(str, length) {
+    return str.length > length ? str.substring(0, length) + '...' : str;
   }
 });
 </script>

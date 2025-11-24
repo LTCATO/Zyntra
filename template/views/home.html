@@ -30,9 +30,11 @@
             <a href="#featured-products" class="btn btn-primary btn-lg px-4 py-3 fw-semibold d-flex align-items-center">
               <i class="bi bi-bag-check me-2"></i>Shop Now
             </a>
+            {% if not g.authenticated %}
             <a href="{{ url_for('sell_page') }}" class="btn btn-outline-primary btn-lg px-4 py-3 fw-semibold d-flex align-items-center">
               <i class="bi bi-shop-window me-2"></i>Become a Seller
             </a>
+            {% endif %}
           </div>
           <div class="hero-trust-badges mt-4 d-flex align-items-center flex-wrap gap-4">
             <div class="d-flex align-items-center">
@@ -151,20 +153,22 @@
       <p class="section-description text-muted lead">Browse our wide range of electronics categories</p>
     </div>
 
-    <div class="row g-4" id="categories-grid">
+    <div class="row g-3" id="categories-grid">
       {% if cat_data %}
         {% for c in cat_data %}
         <div class="col-xxl-2 col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6">
-          <div class="h-100">
-            <a href="{{ url_for('category_page', category_id=c.category_id) }}" class="category-card text-decoration-none d-flex flex-column h-100">
-              <div class="category-icon mb-3 flex-grow-1 d-flex align-items-center">
-                <div class="icon-wrapper mx-auto">
-                  <i class="bi bi-{{ 'cpu' if 'computer' in c.category_name.lower() else 'phone' if 'phone' in c.category_name.lower() else 'headphones' if 'audio' in c.category_name.lower() else 'display' if 'screen' in c.category_name.lower() else 'gear' if 'gaming' in c.category_name.lower() else 'laptop' if 'laptop' in c.category_name.lower() else 'tablet' if 'tablet' in c.category_name.lower() else 'watch' if 'watch' in c.category_name.lower() else 'camera' if 'camera' in c.category_name.lower() else 'tv' if 'tv' in c.category_name.lower() else 'controller' if 'gaming' in c.category_name.lower() else 'hdd' if 'storage' in c.category_name.lower() else 'battery' if 'power' in c.category_name.lower() else 'usb' if 'accessories' in c.category_name.lower() else 'gear' }} fs-3"></i>
-                </div>
+          <a href="{{ url_for('category_page', category_id=c.category_id) }}" class="category-chip text-decoration-none d-flex flex-column gap-2 h-100">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="category-chip-icon">
+                <i class="bi bi-{{ 'cpu' if 'computer' in c.category_name.lower() else 'phone' if 'phone' in c.category_name.lower() else 'headphones' if 'audio' in c.category_name.lower() else 'display' if 'screen' in c.category_name.lower() else 'gear' if 'gaming' in c.category_name.lower() else 'laptop' if 'laptop' in c.category_name.lower() else 'tablet' if 'tablet' in c.category_name.lower() else 'watch' if 'watch' in c.category_name.lower() else 'camera' if 'camera' in c.category_name.lower() else 'tv' if 'tv' in c.category_name.lower() else 'controller' if 'gaming' in c.category_name.lower() else 'hdd' if 'storage' in c.category_name.lower() else 'battery' if 'power' in c.category_name.lower() else 'usb' if 'accessories' in c.category_name.lower() else 'gear' }}"></i>
               </div>
-              <h6 class="category-name fw-semibold text-center mb-0 mt-auto">{{ c.category_name }}</h6>
-            </a>
-          </div>
+              <span class="category-chip-arrow"><i class="bi bi-arrow-up-right"></i></span>
+            </div>
+            <div>
+              <p class="text-muted small mb-1">Top picks</p>
+              <h6 class="mb-0">{{ c.category_name }}</h6>
+            </div>
+          </a>
         </div>
         {% endfor %}
       {% else %}
@@ -209,37 +213,24 @@
         </div>
       {% else %}
         {% for product in prod_data %}
+        {% set base_price = product.price|float %}
+        {% if product.discount_percentage %}
+          {% set final_price = base_price * (1 - product.discount_percentage / 100) %}
+        {% else %}
+          {% set final_price = base_price %}
+        {% endif %}
         <div class="col-lg-2 col-md-3 col-6 mb-3">
-          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="text-decoration-none">
-            <div class="card h-100">
-              <div class="card__img">
-                {% if product.discount_percentage %}
-                  <span class="product-badge">-{{ product.discount_percentage }}%</span>
-                {% endif %}
-                <img 
-                  src="{{ product.attachment }}" 
-                  alt="{{ product.product_name }}" 
-                  class="w-100"
-                  style="border-radius: 8px; aspect-ratio: 1/1; object-fit: cover;"
-                  loading="lazy"
-                >
-              </div>
-              <div class="card__wrapper p-2">
-                <div class="card__title" title="{{ product.product_name }}">
-                  <div class="text-dark small mb-1">
-                    {{ product.product_name|truncate(40) }}
-                  </div>
-                  <div class="card__subtitle">
-                    {% if product.discount_percentage %}
-                      {% set discounted_price = product.price * (1 - product.discount_percentage / 100) %}
-                      <div class="text-danger fw-bold">{{ discounted_price|currency }}</div>
-                      <small class="text-muted text-decoration-line-through">{{ product.price|currency }}</small>
-                    {% else %}
-                      <div class="fw-bold">{{ product.price|currency }}</div>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
+          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card text-decoration-none" data-product-id="{{ product.product_id }}">
+            <div class="product-minimal-img">
+              <img 
+                src="{{ product.attachment if product.attachment else url_for('static', filename='images/no-image.jpg') }}" 
+                alt="{{ product.product_name }}" 
+                loading="lazy"
+              >
+            </div>
+            <div class="product-minimal-info">
+              <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(40) }}</h6>
+              <p class="product-minimal-price mb-0">{{ final_price|currency }}</p>
             </div>
           </a>
         </div>
@@ -312,60 +303,18 @@ $(document).ready(function () {
         $.each(response.data, function (index, product) {
           if (!loadedProductIds.includes(product.product_id)) {
             var truncatedProductName = truncateString(product.product_name, 40);
+            var finalPrice = computeFinalPrice(product);
             var productHtml = `
-              <div class="col-xl-3 col-lg-4 col-md-6">
-                <div class="product-card-modern">
-                  <div class="product-image-container">
-                    <a href="/product/view/${product.product_id}" class="product-link">
-                      <img src="${product.attachment}" alt="${truncatedProductName}" class="product-image">
-                    </a>
-                    <div class="product-actions">
-                      <button class="btn-icon btn-wishlist" title="Add to Wishlist">
-                        <i class="bi bi-heart"></i>
-                      </button>
-                      <button class="btn-icon btn-compare" title="Compare">
-                        <i class="bi bi-arrow-left-right"></i>
-                      </button>
-                    </div>
+              <div class="col-lg-2 col-md-3 col-6 mb-3">
+                <a href="/product/view/${product.product_id}" class="product-minimal-card text-decoration-none" data-product-id="${product.product_id}">
+                  <div class="product-minimal-img">
+                    <img src="${product.attachment}" alt="${truncatedProductName}" loading="lazy">
                   </div>
-                  <div class="product-info">
-                    <h6 class="product-name mb-2">
-                      <a href="/product/view/${product.product_id}" class="text-decoration-none">
-                        ${truncatedProductName}
-                      </a>
-                    </h6>
-                    <div class="product-price mb-3">
-                      <span class="price-current fw-bold text-primary fs-5">₱${product.formatted_price}</span>
-                    </div>
-                    <div class="product-meta d-flex justify-content-between align-items-center mb-3">
-                      <div class="product-rating">
-                        <div class="rating-stars">
-                          <i class="bi bi-star-fill text-warning"></i>
-                          <i class="bi bi-star-fill text-warning"></i>
-                          <i class="bi bi-star-fill text-warning"></i>
-                          <i class="bi bi-star-fill text-warning"></i>
-                          <i class="bi bi-star-half text-warning"></i>
-                        </div>
-                        <span class="rating-count text-muted small ms-1">(4.8)</span>
-                      </div>
-                      <div class="product-stock">
-                        ${product.qty > 10 ? '<span class="badge bg-success">In Stock</span>' :
-                          product.qty > 0 ? '<span class="badge bg-warning">Low Stock</span>' :
-                          '<span class="badge bg-danger">Out of Stock</span>'}
-                      </div>
-                    </div>
-                    <div class="product-actions-bottom d-flex gap-2">
-                      <a href="/product/view/${product.product_id}" class="btn btn-primary flex-fill">
-                        <i class="bi bi-eye me-1"></i>View Details
-                      </a>
-                      <button class="btn btn-outline-primary btn-add-cart"
-                              data-product-id="${product.product_id}"
-                              ${product.qty == 0 ? 'disabled' : ''}>
-                        <i class="bi bi-cart-plus"></i>
-                      </button>
-                    </div>
+                  <div class="product-minimal-info">
+                    <h6 class="product-minimal-name mb-1" title="${product.product_name}">${truncatedProductName}</h6>
+                    <p class="product-minimal-price mb-0">${formatCurrency(finalPrice)}</p>
                   </div>
-                </div>
+                </a>
               </div>`;
             productGrid.append(productHtml);
             loadedProductIds.push(product.product_id);
@@ -379,6 +328,23 @@ $(document).ready(function () {
       $btn.prop('disabled', false);
       $spinner.addClass('d-none');
     });
+  }
+
+  function computeFinalPrice(product) {
+    var price = parseFloat(product.price) || 0;
+    var discount = parseFloat(product.discount_percentage) || 0;
+    if (discount > 0) {
+      return price * (1 - discount / 100);
+    }
+    return price;
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 2
+    }).format(value || 0);
   }
 
   function truncateString(str, length) {

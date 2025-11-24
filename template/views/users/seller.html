@@ -214,12 +214,10 @@
 {% block script %}
 <script>
 $(document).ready(function() {
-    // Initialize DataTable only for desktop table
     if (window.innerWidth >= 768) {
         $('#DataTables_Table_0').DataTable();
     }
 
-    // Handle view documents click
     const documentsModal = new bootstrap.Modal(document.getElementById('documentsModal'));
     let currentUserId = null;
 
@@ -227,83 +225,72 @@ $(document).ready(function() {
         e.preventDefault();
         currentUserId = $(this).data('user-id');
         const userName = $(this).closest('tr').find('td:first-child span').text().trim();
-        
-        // Update modal title with user's name
+
         $('#documentsModalLabel').text(`Documents - ${userName}`);
-        
-        // Show loading state
-        $('#documentsModalBody').html(`
-          <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading documents...</p>
-          </div>
-        `);
-        
-        // Show the modal
+        showLoadingState();
         documentsModal.show();
-        
-        // Fetch documents from API
+
         $.ajax({
             url: `/api/sellers/${currentUserId}/documents`,
             method: 'GET',
             success: function(response) {
                 if (response.status === 'success') {
-                    displayDocuments(response.data);
+                    displayDocuments(response.data || []);
                 } else {
-                    $('#documentsModalBody').html(`
-                        <div class="alert alert-warning">
-                            <i class='bx bx-info-circle me-2'></i>
-                            ${response.message}
-                        </div>
-                    `);
+                    showAlert('warning', response.message || 'Unable to load documents.');
                 }
             },
             error: function() {
-                $('#documentsModalBody').html(`
-                    <div class="alert alert-danger">
-                        <i class='bx bx-error-circle me-2'></i>
-                        Failed to load documents. Please try again.
-                    </div>
-                `);
+                showAlert('danger', "Failed to load documents. Please try again.");
             }
         });
     });
-    
 
-    // Helper function to display documents
-    function displayDocuments(documents) {
-        if (!documents || documents.length === 0) {
-            $('#documentsModalBody').html(`
-                <div class="alert alert-info">
-                    <i class='bx bx-info-circle me-2'></i>
-                    No documents found for this seller.
+    function showLoadingState() {
+        $('#documentsModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            `);
+                <p class="mt-2">Loading documents...</p>
+            </div>
+        `);
+    }
+
+    function showAlert(type, message) {
+        $('#documentsModalBody').html(`
+            <div class="alert alert-${type}">
+                <i class='bx bx-info-circle me-2'></i>${message}
+            </div>
+        `);
+    }
+
+    function displayDocuments(documents) {
+        if (!documents.length) {
+            showAlert('info', 'No documents found for this seller.');
             return;
         }
 
         let documentsHtml = '<div class="document-list">';
         documentsHtml += '<div class="mb-3"><h6><i class="bx bx-user me-2"></i>Seller Documents</h6></div>';
         documentsHtml += '<div class="list-group">';
-        
+
         documents.forEach(function(doc) {
             const docType = getDocumentType(doc.file_path);
             const icon = getDocumentIcon(docType);
             const docName = getDocumentName(doc.document_type, doc.file_path);
-            
+
             documentsHtml += `
                 <div class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <i class='${icon} me-3 fs-4'></i>
+                        <i class="${icon} me-3 fs-4"></i>
                         <div>
                             <div class="fw-medium">${docName}</div>
                             <small class="text-muted">${docType.toUpperCase()}</small>
                         </div>
                     </div>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary view-document" data-file-path="${doc.file_path}" data-doc-type="${docType}">
+                        <button class="btn btn-outline-primary view-document-file" data-file-path="${doc.file_path}" data-doc-type="${docType}">
                             <i class='bx bx-show me-1'></i>View
                         </button>
                         <button class="btn btn-outline-success download-document" data-file-path="${doc.file_path}">
@@ -313,29 +300,23 @@ $(document).ready(function() {
                 </div>
             `;
         });
-        
-        documentsHtml += '</div>';
-        documentsHtml += '</div>';
-        
+
+        documentsHtml += '</div></div>';
         $('#documentsModalBody').html(documentsHtml);
-        
-        // Attach event handlers
         attachDocumentViewerHandlers();
     }
 
-    // Helper function to get document type from file path
     function getDocumentType(filePath) {
         if (!filePath) return 'unknown';
         const extension = filePath.split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
             return 'image';
-        } else if (['pdf'].includes(extension)) {
+        } else if (extension === 'pdf') {
             return 'pdf';
         }
         return 'unknown';
     }
 
-    // Helper function to get document icon based on type
     function getDocumentIcon(docType) {
         switch(docType) {
             case 'pdf':
@@ -347,12 +328,10 @@ $(document).ready(function() {
         }
     }
 
-    // Helper function to get document name
-    function getDocumentName(docType, filePath) {
+    function getDocumentName(docKey, filePath) {
         if (!filePath) return 'Unknown Document';
         const fileName = filePath.split('\\').pop().split('/').pop();
-        
-        switch(docType) {
+        switch(docKey) {
             case 'gov_id':
                 return `Government ID - ${fileName}`;
             case 'business_permit':
@@ -362,50 +341,39 @@ $(document).ready(function() {
         }
     }
 
-    // Attach event handlers for document viewer
     function attachDocumentViewerHandlers() {
-        // View document click handler
-        $('.view-document').on('click', function(e) {
+        $('.view-document-file').off('click').on('click', function(e) {
             e.preventDefault();
             const filePath = $(this).data('file-path');
             const docType = $(this).data('doc-type');
             showDocumentViewer(filePath, docType);
         });
 
-        // Download document click handler
-        $('.download-document').on('click', function(e) {
+        $('.download-document').off('click').on('click', function(e) {
             e.preventDefault();
-            const filePath = $(this).data('file-path');
-            downloadDocument(filePath);
+            downloadDocument($(this).data('file-path'));
         });
     }
 
-    // Show document viewer
     function showDocumentViewer(filePath, docType) {
-        // Store current file path globally for access in onclick handlers
-        window.currentDocumentPath = filePath;
-        
+        window.currentSellerDocumentPath = filePath;
         const viewerHtml = `
             <div class="document-viewer">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">
-                        Document Viewer
-                    </h6>
+                    <h6 class="mb-0">Document Viewer</h6>
                     <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="hideDocumentViewer()">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2 btn-back-to-docs">
                             <i class='bx bx-arrow-back me-1'></i> Back to Documents
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadDocument(window.currentDocumentPath)">
+                        <button type="button" class="btn btn-sm btn-outline-success btn-download-doc">
                             <i class='bx bx-download me-1'></i> Download
                         </button>
                     </div>
                 </div>
                 <div class="viewer-container border rounded p-3 bg-light" style="min-height: 500px;">
-                    <div id="documentContent">
-                        <div class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading document...</span>
-                            </div>
+                    <div id="documentContent" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading document...</span>
                         </div>
                     </div>
                 </div>
@@ -413,104 +381,92 @@ $(document).ready(function() {
         `;
 
         $('#documentsModalBody').html(viewerHtml);
+        bindViewerControls();
 
-        // Load document based on type
         if (docType === 'pdf') {
             loadPdfDocument(filePath);
         } else if (docType === 'image') {
             loadImageDocument(filePath);
         } else {
-            handleDocumentLoadError('Unsupported document type');
+            handleDocumentLoadError('Unsupported document type.');
         }
     }
 
-    // Load PDF document
+    function bindViewerControls() {
+        $('.btn-back-to-docs').off('click').on('click', hideDocumentViewer);
+        $('.btn-download-doc').off('click').on('click', function() {
+            downloadDocument(window.currentSellerDocumentPath);
+        });
+    }
+
     function loadPdfDocument(filePath) {
-        const pdfHtml = `
-            <iframe src="${filePath}" style="width: 100%; height: 500px; border: none;" 
-                    onerror="handleDocumentLoadError('Failed to load PDF document')">
-                <p>Your browser does not support PDFs. 
-                   <a href="${filePath}" download>Download the PDF</a>.</p>
-            </iframe>
-        `;
-        $('#documentContent').html(pdfHtml);
+        $('#documentContent').html(`
+            <iframe src="${filePath}" style="width: 100%; height: 500px; border: none;"></iframe>
+            <div class="text-center mt-2">
+                <small class="text-muted">If the document doesn't load, try downloading it.</small>
+            </div>
+        `);
     }
 
-    // Load image document
     function loadImageDocument(filePath) {
-        const imageHtml = `
+        $('#documentContent').html(`
             <div class="text-center">
-                <img src="${filePath}" style="max-width: 100%; max-height: 500px;" 
-                     onerror="handleDocumentLoadError('Failed to load image document')" 
-                     alt="Document Image" class="img-fluid">
+                <img src="${filePath}" alt="Document" class="img-fluid" style="max-width: 100%; max-height: 500px; object-fit: contain;">
+                <div class="text-center mt-2">
+                    <small class="text-muted">Scroll if the image is larger than the viewer.</small>
+                </div>
             </div>
-        `;
-        $('#documentContent').html(imageHtml);
+        `);
     }
 
-    // Handle document load error
     function handleDocumentLoadError(message) {
-        const errorHtml = `
-            <div class="text-center py-5">
-                <i class='bx bx-error-circle text-danger fs-1'></i>
-                <h5 class="mt-3 text-danger">Unable to Load Document</h5>
-                <p class="text-muted">${message}</p>
-                <button class="btn btn-outline-primary" onclick="downloadDocument('${filePath}')">
-                    <i class='bx bx-download me-1'></i>Download Document Instead
-                </button>
+        $('#documentContent').html(`
+            <div class="alert alert-danger">
+                <i class='bx bx-error-circle me-2'></i>${message}
+                <div>
+                    <button class="btn btn-sm btn-outline-danger mt-2 retry-download">
+                        <i class='bx bx-download me-1'></i>Download Instead
+                    </button>
+                </div>
             </div>
-        `;
-        $('#documentContent').html(errorHtml);
+        `);
+
+        $('.retry-download').off('click').on('click', function() {
+            downloadDocument(window.currentSellerDocumentPath);
+        });
     }
 
-    // Hide document viewer
     function hideDocumentViewer() {
-        // Reload documents to show the list again
         $.ajax({
             url: `/api/sellers/${currentUserId}/documents`,
             method: 'GET',
             success: function(response) {
                 if (response.status === 'success') {
-                    displayDocuments(response.data);
+                    displayDocuments(response.data || []);
+                } else {
+                    showAlert('warning', response.message || 'Unable to load documents.');
                 }
+            },
+            error: function() {
+                showAlert('danger', "Failed to load documents. Please try again.");
             }
         });
     }
 
-    // Download document
     function downloadDocument(filePath) {
-        // Create a temporary link element to trigger download
+        if (!filePath) {
+            showToast('warning', 'No document available for download.');
+            return;
+        }
         const link = document.createElement('a');
         link.href = filePath;
-        link.download = ''; // Let the server determine filename
         link.target = '_blank';
+        link.download = '';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        // Show success message
-        const toast = document.createElement('div');
-        toast.className = 'bs-toast toast toast-placement-ex m-2 fade bg-info top-0 end-0';
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        toast.setAttribute('data-bs-delay', '2000');
-        toast.innerHTML = `
-            <div class="toast-header">
-                <i class="bx bx-bell me-2"></i>
-                <div class="me-auto fw-semibold">Info</div>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">Download started...</div>
-        `;
-        document.body.appendChild(toast);
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
+        showToast('info', 'Download started...');
     }
-
 
     $(".change-status").click(function(e) {
         e.preventDefault();
@@ -535,12 +491,9 @@ $(document).ready(function() {
             if (response) {
                 let url = `/update-seller?user_id=${user_id}&status_to=${status_to}`;
                 $.SystemScript.executeGet(url).done((response) => {
-                    console.log(response.data);
                     if (response.data.status === 'success') {
-                        $.SystemScript.swalAlertMessage('Success', response.data.message, 'success');
-                        $('.swal2-confirm').click(function(){
-                            location.reload();
-                        });
+                        $.SystemScript.swalAlertMessage('Success', response.data.message, 'success')
+                            .done(() => location.reload());
                     } else {
                         $.SystemScript.swalAlertMessage('Error', response.data.message, 'error');
                     }
@@ -552,5 +505,28 @@ $(document).ready(function() {
     });
 
 });
+
+function showToast(type, message) {
+    const toast = document.createElement('div');
+    toast.className = `bs-toast toast toast-placement-ex m-2 fade bg-${type} top-0 end-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.setAttribute('data-bs-delay', '2000');
+    toast.innerHTML = `
+        <div class="toast-header">
+            <i class="bx bx-bell me-2"></i>
+            <div class="me-auto fw-semibold">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">${message}</div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
 </script>
 {% endblock %}

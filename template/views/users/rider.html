@@ -51,8 +51,8 @@
                   <i class="bx bx-dots-vertical-rounded"></i>
                 </button>
                 <div class="dropdown-menu">
-                  <a class="dropdown-item view-document" data-id="{{ rider.user_id }}" href="javascript:void(0);">
-                    <i class='bx bx-file-blank'></i>View Document
+                  <a class="dropdown-item view-documents" data-user-id="{{ rider.user_id }}" href="javascript:void(0);">
+                    <i class='bx bx-file-blank'></i>View Documents
                   </a>
                   {% if rider.rider_status == 0 %}
                     <a class="dropdown-item change-status" data-status-to="1" data-role="4" data-id="{{ rider.user_id }}" href="javascript:void(0);">
@@ -152,8 +152,8 @@
                 <i class="bx bx-dots-vertical-rounded"></i> Actions
               </button>
               <div class="dropdown-menu w-100">
-                <a class="dropdown-item view-document" data-id="{{ rider.user_id }}" href="javascript:void(0);">
-                  <i class='bx bx-file-blank'></i>View Document
+                <a class="dropdown-item view-documents" data-user-id="{{ rider.user_id }}" href="javascript:void(0);">
+                  <i class='bx bx-file-blank'></i>View Documents
                 </a>
                 {% if rider.rider_status == 0 %}
                   <a class="dropdown-item change-status" data-status-to="1" data-role="4" data-id="{{ rider.user_id }}" href="javascript:void(0);">
@@ -216,75 +216,72 @@
 {% block script %}
 <script>
 $(document).ready(function() {
-    // Initialize DataTable only for desktop table
     if (window.innerWidth >= 768) {
         $('#DataTables_Table_0').DataTable();
     }
 
-    // Handle status change
-    // Handle view document click
     const documentsModal = new bootstrap.Modal(document.getElementById('documentsModal'));
     let currentUserId = null;
 
-    $('.view-document').on('click', function(e) {
+    $('.view-documents').on('click', function(e) {
         e.preventDefault();
-        currentUserId = $(this).data('id');
+        currentUserId = $(this).data('user-id');
         const userName = $(this).closest('tr').find('td:first-child span').text().trim();
-        
-        // Update modal title with user's name
+
         $('#documentsModalLabel').text(`Documents - ${userName}`);
-        
-        // Show loading state
-        $('#documentsModalBody').html(`
-          <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading documents...</p>
-          </div>
-        `);
-        
-        // Show the modal
+        showLoadingState();
         documentsModal.show();
-        
-        // Fetch actual documents from database
+
         $.ajax({
             url: `/api/delivery-partners/${currentUserId}/documents`,
             method: 'GET',
             success: function(response) {
-                displayDocuments(response.data);
+                if (response.status === 'success') {
+                    displayDocuments(response.data || []);
+                } else {
+                    showAlert('warning', response.message || 'Unable to load documents.');
+                }
             },
-            error: function(xhr) {
-                console.error('Error fetching documents:', xhr);
-                $('#documentsModalBody').html(`
-                  <div class="alert alert-danger">
-                    <i class='bx bx-error-circle'></i> Failed to load documents. Please try again.
-                  </div>
-                `);
+            error: function() {
+                showAlert('danger', "Failed to load documents. Please try again.");
             }
         });
     });
-    
-    // Function to display documents
+
+    function showLoadingState() {
+        $('#documentsModalBody').html(`
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading documents...</p>
+            </div>
+        `);
+    }
+
+    function showAlert(type, message) {
+        $('#documentsModalBody').html(`
+            <div class="alert alert-${type}">
+                <i class='bx bx-info-circle me-2'></i>${message}
+            </div>
+        `);
+    }
+
     function displayDocuments(documents) {
-        if (!documents || documents.length === 0) {
-            $('#documentsModalBody').html(`
-              <div class="alert alert-info">
-                <i class='bx bx-info-circle'></i> No documents found for this delivery partner.
-              </div>
-            `);
+        if (!documents.length) {
+            showAlert('info', 'No documents found for this delivery partner.');
             return;
         }
-        
+
         let documentsHtml = '<div class="document-list">';
         documentsHtml += '<div class="mb-3"><h6><i class="bx bx-user me-2"></i>Delivery Partner Documents</h6></div>';
         documentsHtml += '<div class="list-group">';
-        
+
         documents.forEach(function(doc) {
             const docType = getDocumentType(doc.file_path);
             const icon = getDocumentIcon(docType);
             const docName = getDocumentName(doc.document_type, doc.file_path);
-            
+
             documentsHtml += `
                 <div class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -295,7 +292,7 @@ $(document).ready(function() {
                         </div>
                     </div>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary view-document" data-file-path="${doc.file_path}" data-doc-type="${docType}">
+                        <button class="btn btn-outline-primary view-document-file" data-file-path="${doc.file_path}" data-doc-type="${docType}">
                             <i class='bx bx-show me-1'></i>View
                         </button>
                         <button class="btn btn-outline-success download-document" data-file-path="${doc.file_path}">
@@ -305,29 +302,23 @@ $(document).ready(function() {
                 </div>
             `;
         });
-        
-        documentsHtml += '</div>';
-        documentsHtml += '</div>';
-        
+
+        documentsHtml += '</div></div>';
         $('#documentsModalBody').html(documentsHtml);
-            
-            // Attach event handlers for document viewer
-            attachDocumentViewerHandlers();
+        attachDocumentViewerHandlers();
     }
-    
-    // Helper function to get document type from file path
+
     function getDocumentType(filePath) {
         if (!filePath) return 'unknown';
         const extension = filePath.split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
             return 'image';
-        } else if (['pdf'].includes(extension)) {
+        } else if (extension === 'pdf') {
             return 'pdf';
         }
         return 'unknown';
     }
-    
-    // Helper function to get document icon based on type
+
     function getDocumentIcon(docType) {
         switch(docType) {
             case 'pdf':
@@ -338,13 +329,11 @@ $(document).ready(function() {
                 return 'bx bx-file text-secondary';
         }
     }
-    
-    // Helper function to get document name
-    function getDocumentName(docType, filePath) {
+
+    function getDocumentName(docKey, filePath) {
         if (!filePath) return 'Unknown Document';
         const fileName = filePath.split('\\').pop().split('/').pop();
-        
-        switch(docType) {
+        switch(docKey) {
             case 'license':
                 return `Driver's License - ${fileName}`;
             case 'gov_id':
@@ -353,51 +342,40 @@ $(document).ready(function() {
                 return fileName;
         }
     }
-    
-    // Function to attach document viewer handlers
+
     function attachDocumentViewerHandlers() {
-        // View document click handler
-        $('.view-document').on('click', function(e) {
+        $('.view-document-file').off('click').on('click', function(e) {
             e.preventDefault();
             const filePath = $(this).data('file-path');
             const docType = $(this).data('doc-type');
             showDocumentViewer(filePath, docType);
         });
 
-        // Download document click handler
-        $('.download-document').on('click', function(e) {
+        $('.download-document').off('click').on('click', function(e) {
             e.preventDefault();
-            const filePath = $(this).data('file-path');
-            downloadDocument(filePath);
+            downloadDocument($(this).data('file-path'));
         });
     }
-    
-    // Show document viewer
+
     function showDocumentViewer(filePath, docType) {
-        // Store current file path globally for access in onclick handlers
-        window.currentDocumentPath = filePath;
-        
+        window.currentRiderDocumentPath = filePath;
         const viewerHtml = `
             <div class="document-viewer">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">
-                        Document Viewer
-                    </h6>
+                    <h6 class="mb-0">Document Viewer</h6>
                     <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="hideDocumentViewer()">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2 btn-back-to-docs">
                             <i class='bx bx-arrow-back me-1'></i> Back to Documents
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadDocument(window.currentDocumentPath)">
+                        <button type="button" class="btn btn-sm btn-outline-success btn-download-doc">
                             <i class='bx bx-download me-1'></i> Download
                         </button>
                     </div>
                 </div>
                 <div class="border rounded p-2 bg-light" style="min-height: 400px; max-height: 600px; overflow: auto;">
-                    <div id="documentContent" class="text-center">
-                        <div class="d-flex justify-content-center align-items-center" style="min-height: 300px;">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading document...</span>
-                            </div>
+                    <div id="documentContent" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading document...</span>
                         </div>
                     </div>
                 </div>
@@ -405,94 +383,90 @@ $(document).ready(function() {
         `;
 
         $('#documentsModalBody').html(viewerHtml);
+        bindViewerControls();
 
-        // Load document based on type
         if (docType === 'pdf') {
             loadPdfDocument(filePath);
         } else if (docType === 'image') {
             loadImageDocument(filePath);
         } else {
-            handleDocumentLoadError('Unsupported document type');
+            handleDocumentLoadError('Unsupported document type.');
         }
     }
-    
-    // Load PDF document
+
+    function bindViewerControls() {
+        $('.btn-back-to-docs').off('click').on('click', hideDocumentViewer);
+        $('.btn-download-doc').off('click').on('click', function() {
+            downloadDocument(window.currentRiderDocumentPath);
+        });
+    }
+
     function loadPdfDocument(filePath) {
         $('#documentContent').html(`
-            <div class="pdf-viewer">
-                <iframe src="${filePath}" 
-                        style="width: 100%; height: 500px; border: none;" 
-                        onload="this.style.display='block';"
-                        onerror="handleDocumentLoadError('PDF', '${filePath}');">
-                </iframe>
-                <div class="text-center mt-2">
-                    <small class="text-muted">If the document doesn't load, you may need to download it to view.</small>
-                </div>
+            <iframe src="${filePath}" style="width: 100%; height: 500px; border: none;"></iframe>
+            <div class="text-center mt-2">
+                <small class="text-muted">If the document doesn't load, try downloading it.</small>
             </div>
         `);
     }
-    
-    // Function to load image document
+
     function loadImageDocument(filePath) {
         $('#documentContent').html(`
-            <div class="image-viewer">
-                <img src="${filePath}" 
-                     alt="Document" 
-                     class="img-fluid" 
-                     style="max-width: 100%; max-height: 500px; object-fit: contain;"
-                     onload="this.style.display='block';"
-                     onerror="handleDocumentLoadError('Image', '${filePath}');">
+            <div class="text-center">
+                <img src="${filePath}" alt="Document" class="img-fluid" style="max-width: 100%; max-height: 500px; object-fit: contain;">
                 <div class="text-center mt-2">
-                    <small class="text-muted">Image viewer - scroll to see full image if needed</small>
+                    <small class="text-muted">Scroll if the image is larger than the viewer.</small>
                 </div>
             </div>
         `);
     }
-    
-    // Handle document load errors
-    window.handleDocumentLoadError = function(docType, filePath) {
+
+    function handleDocumentLoadError(message) {
         $('#documentContent').html(`
             <div class="alert alert-danger">
-                <i class='bx bx-error-circle'></i> Failed to load ${docType} document.
-                <br><small>The document may not be available or there might be a network issue.</small>
-                <br><button class="btn btn-sm btn-outline-danger mt-2" onclick="downloadDocument('${filePath}')">
-                    <i class='bx bx-download'></i> Download Instead
-                </button>
+                <i class='bx bx-error-circle me-2'></i>${message}
+                <div>
+                    <button class="btn btn-sm btn-outline-danger mt-2 retry-download">
+                        <i class='bx bx-download me-1'></i>Download Instead
+                    </button>
+                </div>
             </div>
         `);
-    };
-    
-    // Hide document viewer
+
+        $('.retry-download').off('click').on('click', function() {
+            downloadDocument(window.currentRiderDocumentPath);
+        });
+    }
+
     function hideDocumentViewer() {
-        // Reload the documents list
         $.ajax({
             url: `/api/delivery-partners/${currentUserId}/documents`,
             method: 'GET',
             success: function(response) {
-                displayDocuments(response.data);
+                if (response.status === 'success') {
+                    displayDocuments(response.data || []);
+                } else {
+                    showAlert('warning', response.message || 'Unable to load documents.');
+                }
             },
-            error: function(xhr) {
-                console.error('Error fetching documents:', xhr);
-                $('#documentsModalBody').html(`
-                  <div class="alert alert-danger">
-                    <i class='bx bx-error-circle'></i> Failed to load documents. Please try again.
-                  </div>
-                `);
+            error: function() {
+                showAlert('danger', "Failed to load documents. Please try again.");
             }
         });
     }
-    
-    // Download document
+
     function downloadDocument(filePath) {
-        // Create a temporary link element to trigger download
+        if (!filePath) {
+            showToast('warning', 'No document available for download.');
+            return;
+        }
         const link = document.createElement('a');
         link.href = filePath;
-        link.download = ''; // Let the server determine filename
         link.target = '_blank';
+        link.download = '';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         showToast('info', 'Download started...');
     }
 
@@ -500,35 +474,40 @@ $(document).ready(function() {
         e.preventDefault();
         const userId = $(this).data('id');
         const statusTo = $(this).data('status-to');
-        const roleId = $(this).data('role');
 
-        if (confirm('Are you sure you want to perform this action?')) {
-            $.ajax({
-                url: '/update-rider',
-                type: 'POST',
-                data: {
-                    user_id: userId,
-                    status_to: statusTo,
-                    role_id: roleId
-                },
-                success: function(response) {
-                    if (response.status === 'success') {
-                        showToast('success', response.message);
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        showToast('error', response.message || 'An error occurred');
+        const messageMap = {
+            '0': 'Do you want to remove this rider?',
+            '1': 'Approve this rider application?',
+            '2': 'Enable this rider account?',
+            '3': 'Disable this rider account?'
+        };
+
+        $.SystemScript.swalConfirmMessage('Are you sure?', messageMap[statusTo] || 'Proceed with this action?', 'question')
+            .done(function(confirmed) {
+                if (!confirmed) return;
+
+                $.ajax({
+                    url: '/update-rider',
+                    type: 'POST',
+                    data: {
+                        user_id: userId,
+                        status_to: statusTo
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $.SystemScript.swalAlertMessage('Success', response.message, 'success')
+                                .done(() => location.reload());
+                        } else {
+                            $.SystemScript.swalAlertMessage('Error', response.message || 'Unable to update rider.', 'error');
+                        }
+                    },
+                    error: function() {
+                        $.SystemScript.swalAlertMessage('Error', 'An error occurred while processing your request.', 'error');
                     }
-                },
-                error: function() {
-                    showToast('error', 'An error occurred while processing your request');
-                }
+                });
             });
-        }
     });
 
-    // Format dates
     $('.updatedAt').each(function() {
         const date = new Date($(this).text());
         $(this).text(date.toLocaleDateString('en-US', {

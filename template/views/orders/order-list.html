@@ -1,0 +1,219 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+{% set status_map = {
+  1: ('bg-label-primary', 'Order Placed'),
+  2: ('bg-label-info', 'Shipped'),
+  3: ('bg-label-warning', 'Out for Delivery'),
+  4: ('bg-label-success', 'Delivered')
+} %}
+<div class="container-xxl flex-grow-1 container-p-y">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Store Orders</h5>
+      <small class="text-muted">All orders placed for your products.</small>
+    </div>
+
+    <!-- Desktop table -->
+    <div class="table-responsive d-none d-md-block p-4">
+      <table class="table table-striped align-middle" id="sellerOrdersTable">
+        <thead class="table-dark">
+          <tr>
+            <th>Reference</th>
+            <th>Buyer</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th data-order="created_at">Placed On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-border-bottom-0">
+          {% for order in orders %}
+          <tr>
+            <td data-label="Reference"><span class="fw-semibold">{{ order.reference }}</span></td>
+            <td data-label="Buyer">{{ order.buyer_name or 'N/A' }}</td>
+            <td data-label="Items">{{ order.item_count or 0 }}</td>
+            <td data-label="Total">₱{{ '{:,.2f}'.format(order.total_amount|float) if order.total_amount is not none else '0.00' }}</td>
+            <td data-label="Status">
+              {% set status = order.status or 1 %}
+              {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
+              <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
+            </td>
+            <td data-label="Placed On" class="createdAt">{{ order.created_at }}</td>
+            <td>
+              <div class="dropdown">
+                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                </button>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="/order-management">
+                    <i class='bx bx-edit me-1'></i>Manage Order
+                  </a>
+                  <a class="dropdown-item view-order-details" href="javascript:void(0);" data-order='{{ order | tojson | safe }}'>
+                    <i class='bx bx-show me-1'></i>View Summary
+                  </a>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">No orders found yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="d-md-none p-3">
+      {% for order in orders %}
+      <div class="card mb-3 border">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <small class="text-muted">Reference</small>
+              <h6 class="mb-0">{{ order.reference }}</h6>
+            </div>
+            {% set status = order.status or 1 %}
+            {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
+            <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
+          </div>
+          <div class="mb-2">
+            <small class="text-muted">Buyer</small>
+            <p class="mb-1">{{ order.buyer_name or 'N/A' }}</p>
+          </div>
+          <div class="d-flex justify-content-between text-muted small">
+            <span>{{ order.item_count or 0 }} item(s)</span>
+            <span>₱{{ '{:,.2f}'.format(order.total_amount|float) if order.total_amount is not none else '0.00' }}</span>
+          </div>
+          <p class="text-muted mb-2 small">Placed {{ order.created_at }}</p>
+          <div class="d-grid gap-2">
+            <a class="btn btn-sm btn-outline-primary" href="/order-management">
+              <i class='bx bx-edit me-1'></i>Manage Order
+            </a>
+            <button class="btn btn-sm btn-outline-secondary view-order-details" data-order='{{ order | tojson | safe }}'>
+              <i class='bx bx-info-circle me-1'></i>View Summary
+            </button>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">No orders found yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Order Summary Modal -->
+  <div class="modal fade" id="orderSummaryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Order Summary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="orderSummaryContent" class="text-center text-muted py-4">
+            Select an order to view its details.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tableEl = document.getElementById('sellerOrdersTable');
+    let dataTable = null;
+    if (tableEl) {
+      const hasjQueryInstance = window.jQuery && jQuery.fn?.dataTable?.isDataTable && jQuery.fn.dataTable.isDataTable(tableEl);
+
+      if (hasjQueryInstance) {
+        dataTable = jQuery(tableEl).DataTable();
+      } else if (window.innerWidth >= 768 && typeof DataTable !== 'undefined') {
+        dataTable = new DataTable(tableEl, { responsive: true });
+      }
+    }
+
+    // Format createdAt cells
+    document.querySelectorAll('.createdAt').forEach(function (cell) {
+      const text = cell.textContent?.trim();
+      if (!text) return;
+      const date = new Date(text.replace(' ', 'T'));
+      if (!isNaN(date)) {
+        cell.textContent = date.toLocaleString('en-US', {
+          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+      }
+    });
+
+    // Modal logic
+    const modalEl = document.getElementById('orderSummaryModal');
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const modalBody = document.getElementById('orderSummaryContent');
+
+    document.querySelectorAll('.view-order-details').forEach(btn => {
+      btn.addEventListener('click', function () {
+        if (!modal || !modalBody) return;
+        const orderData = this.getAttribute('data-order');
+        try {
+          const order = JSON.parse(orderData);
+          renderOrderSummary(order);
+          modal.show();
+        } catch (error) {
+          modalBody.textContent = 'Unable to load order details.';
+          console.error(error);
+          modal.show();
+        }
+      });
+    });
+
+    function renderOrderSummary(order) {
+      if (!order) {
+        modalBody.textContent = 'Order data unavailable.';
+        return;
+      }
+      modalBody.innerHTML = `
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="border rounded p-3 h-100">
+              <h6 class="text-muted">Order Information</h6>
+              <p class="mb-1"><strong>Reference:</strong> ${order.reference || 'N/A'}</p>
+              <p class="mb-1"><strong>Status:</strong> ${order.status_label || 'Order Placed'}</p>
+              <p class="mb-1"><strong>Placed:</strong> ${order.created_at || 'N/A'}</p>
+              <p class="mb-0"><strong>Items:</strong> ${order.item_count || 0}</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded p-3 h-100">
+              <h6 class="text-muted">Buyer</h6>
+              <p class="mb-1"><strong>Name:</strong> ${order.buyer_name || 'N/A'}</p>
+              <p class="mb-1"><strong>Email:</strong> ${order.buyer_email || 'N/A'}</p>
+              <p class="mb-0"><strong>Phone:</strong> ${order.buyer_phone || 'N/A'}</p>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="border rounded p-3">
+              <h6 class="text-muted">Totals</h6>
+              <div class="row">
+                <div class="col-sm-4"><p class="mb-1"><strong>Subtotal:</strong> ₱${Number(order.subtotal || 0).toFixed(2)}</p></div>
+                <div class="col-sm-4"><p class="mb-1"><strong>Shipping:</strong> ₱${Number(order.shipping_fee || 0).toFixed(2)}</p></div>
+                <div class="col-sm-4"><p class="mb-1"><strong>Tax:</strong> ₱${Number(order.tax_amount || 0).toFixed(2)}</p></div>
+              </div>
+              <p class="mb-0">
+                <strong>Total:</strong> ₱${Number(order.total_amount || 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  });
+</script>
+{% endblock %}

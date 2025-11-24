@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}{{ store.store_name }} | Store{% endblock %}
+
+{% block content %}
+<section class="store-hero py-5 mb-5">
+  <div class="container-fluid px-4 px-xl-5">
+    <div class="store-hero-main row g-4 align-items-center">
+        <div class="col-lg-7">
+          <div class="store-identity">
+            <span class="store-badge"><i class="bi bi-shield-check me-1"></i>Verified Seller</span>
+            <h1 class="store-title text-primary mb-1">{{ store.store_name }}</h1>
+            <p class="store-owner text-muted mb-3">{{ (store.firstname|default('') ~ ' ' ~ store.lastname|default(''))|trim if store.firstname or store.lastname else 'Trusted marketplace merchant' }}</p>
+            <p class="hero-description mb-4">{{ store.description if store.description else 'Bringing you curated tech and lifestyle essentials.' }}</p>
+            <div class="store-meta-panel">
+              {% if store.address_text %}
+              <div class="store-meta-line">
+                <i class="bi bi-geo-alt"></i>
+                <span>{{ store.address_text }}</span>
+              </div>
+              {% endif %}
+              <div class="store-meta-line">
+                <i class="bi bi-card-heading"></i>
+                <span>ID: {{ 'STORE-' ~ '%04d'|format(seller_id|int) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="store-metrics-grid">
+            <div class="store-metric-card">
+              <p>Products</p>
+              <h3>{{ stats.products }}</h3>
+            </div>
+            <div class="store-metric-card">
+              <p>Inventory</p>
+              <h3>{{ stats.inventory }}</h3>
+            </div>
+            <div class="store-metric-card store-rating-card">
+              <p>Seller Rating</p>
+              <h3>{{ stats.rating }} <span class="text-warning"><i class="bi bi-star-fill"></i></span></h3>
+              <small>Top rated seller</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="store-summary-row">
+        <div class="store-summary-card">
+          <div class="summary-icon icon-blue">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <p>Products Listed</p>
+            <h4>{{ stats.products }}</h4>
+          </div>
+        </div>
+        <div class="store-summary-card">
+          <div class="summary-icon icon-pink">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <div>
+            <p>Total Sales</p>
+            <h4>{{ stats.total_sales if stats.total_sales is defined else '625+' }}</h4>
+          </div>
+        </div>
+        <div class="store-summary-card">
+          <div class="summary-icon icon-orange">
+            <i class="bi bi-lightning-charge"></i>
+          </div>
+          <div>
+            <p>Response Rate</p>
+            <h4>{{ stats.response_rate if stats.response_rate is defined else '98%' }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="store-products-section pb-5">
+  <div class="container">
+    <div class="store-products-header">
+      <div>
+        <span class="section-badge bg-primary text-white px-3 py-1 rounded-pill mb-3">Discover</span>
+        <h2 class="fw-bold mb-1">{{ store.store_name }} Products</h2>
+        <p class="text-muted mb-0">Browse {{ stats.products }} curated items from this store</p>
+      </div>
+    </div>
+
+    {% if products %}
+    <div class="row g-4">
+      {% for product in products %}
+      <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card store-product-card text-decoration-none h-100">
+          <div class="product-minimal-img store-product-image">
+            <img src="{{ product.image_url }}" alt="{{ product.product_name }}" loading="lazy" onerror="this.onerror=null; this.src='/static/images/no-image.jpg'">
+          </div>
+          <div class="product-minimal-info store-product-info mt-auto">
+            <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(32) }}</h6>
+            <p class="product-minimal-price mb-0">₱{{ "{:,.2f}".format(product.price) }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="store-empty-state text-center p-5 bg-light rounded-4">
+      <i class="bi bi-shop fs-1 text-muted mb-3"></i>
+      <h4>No products yet</h4>
+      <p class="text-muted mb-0">This store hasn’t listed any products. Check back soon.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const hero = document.querySelector('.store-hero-banner');
+    if (hero) {
+      hero.classList.add('loaded');
+    }
+  });
+</script>
+{% endblock %}

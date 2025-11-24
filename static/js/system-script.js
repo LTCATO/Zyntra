@@ -72,35 +72,75 @@ $.SystemScript = (function() {
     }
 
         //action (String)
+    let __getSwalInstance = function() {
+        if (typeof Swal !== 'undefined') {
+            return Swal;
+        }
+        if (typeof swal !== 'undefined') {
+            return swal;
+        }
+        console.warn('SweetAlert library is not loaded.');
+        return null;
+    };
+
     let __swalAlertMessage = function (head, mes, action) {
-            let d = $.Deferred();
-            let response = true;
+        let d = $.Deferred();
+        let swalInstance = __getSwalInstance();
 
-            swal(head,mes,action)
-
-            d.resolve(response)
+        if (!swalInstance) {
+            alert(`${head}\n${mes}`);
+            d.resolve(true);
             return d.promise();
+        }
+
+        if (typeof swalInstance.fire === 'function') {
+            swalInstance.fire({
+                title: head,
+                text: mes,
+                icon: action || 'info',
+                confirmButtonText: 'OK'
+            }).then(() => d.resolve(true));
+        } else {
+            swalInstance(head, mes, action);
+            d.resolve(true);
+        }
+
+        return d.promise();
     }
+
     let __swalConfirmMessage = function(head, mes, action) {
         let d = $.Deferred();
-        swal({
-            title: head,
-            text: mes,
-            type: action,
-            confirmButtonText: "Yes",
-            showCancelButton: true
-        })
-        .then((result) => {
-            let response = false;
+        let swalInstance = __getSwalInstance();
 
-            if (result.value) {
-                response = true;
-            } else {
-                response = false;
+        if (!swalInstance) {
+            let response = confirm(mes);
+            d.resolve(response);
+            return d.promise();
+        }
 
-            }
-            d.resolve(response)
-        })
+        if (typeof swalInstance.fire === 'function') {
+            swalInstance.fire({
+                title: head,
+                text: mes,
+                icon: action || 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No'
+            }).then((result) => {
+                d.resolve(!!result.isConfirmed);
+            });
+        } else {
+            swalInstance({
+                title: head,
+                text: mes,
+                type: action,
+                confirmButtonText: 'Yes',
+                showCancelButton: true
+            }).then((result) => {
+                d.resolve(!!result.value);
+            });
+        }
+
         return d.promise();
     }
 

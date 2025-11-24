@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+
+{% block content %}
+<section class="about-hero py-5">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                {% if g.authenticated %}
+                <span class="about-hero-badge text-primary">Welcome back, {{ g.authenticated.firstname or 'Builder' }}.</span>
+                <h1 class="display-5 fw-bold mt-3 mb-3">Your marketplace control center is ready.</h1>
+                <p class="lead text-muted mb-4">Jump into fulfillment, watch live tracking, and keep shoppers delighted. We handle the rails so you can focus on momentum.</p>
+                {% else %}
+                <span class="about-hero-badge">Built for modern Filipino commerce</span>
+                <h1 class="display-5 fw-bold mt-3 mb-3">We connect bold sellers with customers who expect more.</h1>
+                <p class="lead text-muted mb-4">Zyntra is a marketplace engineered for trust. From curated sellers to last-mile visibility, we obsess over every touchpoint so buyers, sellers, and riders can move with confidence.</p>
+                {% endif %}
+                <div class="about-hero-meta d-flex flex-wrap gap-4">
+                    <div>
+                        <p class="text-muted small mb-1">Active sellers</p>
+                        <h3 class="mb-0">4,800+</h3>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Cities served</p>
+                        <h3 class="mb-0">120+</h3>
+                    </div>
+                    <div>
+                        <p class="text-muted small mb-1">Avg. rider ETA</p>
+                        <h3 class="mb-0">32 mins</h3>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    {% if g.authenticated %}
+                    <a href="{{ url_for('order_tracking_hub') }}" class="btn btn-primary btn-lg px-4">Track my orders</a>
+                    <a href="{{ url_for('dashboard_page') }}" class="btn btn-outline-primary btn-lg px-4">Open dashboard</a>
+                    {% else %}
+                    <a href="{{ url_for('home_page') }}" class="btn btn-primary btn-lg px-4">Explore Products</a>
+                    <a href="{{ url_for('sell_page') }}" class="btn btn-outline-primary btn-lg px-4">Partner with Us</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="about-spotlight-card p-4">
+                    <p class="text-muted small text-uppercase mb-2">Experience snapshot</p>
+                    <h4 class="fw-bold mb-3">Every order is tracked, protected, and celebrated.</h4>
+                    <ul class="list-unstyled vstack gap-3 mb-0">
+                        <li class="d-flex gap-3">
+                            <div class="about-icon-pill bg-primary-subtle text-primary">
+                                <i class="bi bi-shield-check"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Seller verification</h6>
+                                <p class="text-muted small mb-0">Multi-step vetting with real-time performance monitoring.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3">
+                            <div class="about-icon-pill bg-success-subtle text-success">
+                                <i class="bi bi-truck"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Smarter fulfillment</h6>
+                                <p class="text-muted small mb-0">Dynamic routing keeps riders on-time across the country.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex gap-3">
+                            <div class="about-icon-pill bg-warning-subtle text-warning">
+                                <i class="bi bi-chat-dots"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Human support</h6>
+                                <p class="text-muted small mb-0">Specialists available 7 days a week for escalations.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if g.authenticated %}
+<section class="about-member-panel py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="member-chip">
+                    <div>
+                        <p class="text-uppercase small text-muted mb-1">Cart items</p>
+                        <h4 class="mb-0">{{ g.cart_item_count or 0 }}</h4>
+                    </div>
+                    <a href="{{ url_for('cart_page') }}" class="stretched-link fw-semibold">Review cart <i class="bi bi-arrow-up-right ms-1"></i></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="member-chip">
+                    <div>
+                        <p class="text-uppercase small text-muted mb-1">Deliveries</p>
+                        <h4 class="mb-0">Stay on track</h4>
+                    </div>
+                    <a href="{{ url_for('order_tracking_hub') }}" class="stretched-link fw-semibold">Manage tracking <i class="bi bi-arrow-up-right ms-1"></i></a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="member-chip">
+                    <div>
+                        <p class="text-uppercase small text-muted mb-1">Profile & Store</p>
+                        <h4 class="mb-0">Update details</h4>
+                    </div>
+                    <a href="{{ url_for('manage_profile') }}" class="stretched-link fw-semibold">Edit profile <i class="bi bi-arrow-up-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% else %}
+<section class="about-guest-panel py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="guest-chip">
+                    <i class="bi bi-person-plus"></i>
+                    <div>
+                        <h6 class="mb-1">Create your account</h6>
+                        <p class="text-muted small mb-0">Unlock buyer protection and curated deals.</p>
+                    </div>
+                    <a href="{{ url_for('signup_page') }}" class="btn btn-link p-0 fw-semibold">Sign up</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="guest-chip">
+                    <i class="bi bi-shop"></i>
+                    <div>
+                        <h6 class="mb-1">Launch your store</h6>
+                        <p class="text-muted small mb-0">Access enterprise-grade fulfillment instantly.</p>
+                    </div>
+                    <a href="{{ url_for('sell_page') }}" class="btn btn-link p-0 fw-semibold">Become a seller</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="guest-chip">
+                    <i class="bi bi-truck"></i>
+                    <div>
+                        <h6 class="mb-1">Deliver with us</h6>
+                        <p class="text-muted small mb-0">Join a rider-first network with transparent pay.</p>
+                    </div>
+                    <a href="{{ url_for('deliver_page') }}" class="btn btn-link p-0 fw-semibold">Apply now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="about-stats py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3 col-6">
+                <div class="about-stat-card">
+                    <h3>98%</h3>
+                    <p class="text-muted mb-0">on-time deliveries</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="about-stat-card">
+                    <h3>1.2M</h3>
+                    <p class="text-muted mb-0">monthly shoppers</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="about-stat-card">
+                    <h3>35K</h3>
+                    <p class="text-muted mb-0">daily dispatches</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="about-stat-card">
+                    <h3>4.9/5</h3>
+                    <p class="text-muted mb-0">buyer satisfaction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-mission pb-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="about-pill-card h-100">
+                    <p class="text-uppercase small text-muted mb-2">Mission</p>
+                    <h3 class="fw-bold mb-3">Empower every local seller with enterprise-grade tools.</h3>
+                    <p class="text-muted mb-0">We make logistics, payments, and customer trust accessible through beautifully simple workflows. Sellers focus on crafting great products while we automate the rest.</p>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="about-pill-card h-100">
+                    <p class="text-uppercase small text-muted mb-2">Vision</p>
+                    <h3 class="fw-bold mb-3">Commerce that feels personal at national scale.</h3>
+                    <p class="text-muted mb-0">Our platform blends data, design, and human support so every delivery feels like it came from down the street.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-journey py-5">
+    <div class="container">
+        <div class="section-title mb-5 text-start">
+            <h2 class="mb-2">Journeys we are proud of</h2>
+            <p class="text-muted mb-0">Milestones that shaped Zyntra into the marketplace it is today.</p>
+        </div>
+        <div class="journey-steps">
+            <div class="journey-step">
+                <span class="journey-year">2019</span>
+                <h5>Marketplace launch</h5>
+                <p class="text-muted">Opened our first provincial hub and introduced curated seller onboarding.</p>
+            </div>
+            <div class="journey-step">
+                <span class="journey-year">2021</span>
+                <h5>Rider-first logistics</h5>
+                <p class="text-muted">Built a nationwide rider network with proactive delay alerts for buyers.</p>
+            </div>
+            <div class="journey-step">
+                <span class="journey-year">2023</span>
+                <h5>Payments & protection</h5>
+                <p class="text-muted">Rolled out escrow payments, fraud prevention, and instant refunds.</p>
+            </div>
+            <div class="journey-step">
+                <span class="journey-year">Today</span>
+                <h5>Unified order intelligence</h5>
+                <p class="text-muted">A single command center for sellers, riders, and buyers to collaborate.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-values py-5">
+    <div class="container">
+        <div class="section-title mb-5 text-start">
+            <h2 class="mb-2">What guides our build</h2>
+            <p class="text-muted mb-0">Principles that show up in every pixel, package, and push notification.</p>
+        </div>
+        <div class="about-value-grid">
+            <article class="value-card">
+                <div class="about-icon-pill bg-primary-subtle text-primary mb-3">
+                    <i class="bi bi-bar-chart"></i>
+                </div>
+                <h5>Data with empathy</h5>
+                <p class="text-muted">Insights are only useful when they drive kinder, clearer experiences.</p>
+            </article>
+            <article class="value-card">
+                <div class="about-icon-pill bg-success-subtle text-success mb-3">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h5>Community trust</h5>
+                <p class="text-muted">Fair fees, transparent policies, and accessible support for all.</p>
+            </article>
+            <article class="value-card">
+                <div class="about-icon-pill bg-warning-subtle text-warning mb-3">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h5>Reliable tech</h5>
+                <p class="text-muted">Cloud-native infrastructure keeps the marketplace performant 24/7.</p>
+            </article>
+            <article class="value-card">
+                <div class="about-icon-pill bg-danger-subtle text-danger mb-3">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+                <h5>People-first ops</h5>
+                <p class="text-muted">We invest in seller education, rider safety, and customer delight equally.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="about-cta py-5">
+    <div class="container">
+        <div class="about-cta-card p-5 rounded-4">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <h2 class="fw-bold mb-3">Ready to build the next chapter of commerce?</h2>
+                    <p class="text-muted mb-0">List your catalog, deliver with us, or embed our logistics API—Zyntra adapts to your growth stage.</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-lg-column gap-3 justify-content-end">
+                        <a href="{{ url_for('sell_page') }}" class="btn btn-primary px-4 flex-grow-1">Sell on Zyntra</a>
+                        <a href="{{ url_for('deliver_page') }}" class="btn btn-outline-primary px-4 flex-grow-1">Deliver with Zyntra</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Order Tracking{% endblock %}
+
+{% block content %}
+<div class="container py-5 order-tracking-page">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-3">
+        <div>
+            <p class="text-muted mb-1 text-uppercase fw-semibold">Tracking Detail</p>
+            <h1 class="fw-bold mb-2">Order #{{ order_summary.reference }}</h1>
+            <p class="text-muted mb-0">Placed on {{ order_summary.created_at }} · ETA {{ order_summary.estimated_delivery }}</p>
+        </div>
+        <div class="text-md-end">
+            <p class="text-muted mb-1">Shipping To</p>
+            <h6 class="mb-0">{{ shipping_address or 'Address not available' }}</h6>
+            {% if can_cancel %}
+            <button class="btn btn-outline-danger btn-sm rounded-pill mt-3" data-cancel-order data-reference="{{ order_summary.reference }}">
+                <i class="bi bi-x-circle me-1"></i> Cancel Order
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="timeline-wrapper bg-light-subtle rounded-4 p-4">
+                {% for step in timeline_steps %}
+                <div class="timeline-step d-flex gap-3 py-4 {% if not loop.last %}border-bottom{% endif %}">
+                    <div class="timeline-marker text-center">
+                        <div class="rounded-circle d-inline-flex justify-content-center align-items-center step-circle {% if step.completed %}bg-primary text-white{% else %}border border-2 border-secondary-subtle text-secondary{% endif %}">
+                            {{ step.step_number }}
+                        </div>
+                        {% if not loop.last %}
+                        <div class="timeline-line mx-auto bg-secondary-subtle"></div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h6 class="mb-1 {{ 'text-primary' if step.active else '' }}">Step {{ step.step_number }} · {{ step.title }}</h6>
+                        <p class="text-muted mb-2 small">{{ step.description }}</p>
+                        {% if step.active %}
+                        <div class="alert alert-success py-2 px-3 mb-0 small">
+                            <strong>Latest Update:</strong> We're working on this stage now.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row g-3 mt-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="text-muted small mb-1">Payment Method</p>
+                            <h5 class="mb-1">{{ order_summary.payment_method }}</h5>
+                            <span class="badge rounded-pill px-3 py-1 {% if order_summary.status < 4 %}bg-warning-subtle text-warning{% else %}bg-success-subtle text-success{% endif %}">
+                                {{ order_summary.status_text }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <p class="text-muted small mb-1">Need help?</p>
+                            <h5 class="mb-2">Having issues with this order?</h5>
+                            <p class="text-muted small mb-3">Reach out to support and we’ll make things right.</p>
+                            <a href="mailto:support@zyntra.com" class="btn btn-outline-primary btn-sm rounded-pill">Contact Support</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Order Summary</h5>
+                    <small class="text-muted">{{ order_items|length }} item{{ '' if order_items|length == 1 else 's' }}</small>
+                </div>
+                <div class="card-body">
+                    <div class="vstack gap-3 mb-3">
+                        {% for item in order_items %}
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="order-item-thumb">
+                                <img src="{{ url_for('static', filename=item.attachment) if item.attachment else url_for('static', filename='images/no-image.jpg') }}" class="img-fluid rounded" alt="{{ item.product_name }}">
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ item.product_name }}</h6>
+                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-0 fw-semibold">₱{{ item.formatted_total }}</p>
+                                <small class="text-muted">₱{{ item.formatted_price }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span>₱{{ order_summary.subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Shipping</span>
+                        <span class="text-success">{% if order_summary.shipping_fee == '0.00' %}Free{% else %}₱{{ order_summary.shipping_fee }}{% endif %}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tax</span>
+                        <span>₱{{ order_summary.tax_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold fs-4">₱{{ order_summary.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex gap-3">
+                    <div class="text-primary display-6"><i class="bi bi-info-circle"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Return Policy</h6>
+                        <p class="text-muted small mb-0">Need to return this item? You have 30 days from delivery. Keep the packaging for smoother processing.</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if suborders %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Per-Seller Shipments</h5>
+                    <small class="text-muted">Track progress for each seller fulfillment.</small>
+                </div>
+                <div class="card-body">
+                    <div class="vstack gap-3">
+                        {% for sub in suborders %}
+                        {% set pill = status_map.get(sub.status or 1, ('bg-secondary','Pending')) %}
+                        <div class="border rounded-3 p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <p class="text-muted small mb-1">Seller</p>
+                                    <h6 class="mb-0">{{ sub.store_name }}</h6>
+                                    <small class="text-muted">Ref: {{ sub.sub_reference }}</small>
+                                </div>
+                                <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
+                            </div>
+                            <ul class="list-unstyled mb-0">
+                                {% for item in sub.items %}
+                                <li class="d-flex justify-content-between text-muted small py-1 border-top">
+                                    <span>{{ item.product_name }} · {{ item.quantity }} pc(s)</span>
+                                    <span>₱{{ '%.2f' % item.line_total }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% set status_map = {
+  1: ('badge bg-label-primary','Order Placed'),
+  2: ('badge bg-label-info','Shipped'),
+  3: ('badge bg-label-warning','Out for Delivery'),
+  4: ('badge bg-label-success','Delivered')
+} %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-cancel-order]').forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const reference = this.getAttribute('data-reference');
+                Swal.fire({
+                    title: 'Cancel this order?',
+                    text: 'This action cannot be undone. You can reorder anytime.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, cancel it',
+                    cancelButtonText: 'Keep order'
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    fetch(`/order-tracking/${reference}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }).then(async (response) => {
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            Swal.fire('Canceled', 'Your order has been removed.', 'success').then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Oops!', data.message || 'Unable to cancel order.', 'error');
+                        }
+                    }).catch(() => {
+                        Swal.fire('Oops!', 'Unable to cancel order right now.', 'error');
+                    });
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

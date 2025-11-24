@@ -1,0 +1,184 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Order Management{% endblock %}
+
+{% block content %}
+{% set status_map = {
+  1: ('bg-label-primary','Order Placed'),
+  2: ('bg-label-info','Shipped'),
+  3: ('bg-label-warning','Out for Delivery'),
+  4: ('bg-label-success','Delivered')
+} %}
+<div class="container-xxl flex-grow-1 container-p-y">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-1">Order Management</h5>
+      <small class="text-muted">Update shipment progress for each order item.</small>
+    </div>
+
+    <div class="p-4">
+      {% for group in order_groups %}
+      {% set pill = status_map.get(group.group_status or 1) %}
+      <div class="card mb-4 border">
+        <div class="card-header bg-light d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <small class="text-muted">Reference</small>
+            <h6 class="mb-0">{{ group.reference }}</h6>
+            <small class="text-muted">Buyer: {{ group.buyer_name }} · {{ group.buyer_email }}</small>
+          </div>
+          <div class="text-end">
+            <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
+            <p class="mb-0 text-muted small">Updated <span class="updatedAt" data-timestamp="{{ group.updated_at }}">{{ group.updated_at }}</span></p>
+          </div>
+        </div>
+        <div class="card-body">
+          {% for item in group.item_list %}
+          {% set item_pill = status_map.get(item.status or 1) %}
+          <div class="row g-3 align-items-center border rounded p-3 mb-3">
+            <div class="col-md-5 d-flex align-items-center gap-3">
+              <img src="{{ item.product_image or '/static/images/no-image.jpg' }}" alt="{{ item.product_name }}" width="64" height="64" class="rounded border">
+              <div>
+                <p class="mb-1 fw-semibold">{{ item.product_name }}</p>
+                <small class="text-muted">₱{{ '{:,.2f}'.format(item.unit_price|float) }} · {{ item.quantity }} pc(s)</small>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <small class="text-muted d-block">Status</small>
+              <span class="badge {{ item_pill[0] }}">{{ item_pill[1] }}</span>
+              <p class="mb-0 text-muted small">Updated <span class="updatedAt" data-timestamp="{{ item.updated_at }}">{{ item.updated_at }}</span></p>
+            </div>
+            <div class="col-md-2">
+              <small class="text-muted d-block">Reference</small>
+              <p class="mb-0 fw-medium">{{ item.reference }}</p>
+            </div>
+            <div class="col-md-2 text-md-end">
+              <button class="btn btn-sm btn-primary manage-shipping" data-id="{{ item.order_items_id }}" data-reference="{{ item.reference }}">
+                <i class='bx bx-package me-1'></i> Manage Shipping
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">No order groups found.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.updatedAt').forEach(node => {
+      const raw = node.getAttribute('data-timestamp') || node.textContent?.trim();
+      if (!raw) return;
+      const date = new Date(raw.replace(' ', 'T'));
+      if (!isNaN(date)) {
+        node.textContent = date.toLocaleString('en-US', {
+          year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+      }
+    });
+
+    const modalEl = document.getElementById('manageShippingModal');
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const formEl = document.getElementById('manageShippingForm');
+    const orderItemInput = document.getElementById('modalOrderItemId');
+    const referenceLabel = document.getElementById('modalReference');
+
+    document.querySelectorAll('.manage-shipping').forEach(button => {
+      button.addEventListener('click', function () {
+        const id = this.getAttribute('data-id');
+        const reference = this.getAttribute('data-reference') || '';
+        if (!id || !modal || !formEl) return;
+        orderItemInput.value = id;
+        referenceLabel.textContent = reference || 'N/A';
+        formEl.reset();
+        modal.show();
+      });
+    });
+
+    formEl?.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const orderItemId = orderItemInput.value;
+      const status = document.querySelector('input[name="shippingStatus"]:checked')?.value;
+
+      if (!orderItemId || !status) {
+        $.SystemScript?.swalAlertMessage('Missing selection', 'Select a shipping status first.', 'warning');
+        return;
+      }
+
+      const submitBtn = formEl.querySelector('button[type="submit"]');
+      submitBtn?.setAttribute('disabled', 'disabled');
+
+      $.post('/order-items/update-status', { order_items_id: orderItemId, status: status })
+        .done(function(response) {
+          if (response.status === 'success') {
+            $.SystemScript.swalAlertMessage('Updated', response.message, 'success').done(() => window.location.reload());
+          } else {
+            $.SystemScript.swalAlertMessage('Error', response.message || 'Unable to update status.', 'error');
+          }
+        })
+        .fail(function() {
+          $.SystemScript.swalAlertMessage('Error', 'Something went wrong while updating status.', 'error');
+        })
+        .always(function () {
+          submitBtn?.removeAttribute('disabled');
+          modal.hide();
+        });
+    });
+  });
+</script>
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="manageShippingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Manage Shipping Status</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="manageShippingForm" class="modal-body">
+        <input type="hidden" id="modalOrderItemId">
+        <div class="mb-3">
+          <small class="text-muted text-uppercase">Order Reference</small>
+          <p class="fw-semibold mb-0" id="modalReference">N/A</p>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Choose shipping status</label>
+          <div class="list-group">
+            <label class="list-group-item d-flex align-items-center gap-2">
+              <input class="form-check-input" type="radio" name="shippingStatus" value="2">
+              <div>
+                <div class="fw-medium">Shipped</div>
+                <small class="text-muted">Seller confirms item left the store.</small>
+              </div>
+            </label>
+            <label class="list-group-item d-flex align-items-center gap-2">
+              <input class="form-check-input" type="radio" name="shippingStatus" value="3">
+              <div>
+                <div class="fw-medium">Out for Delivery</div>
+                <small class="text-muted">Handed to rider / out for delivery.</small>
+              </div>
+            </label>
+            <label class="list-group-item d-flex align-items-center gap-2">
+              <input class="form-check-input" type="radio" name="shippingStatus" value="4">
+              <div>
+                <div class="fw-medium">Delivered</div>
+                <small class="text-muted">Buyer confirmed receipt.</small>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer px-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Status</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

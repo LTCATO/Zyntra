@@ -127,8 +127,11 @@ def getRiders(condition, params=None):
     return results
 
 def updateRider():
-    user_id = request.args.get('user_id')
-    status_to = request.args.get('status_to')
+    user_id = request.values.get('user_id')
+    status_to = request.values.get('status_to')
+
+    if not user_id or not status_to:
+        return responseData("error", "Missing user_id or status_to", "", 400)
 
     try:
         if status_to == "1":  # Approve rider
@@ -150,6 +153,9 @@ def updateRider():
             executePost("DELETE FROM delivery_partners WHERE user_id = %s", (user_id,))
             executePost("UPDATE users SET role_id = 2, status = 1, updated_at = NOW() WHERE user_id = %s", (user_id,))
             return responseData("success", "Rider rejected and removed successfully.", "", 200)
+
+        else:
+            return responseData("error", "Invalid status provided", "", 400)
 
     except Exception as e:
         print("Error in updateRider:", str(e))

@@ -7,12 +7,10 @@ from helpers.Session import sessionRemove
 from helpers.HelperFunction import responseData
 
 # Controllers
-from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop
-
+from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead
 from controller.LoginController import login, LoginSubmit, signup, signupSubmit, sellerSignup, sellerSignupSubmit, deliveryPartnerSignup, deliveryPartnerSignupSubmit, getDeliveryPartnerDocuments, getSellerDocuments
-# Authenticate controllers
 from controller.DashboardController import dashboardIndex
-from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit
+from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
 from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
 
@@ -45,6 +43,19 @@ def setup_routes(app: Flask):
     @app.before_request
     def load_user():
         g.authenticated = session.get('authenticated', None)
+        
+        # Load cart items for the current user
+        if g.authenticated and g.authenticated.get('user_id'):
+            from helpers.QueryHelpers import executeGet
+            query = """
+                SELECT COUNT(oi.order_items_id) as item_count 
+                FROM order_items oi 
+                WHERE oi.user_id = %s AND oi.status = 1
+            """
+            result = executeGet(query, (g.authenticated['user_id'],))
+            g.cart_item_count = result[0]['item_count'] if result else 0
+        else:
+            g.cart_item_count = 0
 
     #HomeController
     @app.route('/')
@@ -88,6 +99,8 @@ def setup_routes(app: Flask):
     # Public Seller Signup (no login required)
     @app.route('/sell')
     def sell_page():
+        if g.authenticated:
+            return redirect(url_for('home_page'))
         return sellerSignup()
     
     @app.route('/sell', methods=['POST'])
@@ -171,6 +184,10 @@ def setup_routes(app: Flask):
     def view_product(product_id):
         return viewProduct(product_id)
     
+    @app.route('/store/<int:seller_id>')
+    def store_products(seller_id):
+        return storeProducts(seller_id)
+    
     @app.route('/profile')
     @login_required
     def manage_profile():
@@ -202,6 +219,22 @@ def setup_routes(app: Flask):
     @app.route('/category/<int:category_id>', methods=['GET', 'POST'])
     def category_page(category_id):
         return categoryPage(category_id)
+
+    # Notification APIs
+    @app.route('/notifications', methods=['GET'])
+    @login_required
+    def notifications_index():
+        return getNotifications()
+
+    @app.route('/notifications/read/<int:notification_id>', methods=['POST'])
+    @login_required
+    def notifications_read(notification_id):
+        return markNotificationRead(notification_id)
+
+    @app.route('/notifications/read/all', methods=['POST'])
+    @login_required
+    def notifications_read_all():
+        return markAllNotificationsRead()
     
 
     @app.errorhandler(404)
@@ -211,6 +244,8 @@ def setup_routes(app: Flask):
     # Deliver with Zyntra (courier/driver signup)
     @app.route('/deliver')
     def deliver_page():
+        if g.authenticated:
+            return redirect(url_for('home_page'))
         return deliveryPartnerSignup()
     
     @app.route('/deliver', methods=['POST'])
@@ -256,4 +291,37 @@ def setup_routes(app: Flask):
     def submit_checkout():
         return submitCheckout()
 
-    
+    @app.route('/order-tracking')
+    @login_required
+    def order_tracking_hub():
+        return orderTrackingHub()
+
+    @app.route('/order-tracking/<reference>')
+    @login_required
+    def order_tracking(reference):
+        return orderTracking(reference)
+
+    @app.route('/order-tracking/latest')
+    @login_required
+    def order_tracking_latest():
+        return orderTrackingLatest()
+
+    @app.route('/order-tracking/<reference>/cancel', methods=['POST'])
+    @login_required
+    def order_tracking_cancel(reference):
+        return cancelOrder(reference)
+
+    @app.route('/order-list')
+    @login_required
+    def order_list():
+        return orderList()
+
+    @app.route('/order-management')
+    @login_required
+    def order_management_page():
+        return orderManagement()
+
+    @app.route('/suborders/update-status', methods=['POST'])
+    @login_required
+    def suborders_update_status():
+        return updateSuborderStatus()

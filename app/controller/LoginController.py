@@ -24,9 +24,11 @@ def LoginSubmit():
     # First, check if user exists and get their basic info
     query = """
         SELECT u.*, 
-               s.status as seller_status
+               s.status as seller_status,
+               dp.status as rider_status
         FROM users u
         LEFT JOIN seller_details s ON u.user_id = s.user_id
+        LEFT JOIN delivery_partners dp ON u.user_id = dp.user_id
         WHERE u.email = %s AND u.password = %s
     """
     user = executeGet(query, (email, hashedValue))
@@ -47,7 +49,17 @@ def LoginSubmit():
             elif seller_status == 2:  # Rejected
                 return responseData("rejected", "Your seller application has been rejected. Please contact support for more information.", None, 200)
         
-        # If we get here, user is either approved or not a seller
+        # If user is a rider (role_id = 4), check delivery partner status
+        if user['role_id'] == 4:  # Rider role
+            rider_status = user.get('rider_status')
+            if rider_status is None:
+                return responseData("error", "Rider account not properly set up. Please contact support.", None, 200)
+            elif rider_status == 0:  # Pending approval
+                return responseData("pending", "Your rider application is under review. We'll notify you once approved.", None, 200)
+            elif rider_status == 2:  # Rejected
+                return responseData("rejected", "Your rider application has been rejected. Please contact support for more information.", None, 200)
+
+        # If we get here, user is either approved or not restricted
         user_detail = {
             'user_id': user['user_id'],
             'role_id': user['role_id'],
@@ -94,8 +106,8 @@ def signupSubmit():
     else:
         hashed_password = hashing(password)
 
-        insert_query = "INSERT INTO users (firstname, lastname, email, password, phone) VALUES (%s, %s, %s, %s, %s)"
-        executePost(insert_query, (fname, lname, email, hashed_password, phone))
+        insert_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        user_inserted = executePost(insert_query, (fname, lname, email, hashed_password, phone, 3, 1))
         return responseData("success", "User registered successfully", "", 200)
 
 
@@ -124,6 +136,7 @@ def sellerSignupSubmit():
         phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '')
         store_name = request.form.get('storeName', '').strip()
+        store_description = request.form.get('storeDescription', '').strip()
         
         # Address fields
         region = request.form.get('region_text', '').strip()
@@ -150,6 +163,8 @@ def sellerSignupSubmit():
             return responseData("error", "Store name is required", "", 200)
         if not region or not province or not city or not barangay:
             return responseData("error", "Complete address is required", "", 200)
+        if not store_description:
+            return responseData("error", "Store description is required", "", 200)
         
         # Check if email already exists
         select_query = "SELECT email FROM users WHERE email = %s"
@@ -192,8 +207,8 @@ def sellerSignupSubmit():
         hashed_password = hashing(password)
 
         # Insert user with role_id = 3 (Buyer/Seller)
-        insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id) VALUES (%s, %s, %s, %s, %s, 3)"
-        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone))
+        insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 3, 1))
         
         if user_inserted and user_inserted.get('last_inserted_id'):
             user_id = user_inserted['last_inserted_id']
@@ -201,11 +216,11 @@ def sellerSignupSubmit():
             # Insert seller details with address and documents
             insert_seller_query = """
                 INSERT INTO seller_details 
-                (user_id, store_name, region, province, city, barangay, street, gov_id_path, business_permit_path, status) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 0)
+                (user_id, store_name, description, region, province, city, barangay, street, gov_id_path, business_permit_path, status) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 0)
             """
             seller_inserted = executePost(insert_seller_query, (
-                user_id, store_name, region, province, city, barangay, street, 
+                user_id, store_name, store_description, region, province, city, barangay, street, 
                 gov_id_path, business_permit_path
             ))
             
@@ -318,8 +333,8 @@ def deliveryPartnerSignupSubmit():
         hashed_password = hashing(password)
 
         # Insert user with role_id = 4 (Rider)
-        insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id) VALUES (%s, %s, %s, %s, %s, 4)"
-        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone))
+        insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 4, 1))
 
         if user_inserted and user_inserted.get('last_inserted_id'):
             user_id = user_inserted['last_inserted_id']
@@ -348,35 +363,43 @@ def deliveryPartnerSignupSubmit():
         return responseData("error", f"An error occurred: {str(e)}", "", 200)
 
 
+def _format_document_path(path):
+    if not path:
+        return None
+    normalized = path.replace('\\', '/').lstrip('/')
+    if normalized.startswith('static/'):
+        normalized = normalized[len('static/'):]
+    return url_for('static', filename=normalized)
+
+
 def getDeliveryPartnerDocuments(user_id):
     """Fetch delivery partner documents from database"""
     try:
-        # Query delivery partner documents
         query = """
             SELECT drivers_license_path, gov_id_path 
             FROM delivery_partners 
             WHERE user_id = %s
         """
-        
         result = executeGet(query, (user_id,))
         
         if result and len(result) > 0:
+            row = result[0]
             documents = []
             
-            # Add driver's license if exists
-            if result[0]['drivers_license_path']:
+            drivers_license_url = _format_document_path(row['drivers_license_path'])
+            if drivers_license_url:
                 documents.append({
                     'document_type': 'license',
-                    'file_path': result[0]['drivers_license_path'],
-                    'file_name': result[0]['drivers_license_path'].split('\\').pop().split('/').pop()
+                    'file_path': drivers_license_url,
+                    'file_name': os.path.basename(row['drivers_license_path'].replace('\\', '/'))
                 })
             
-            # Add government ID if exists
-            if result[0]['gov_id_path']:
+            gov_id_url = _format_document_path(row['gov_id_path'])
+            if gov_id_url:
                 documents.append({
                     'document_type': 'gov_id',
-                    'file_path': result[0]['gov_id_path'],
-                    'file_name': result[0]['gov_id_path'].split('\\').pop().split('/').pop()
+                    'file_path': gov_id_url,
+                    'file_name': os.path.basename(row['gov_id_path'].replace('\\', '/'))
                 })
             
             return responseData("success", "Documents fetched successfully", documents, 200)
@@ -390,32 +413,31 @@ def getDeliveryPartnerDocuments(user_id):
 def getSellerDocuments(user_id):
     """Fetch seller documents from database"""
     try:
-        # Query seller documents
         query = """
             SELECT gov_id_path, business_permit_path 
             FROM seller_details 
             WHERE user_id = %s
         """
-        
         result = executeGet(query, (user_id,))
         
         if result and len(result) > 0:
+            row = result[0]
             documents = []
             
-            # Add government ID if exists
-            if result[0]['gov_id_path']:
+            gov_id_url = _format_document_path(row['gov_id_path'])
+            if gov_id_url:
                 documents.append({
                     'document_type': 'gov_id',
-                    'file_path': result[0]['gov_id_path'],
-                    'file_name': result[0]['gov_id_path'].split('\\').pop().split('/').pop()
+                    'file_path': gov_id_url,
+                    'file_name': os.path.basename(row['gov_id_path'].replace('\\', '/'))
                 })
             
-            # Add business permit if exists
-            if result[0]['business_permit_path']:
+            permit_url = _format_document_path(row['business_permit_path'])
+            if permit_url:
                 documents.append({
                     'document_type': 'business_permit',
-                    'file_path': result[0]['business_permit_path'],
-                    'file_name': result[0]['business_permit_path'].split('\\').pop().split('/').pop()
+                    'file_path': permit_url,
+                    'file_name': os.path.basename(row['business_permit_path'].replace('\\', '/'))
                 })
             
             return responseData("success", "Documents fetched successfully", documents, 200)

@@ -27,6 +27,27 @@ except Exception as e:
     print(f"Error creating directory {UPLOAD_FOLDER}: {str(e)}")
     raise
 
+def build_product_image_url(attachment):
+    if not attachment or attachment in ('no-image.jpg', ''):
+        return '/static/images/no-image.jpg'
+
+    clean_path = attachment.replace('\\', '/').lstrip('/')
+
+    if clean_path.startswith('static/'):
+        return '/' + clean_path if not clean_path.startswith('/') else clean_path
+
+    if clean_path.startswith('images/'):
+        return f"/static/{clean_path}"
+
+    if clean_path.startswith('uploads/'):
+        return f"/static/{clean_path}"
+
+    if clean_path.startswith('products/'):
+        return f"/static/uploads/{clean_path}"
+
+    return f"/static/uploads/products/{clean_path}"
+
+
 def products():
     active_menu = ['product', 'products']
     categories = getCategories("")
@@ -233,12 +254,14 @@ def viewProduct(product_id):
         query = """
             SELECT 
                 p.product_id, 
+                p.user_id AS seller_id,
                 p.product_name, 
                 p.description, 
                 p.price, 
                 p.qty, 
                 COALESCE(pa.attachment, 'no-image.jpg') as attachment,
-                sd.store_name
+                sd.store_name,
+                sd.description AS store_description
             FROM 
                 products p 
             LEFT JOIN 
@@ -259,38 +282,18 @@ def viewProduct(product_id):
         product = product[0]  # Get the first result
         
         # Prepare main image URL
-        image_path = product['attachment']
-        if image_path and image_path != 'no-image.jpg':
-            # Ensure the path is clean
-            if image_path.startswith('uploads/'):
-                image_path = image_path.replace('uploads/', '')
-            if image_path.startswith('products/'):
-                image_path = image_path.replace('products/', '')
-            product_image_url = '/static/uploads/products/' + image_path
-        else:
-            product_image_url = '/static/images/no-image.jpg'
-            
+        product_image_url = build_product_image_url(product['attachment'])
+
         # Fetch and prepare product images for the slider
-        images_query = "SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = %s"
+        images_query = "SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = %s AND pa.status = 1 ORDER BY pa.created_at ASC"
         product_images = executeGet(images_query, (product_id,))
-        
+
         # If no additional images, use the main product image
-        if not product_images:
-            product_images = [{'attachment': product['attachment']}]
-            
-        # Clean up image paths
-        clean_images = []
-        for img in product_images:
-            img_path = img['attachment']
-            if img_path:
-                if img_path.startswith('uploads/'):
-                    img_path = img_path.replace('uploads/', '')
-                if img_path.startswith('products/'):
-                    img_path = img_path.replace('products/', '')
-                clean_images.append(img_path)
-                
-        product_images = clean_images
-        
+        clean_images = [build_product_image_url(img.get('attachment')) for img in product_images if img.get('attachment')]
+
+        if not clean_images:
+            clean_images = [product_image_url]
+
         return render_template('views/Products/view-product.html',
                              product_name=product['product_name'],
                              product_description=product['description'],
@@ -299,15 +302,125 @@ def viewProduct(product_id):
                              product_qty=product['qty'],
                              product_id=product_id,
                              cat_data=categories,
-                             product_images=product_images,
+                             product_images=clean_images,
                              cart_items=cart_items,
-                             store_name=product.get('store_name', 'Zyntra Store'))  # Pass store name to template
+                             store_name=product.get('store_name', 'Zyntra Store'),
+                             store_description=product.get('store_description'),
+                             seller_id=product.get('seller_id'))  # Pass store details to template
     except Exception as e:
         print(f"Error in viewProduct: {str(e)}")
         return render_template('views/404.html'), 404
 
 
+def storeProducts(seller_id):
+    categories = getCategoriesInHome("WHERE status = 1")
+    cart_items = session.get('cart', {})
 
+    try:
+        seller_id = int(seller_id)
+    except (TypeError, ValueError):
+        return render_template('views/404.html'), 404
+
+    store_query = """
+        SELECT 
+            sd.user_id,
+            sd.store_name,
+            sd.description,
+            sd.region,
+            sd.province,
+            sd.city,
+            sd.barangay,
+            sd.street,
+            sd.gov_id_path,
+            sd.business_permit_path,
+            u.firstname,
+            u.lastname
+        FROM seller_details sd
+        LEFT JOIN users u ON sd.user_id = u.user_id
+        WHERE sd.user_id = %s AND sd.status IN (1, 2)
+    """
+
+    store_result = executeGet(store_query, (seller_id,))
+
+    if not isinstance(store_result, (list, tuple)):
+        return store_result
+
+    if not store_result:
+        return render_template('views/404.html'), 404
+
+    store = store_result[0]
+
+    if not isinstance(store, dict):
+        return store
+
+    def build_store_image(image_path, fallback='/static/images/store-cover.jpg'):
+        if not image_path:
+            return fallback
+        return build_product_image_url(image_path)
+
+    store['logo_url'] = build_store_image(store.get('gov_id_path'), '/static/images/store-logo.png')
+    store['banner_url'] = build_store_image(store.get('business_permit_path'), '/static/images/store-cover.jpg')
+
+    address_parts = [
+        store.get('street'),
+        store.get('barangay'),
+        store.get('city'),
+        store.get('province'),
+        store.get('region')
+    ]
+    store['address_text'] = ", ".join([part for part in address_parts if part])
+
+    products_query = """
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.price,
+            p.qty,
+            p.description,
+            COALESCE(
+                (
+                    SELECT pa.attachment 
+                    FROM product_attachments pa 
+                    WHERE pa.product_id = p.product_id AND pa.status = 1 
+                    ORDER BY pa.created_at ASC LIMIT 1
+                ),
+                'images/no-image.jpg'
+            ) AS attachment
+        FROM products p
+        WHERE p.user_id = %s AND p.status = 1
+        ORDER BY p.updated_at DESC
+    """
+
+    seller_products = executeGet(products_query, (seller_id,))
+
+    if not isinstance(seller_products, (list, tuple)):
+        return seller_products
+
+    for product in seller_products:
+        product['image_url'] = build_product_image_url(product.get('attachment'))
+        try:
+            product['price'] = float(product['price']) if product['price'] is not None else 0.0
+        except (TypeError, ValueError):
+            product['price'] = 0.0
+        product['qty'] = product.get('qty') or 0
+
+    total_inventory = sum(prod['qty'] for prod in seller_products)
+
+    stats = {
+        'products': len(seller_products),
+        'inventory': total_inventory,
+        'rating': '4.9'
+    }
+
+    return render_template(
+        'views/Products/store.html',
+        store=store,
+        products=seller_products,
+        stats=stats,
+        seller_id=seller_id,
+        cat_data=categories,
+        cart_items=cart_items
+    )
 
 
 def getCategories(condition):
@@ -435,22 +548,61 @@ def updateProducts():
         return responseData("error", "An error occurred while updating the product", "", 500)
 
 def addToCart():
-    product_id = request.form.get('product_id')
-    quantity = request.form.get('quantity', type=int)  # Get the quantity from the form
-    user_id = g.authenticated.get('user_id')  # Get the logged-in user's ID
+    if not g.authenticated:
+        return responseData("error", "Please login to add products to your cart.", "", 401)
 
-    if user_id and quantity is not None:  # Check if user is logged in and quantity is set
-        # Check if the product already exists in the cart
-        check_query = "SELECT quantity FROM order_items WHERE product_id = %s AND user_id = %s"
-        existing_item = executeGet(check_query, (product_id, user_id))
+    user_id = g.authenticated.get('user_id')
+    role_id = g.authenticated.get('role_id')
 
-        if existing_item:  # If the product exists, update the quantity
-            new_quantity = existing_item[0]['quantity'] + quantity
-            update_query = "UPDATE order_items SET quantity = %s WHERE product_id = %s AND user_id = %s"
-            executePost(update_query, (new_quantity, product_id, user_id))
-        else:  # If the product does not exist, insert it
-            insert_query = "INSERT INTO order_items (product_id, user_id, quantity) VALUES (%s, %s, %s)"
-            executePost(insert_query, (product_id, user_id, quantity))
+    if role_id != 2:  # Only buyers can add to cart
+        return responseData("error", "Only buyers can add items to the cart.", "", 403)
+
+    product_id = request.form.get('product_id', type=int)
+    quantity = request.form.get('quantity', type=int)
+
+    if not product_id or not quantity or quantity <= 0:
+        return responseData("error", "Invalid product or quantity.", "", 400)
+
+    # Validate product availability
+    product_rows = executeGet("SELECT qty FROM products WHERE product_id = %s AND status = 1", (product_id,))
+    if isinstance(product_rows, tuple):  # Propagate DB errors
+        return product_rows
+
+    if not product_rows:
+        return responseData("error", "Product is unavailable or no longer exists.", "", 404)
+
+    available_qty = int(product_rows[0].get('qty') or 0)
+    if available_qty <= 0:
+        return responseData("error", "This product is currently out of stock.", "", 400)
+
+    # Load existing cart entry
+    check_query = """
+        SELECT order_items_id, quantity
+        FROM order_items
+        WHERE product_id = %s AND user_id = %s AND status = 1
+    """
+    existing_item = executeGet(check_query, (product_id, user_id))
+    if isinstance(existing_item, tuple):
+        return existing_item
+
+    if existing_item:
+        new_quantity = int(existing_item[0]['quantity']) + quantity
+        update_query = """
+            UPDATE order_items
+            SET quantity = %s
+            WHERE order_items_id = %s AND user_id = %s
+        """
+        update_result = executePost(update_query, (new_quantity, existing_item[0]['order_items_id'], user_id))
+        if isinstance(update_result, tuple):
+            return update_result
+    else:
+        insert_query = """
+            INSERT INTO order_items (product_id, user_id, quantity, reference, status)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        insert_result = executePost(insert_query, (product_id, user_id, quantity, '', 1))
+        if isinstance(insert_result, tuple):
+            return insert_result
 
     return responseData("success", "Product added to cart", "", 200)
 
@@ -507,6 +659,9 @@ def details():
 def detailsSubmit():
     user_id = g.authenticated.get('user_id')  # Get the logged-in user's ID
 
+    if not user_id:
+        return responseData("error", "You must be logged in to manage addresses.", "", 401)
+
     # Retrieve form data
     floor_unit_number = request.form.get('floor_unit_number')
     region = request.form.get('region')
@@ -531,8 +686,33 @@ def detailsSubmit():
     if not all([floor_unit_number, region, province, city, barangay]):
         return responseData("error", "All fields are required.", "", 200)
 
-    # Insert into the database (example)
-    insert_query = "INSERT INTO addresses (user_id, floor_unit_number, region, province, city_municipality, barangay, street, other_notes) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-    executePost(insert_query, (user_id, floor_unit_number, region, province, city, barangay, street, other_notes))
+    # Determine whether to insert a new record or update the latest one
+    existing_query = "SELECT address_id FROM addresses WHERE user_id = %s ORDER BY updated_at DESC LIMIT 1"
+    existing_address = executeGet(existing_query, (user_id,))
 
-    return responseData("success", "Address submitted successfully!", "", 200)
+    params = (floor_unit_number, region, province, city, barangay, street, other_notes, user_id)
+
+    if existing_address:
+        update_query = """
+            UPDATE addresses
+            SET floor_unit_number = %s,
+                region = %s,
+                province = %s,
+                city_municipality = %s,
+                barangay = %s,
+                street = %s,
+                other_notes = %s
+            WHERE user_id = %s
+        """
+        executePost(update_query, params)
+        message = "Address updated successfully!"
+    else:
+        insert_query = """
+            INSERT INTO addresses
+            (floor_unit_number, region, province, city_municipality, barangay, street, other_notes, user_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        executePost(insert_query, params)
+        message = "Address saved successfully!"
+
+    return responseData("success", message, "", 200)

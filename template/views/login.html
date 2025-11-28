@@ -2,6 +2,7 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
+{% include 'views/components/verification_modals.html' %}
 <!-- Modern Login Page -->
 <section class="min-vh-100 d-flex align-items-center position-relative overflow-hidden py-4 py-lg-0" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);">
   <!-- Animated Circuit Board Background -->
@@ -260,6 +261,7 @@
 {% endblock %}
 
 {% block script %}
+<script src="{{ url_for('static', filename='js/verification-flow.js') }}"></script>
 <script>
 $(document).ready(function() {
 	$("#loginForm").submit(function(e) {
@@ -269,11 +271,13 @@ $(document).ready(function() {
 		let path = `/login`;
 
 		$.SystemScript.executePost(path, data).done((response) => {
-			console.log('Login response:', response);
+			const payload = response.data || {};
+			const details = payload.data || {};
+			console.log('Login response:', payload);
 			
-			switch(response.data.status) {
+			switch(payload.status) {
 				case 'success':
-					let role = response.data.data.role_id;
+					let role = payload.data.role_id;
 					if (role == 1 || role == 3 || role == 4) {
 						window.location.href = '/dashboard';
 					} else {
@@ -300,8 +304,19 @@ $(document).ready(function() {
 					break;
 					
 				default:
-					// This handles 'error' and any other status
-					$.SystemScript.swalAlertMessage('Login Failed', response.data.message || 'An error occurred during login', 'error');
+					const message = (payload.message || '').toLowerCase();
+					const hasVerificationDetails = details && (details.email || details.phone);
+					if (hasVerificationDetails && window.VerificationFlow) {
+						if (message.includes('verify your email')) {
+							VerificationFlow.requireEmail(details.email, details.phone);
+						} else if (message.includes('verify your phone')) {
+							VerificationFlow.requirePhone(details.email, details.phone);
+						} else {
+							VerificationFlow.requireEmail(details.email, details.phone);
+						}
+					} else {
+						$.SystemScript.swalAlertMessage('Login Failed', payload.message || 'An error occurred during login', 'error');
+					}
 					$("#password").val('');
 			}
 		}).fail((xhr, status, error) => {

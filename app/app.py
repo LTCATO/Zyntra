@@ -23,7 +23,11 @@ def create_app():
     app.config['MAIL_USE_TLS'] = str_to_bool(os.environ.get('MAIL_USE_TLS', 'true'))
     app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', app.config['MAIL_USERNAME'])
+    app.config['MAIL_DEFAULT_SENDER'] = (
+    os.environ.get('MAIL_DEFAULT_SENDER') 
+    or os.environ.get('MAIL_USERNAME')
+    or "serisuaruse@gmail.com"
+)
 
     # Verification + OTP controls
     app.config['SECURITY_EMAIL_SALT'] = os.environ.get('SECURITY_EMAIL_SALT', 'email-confirm')

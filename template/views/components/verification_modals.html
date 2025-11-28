@@ -1,0 +1,28 @@
+<!-- Verification Modals -->
+<div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-labelledby="emailVerificationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <div>
+          <h5 class="modal-title fw-bold" id="emailVerificationModalLabel">Verify Your Email</h5>
+          <p class="mb-0 text-muted small">Enter the 6-digit code we sent to <span class="verification-target-email fw-semibold"></span>.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="emailCodeForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Verification Code</label>
+            <input type="text" class="form-control form-control-lg" id="emailCodeInput" placeholder="Enter 6-digit code" maxlength="6" required>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" id="emailCodeSubmitBtn">Verify Email</button>
+            <button type="button" class="btn btn-outline-secondary" id="resendEmailCodeBtn">Resend Code</button>
+          </div>
+          <div class="alert d-none mt-3" id="emailCodeStatus"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+

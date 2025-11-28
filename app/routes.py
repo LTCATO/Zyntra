@@ -19,10 +19,9 @@ from controller.LoginController import (
     deliveryPartnerSignupSubmit,
     getDeliveryPartnerDocuments,
     getSellerDocuments,
-    verifyEmail,
-    resendVerificationEmail,
-    verifyOtp,
-    resendOtp,
+    verifyEmailPage,
+    verifyEmailCode,
+    resendEmailCode,
 )
 from controller.DashboardController import dashboardIndex
 from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts
@@ -111,21 +110,17 @@ def setup_routes(app: Flask):
     def signup_submit():
         return signupSubmit()
     
-    @app.route('/verify-email/<token>')
-    def verify_email(token):
-        return verifyEmail(token)
+    @app.route('/verify-email')
+    def verify_email_page():
+        return verifyEmailPage()
 
-    @app.route('/resend-verification-email', methods=['POST'])
-    def resend_verification_email():
-        return resendVerificationEmail()
+    @app.route('/verify-email-code', methods=['POST'])
+    def verify_email_code():
+        return verifyEmailCode()
 
-    @app.route('/verify-otp', methods=['POST'])
-    def verify_otp():
-        return verifyOtp()
-
-    @app.route('/resend-otp', methods=['POST'])
-    def resend_otp():
-        return resendOtp()
+    @app.route('/resend-email-code', methods=['POST'])
+    def resend_email_code():
+        return resendEmailCode()
     
     # Public Seller Signup (no login required)
     @app.route('/sell')

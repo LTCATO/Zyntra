@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 24, 2025 at 02:48 PM
+-- Generation Time: Nov 28, 2025 at 03:59 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -134,10 +134,15 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, `message`, `notification_type`, `is_read`, `read_at`, `created_at`) VALUES
-(1, 5, 3, 'New order placed', 'Xarco Batumbakal placed order ED0ih9c6fx containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-24 14:37:00', '2025-11-24 02:50:59'),
-(2, 24, 4, 'New order placed', 'Xarco Batumbakal placed order EKUrD50Nz6 containing 1 item(s): Airpods', 'order', 1, '2025-11-24 11:23:14', '2025-11-24 03:00:54'),
-(3, 5, 7, 'New order placed', 'User User placed order rU4Tj8lMls (Sub-order rU4Tj8lMls-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 0, NULL, '2025-11-24 10:36:34'),
-(4, 24, 7, 'New order placed', 'User User placed order rU4Tj8lMls (Sub-order rU4Tj8lMls-02) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-11-24 10:36:34');
+(1, 5, NULL, 'New order placed', 'Xarco Batumbakal placed order ED0ih9c6fx containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-24 14:37:00', '2025-11-24 02:50:59'),
+(2, 24, NULL, 'New order placed', 'Xarco Batumbakal placed order EKUrD50Nz6 containing 1 item(s): Airpods', 'order', 1, '2025-11-24 11:23:14', '2025-11-24 03:00:54'),
+(3, 5, NULL, 'New order placed', 'User User placed order rU4Tj8lMls (Sub-order rU4Tj8lMls-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-26 21:38:32', '2025-11-24 10:36:34'),
+(4, 24, NULL, 'New order placed', 'User User placed order rU4Tj8lMls (Sub-order rU4Tj8lMls-02) containing 1 item(s): Airpods', 'order', 1, '2025-11-26 21:36:48', '2025-11-24 10:36:34'),
+(5, 5, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-26 21:38:29', '2025-11-25 03:28:13'),
+(6, 24, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-02) containing 1 item(s): Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:28:13'),
+(7, 24, NULL, 'New order placed', 'User User placed order sIJc8va31v (Sub-order sIJc8va31v-01) containing 1 item(s): WD 2TB Elements Portable External Hard Drive - USB 3.0 ', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:31:18'),
+(8, 5, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 0, NULL, '2025-11-26 14:28:26'),
+(9, 24, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 1, '2025-11-27 01:03:22', '2025-11-26 14:28:26');
 
 -- --------------------------------------------------------
 
@@ -164,13 +169,7 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `cash_type`, `created_at`, `updated_at`, `status`) VALUES
-(1, 26, 'ZkmzOyHemD', 1799.00, 79.00, 18.78, '1896.78', 'cod', '2025-11-19 16:43:34', '2025-11-20 12:06:36', 1),
-(2, 26, 'zgWtKcTkg8', 82989.00, 0.00, 829.89, '83818.89', 'cod', '2025-11-20 04:07:17', '2025-11-20 12:07:17', 1),
-(3, 29, 'ED0ih9c6fx', 1799.00, 79.00, 18.78, '1896.78', 'cod', '2025-11-24 02:50:59', '2025-11-24 10:50:59', 1),
-(4, 29, 'EKUrD50Nz6', 1999.00, 79.00, 20.78, '2098.78', 'cod', '2025-11-24 03:00:54', '2025-11-24 11:00:54', 1),
-(5, 26, 'cXZzDIpKC3', 5597.00, 0.00, 55.97, '5652.97', 'cod', '2025-11-24 10:31:29', '2025-11-24 18:31:29', 1),
-(6, 26, 'EHtkkZdukO', 7396.00, 0.00, 73.96, '7469.96', 'cod', '2025-11-24 10:32:27', '2025-11-24 18:32:27', 1),
-(7, 26, 'rU4Tj8lMls', 7396.00, 0.00, 73.96, '7469.96', 'cod', '2025-11-24 10:36:34', '2025-11-24 18:36:34', 1);
+(10, 26, 'uRy6D0gi1m', 82789.00, 0.00, 827.89, '83616.89', 'cod', '2025-11-26 14:28:26', '2025-11-26 22:28:26', 1);
 
 -- --------------------------------------------------------
 
@@ -193,9 +192,8 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `reference`, `status`) VALUES
-(11, 33, 26, 2, 3, 'rU4Tj8lMls', 2),
-(13, 31, 26, 3, 1, 'rU4Tj8lMls', 2),
-(15, 33, 29, NULL, 1, 'ED0ih9c6fx', 1);
+(25, 32, 26, 8, 1, 'uRy6D0gi1m', 2),
+(26, 33, 26, 7, 1, 'uRy6D0gi1m', 1);
 
 -- --------------------------------------------------------
 
@@ -222,8 +220,8 @@ CREATE TABLE `order_suborders` (
 --
 
 INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`) VALUES
-(2, 7, 5, 'rU4Tj8lMls-01', 2, 5397.00, 0.00, 53.97, 5450.97, '2025-11-24 10:36:34', '2025-11-24 10:36:34'),
-(3, 7, 24, 'rU4Tj8lMls-02', 2, 1999.00, 79.00, 20.78, 2098.78, '2025-11-24 10:36:34', '2025-11-24 10:36:34');
+(7, 10, 5, 'uRy6D0gi1m-01', 1, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-26 14:28:26'),
+(8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-26 17:28:48');
 
 -- --------------------------------------------------------
 
@@ -479,44 +477,37 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
+  `email_verified` tinyint(1) DEFAULT 0,
+  `email_verified_at` datetime DEFAULT NULL,
+  `phone_verified` tinyint(1) DEFAULT 0,
+  `phone_verified_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `status` int(1) DEFAULT 1
+  `status` int(1) DEFAULT 1,
+  `verification_token` varchar(255) DEFAULT NULL,
+  `otp_hash` varchar(255) DEFAULT NULL,
+  `otp_expires_at` datetime DEFAULT NULL,
+  `otp_attempts` tinyint(4) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `created_at`, `updated_at`, `status`) VALUES
-(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1),
-(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1),
-(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-11-15 11:18:25', '2025-11-15 19:19:56', 1),
-(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-11-15 11:19:04', '2025-11-21 20:45:48', 1),
-(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', '2025-11-16 16:45:05', '2025-11-17 00:45:05', 1),
-(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', '2025-11-20 18:54:15', '2025-11-21 14:54:18', 1),
-(28, 3, 'Aaron', 'Karl De La Cruz', 'aron@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '098765432123', '2025-11-21 06:02:49', '2025-11-21 14:33:32', 1),
-(29, 2, 'Xarco', 'Batumbakal', 'xarco@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', '2025-11-21 06:04:38', '2025-11-21 14:04:38', 1),
-(30, 3, 'Sam', 'Luansing', 'oyencelis@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09632123445', '2025-11-21 06:55:47', '2025-11-21 14:55:47', 2),
-(31, 4, 'Lawrence', 'Celis', 'serisuaruse@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', '2025-11-21 07:27:00', '2025-11-21 20:46:28', 1),
-(32, 3, 'Cedrick', 'Gayoso', 'sedo@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', '2025-11-21 07:58:55', '2025-11-21 18:50:21', 1),
-(33, 3, 'Arce', 'LC', '123456@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', '2025-11-23 15:18:13', '2025-11-23 23:18:13', 2);
-
---
--- Triggers `users`
---
-DELIMITER $$
-CREATE TRIGGER `set_default_status` BEFORE INSERT ON `users` FOR EACH ROW BEGIN
-    IF NEW.role_id = 2 THEN
-        SET NEW.status = 1; -- Buyer = Active
-    ELSEIF NEW.role_id = 3 OR NEW.role_id = 4 THEN
-        SET NEW.status = 2; -- Seller or Rider = Pending
-    ELSE
-        SET NEW.status = 1; -- Admin or any other role = Active
-    END IF;
-END
-$$
-DELIMITER ;
+INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `email_verified`, `email_verified_at`, `phone_verified`, `phone_verified_at`, `created_at`, `updated_at`, `status`, `verification_token`, `otp_hash`, `otp_expires_at`, `otp_attempts`) VALUES
+(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1, NULL, NULL, NULL, 0),
+(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', 0, NULL, 0, NULL, '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1, NULL, NULL, NULL, 0),
+(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-15 19:19:56', 1, NULL, NULL, NULL, 0),
+(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-21 20:45:48', 1, NULL, NULL, NULL, 0),
+(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-17 00:45:05', 1, NULL, NULL, NULL, 0),
+(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-21 14:54:18', 1, NULL, NULL, NULL, 0),
+(28, 3, 'Aaron', 'Karl De La Cruz', 'aron@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '098765432123', 0, NULL, 0, NULL, '2025-11-21 06:02:49', '2025-11-21 14:33:32', 1, NULL, NULL, NULL, 0),
+(29, 2, 'Xarco', 'Batumbakal', 'xarco@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, 0, NULL, '2025-11-21 06:04:38', '2025-11-21 14:04:38', 1, NULL, NULL, NULL, 0),
+(30, 3, 'Sam', 'Luansing', 'oyencelis@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09632123445', 0, NULL, 0, NULL, '2025-11-21 06:55:47', '2025-11-21 14:55:47', 2, NULL, NULL, NULL, 0),
+(31, 4, 'Lawrence', 'Celis', 'serisuaruse@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, 0, NULL, '2025-11-21 07:27:00', '2025-11-21 20:46:28', 1, NULL, NULL, NULL, 0),
+(32, 3, 'Cedrick', 'Gayoso', 'sedo@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', 0, NULL, 0, NULL, '2025-11-21 07:58:55', '2025-11-21 18:50:21', 1, NULL, NULL, NULL, 0),
+(33, 3, 'Arce', 'LC', '123456@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, 0, NULL, '2025-11-23 15:18:13', '2025-11-23 23:18:13', 2, NULL, NULL, NULL, 0),
+(35, 2, 'Dennrick', 'Agustin', 'denn@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, 0, NULL, '2025-11-24 15:11:02', '2025-11-24 23:11:02', 1, NULL, NULL, NULL, 0);
 
 --
 -- Indexes for dumped tables
@@ -653,25 +644,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -713,7 +704,7 @@ ALTER TABLE `seller_details`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- Constraints for dumped tables

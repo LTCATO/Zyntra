@@ -117,14 +117,22 @@ def get_order_items_by_reference(reference):
     items_query = """
         SELECT 
             oi.product_id,
+            oi.suborder_id,
             p.product_name,
             SUM(oi.quantity) AS total_quantity,
             p.price,
+            os.shipping_fee AS sub_shipping_fee,
+            sd.store_name,
+            seller.firstname AS seller_firstname,
+            seller.lastname AS seller_lastname,
             (SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = p.product_id LIMIT 1) AS attachment
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
+        LEFT JOIN order_suborders os ON oi.suborder_id = os.suborder_id
+        LEFT JOIN users seller ON os.seller_id = seller.user_id
+        LEFT JOIN seller_details sd ON sd.user_id = seller.user_id
         WHERE oi.reference = %s
-        GROUP BY oi.product_id, p.product_name, p.price
+        GROUP BY oi.product_id, oi.suborder_id, p.product_name, p.price, os.shipping_fee, sd.store_name, seller.firstname, seller.lastname
     """
     order_items = executeGet(items_query, (reference,)) or []
 
@@ -134,7 +142,13 @@ def get_order_items_by_reference(reference):
         item['quantity'] = int(quantity)
         item['formatted_price'] = locale.format_string("%0.2f", price, grouping=True)
         total_price = price * quantity
+        item['line_total_raw'] = total_price
         item['formatted_total'] = locale.format_string("%0.2f", total_price, grouping=True)
+        shipping_fee = float(item.get('sub_shipping_fee', 0) or 0)
+        item['shipping_fee_raw'] = shipping_fee
+        item['shipping_fee_formatted'] = locale.format_string("%0.2f", shipping_fee, grouping=True)
+        seller_name = item.get('store_name') or f"{item.get('seller_firstname', '')} {item.get('seller_lastname', '')}".strip()
+        item['store_name'] = seller_name or 'Seller'
         attachment = item.get('attachment')
         if attachment:
             item['attachment'] = attachment.lstrip('/\\')
@@ -168,6 +182,7 @@ def build_order_summary(order_row):
         'shipping_fee': locale.format_string("%0.2f", shipping_fee_raw, grouping=True),
         'shipping_fee_raw': shipping_fee_raw,
         'tax_amount': locale.format_string("%0.2f", tax_value, grouping=True),
+        'tax_amount_raw': tax_value,
         'total_amount': locale.format_string("%0.2f", total_value, grouping=True),
         'payment_method': order_row.get('cash_type', '').upper(),
         'status': status,
@@ -188,6 +203,7 @@ def get_cart_items_for_user(user_id):
             oi.status,
             p.product_name,
             p.price,
+            sd.store_name,
             (
                 SELECT pa.attachment
                 FROM product_attachments pa
@@ -198,6 +214,7 @@ def get_cart_items_for_user(user_id):
             p.user_id AS seller_id
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
+        LEFT JOIN seller_details sd ON sd.user_id = p.user_id
         WHERE oi.user_id = %s AND oi.status = 1
     """
     return executeGet(query, (user_id,)) or []
@@ -523,8 +540,25 @@ def cart():
     order_totals = None
     total_sum = 0
     random_order_reference = None
+    seller_shipping_breakdown = []
 
     if cart_items:
+        seller_groups = group_cart_items_by_seller(cart_items)
+        for seller_id, items in seller_groups.items():
+            seller_name = items[0].get('store_name') or 'Seller'
+            group_subtotal = 0
+            for item in items:
+                price = float(item.get('price', 0) or 0)
+                quantity = int(item.get('quantity', 0) or 0)
+                group_subtotal += price * quantity
+
+            shipping_fee = 0 if group_subtotal >= 2000 or group_subtotal == 0 else 79
+            seller_shipping_breakdown.append({
+                'seller_id': seller_id,
+                'store_name': seller_name,
+                'shipping_fee': shipping_fee
+            })
+
         for item in cart_items:
             price = item.get('price', 0) or 0
             quantity = item.get('quantity', 0) or 0
@@ -539,6 +573,11 @@ def cart():
                 item['attachment'] = cleaned_attachment
 
         subtotal, shipping_fee, tax_amount, total_amount = calculate_order_totals(cart_items)
+        if seller_shipping_breakdown:
+            shipping_fee = sum(entry.get('shipping_fee', 0) for entry in seller_shipping_breakdown)
+            taxable_amount = subtotal + shipping_fee
+            tax_amount = taxable_amount * 0.01
+            total_amount = taxable_amount + tax_amount
         total_sum = total_amount
         order_totals = {
             'subtotal': subtotal,
@@ -551,6 +590,7 @@ def cart():
             'formatted_total': locale.format_string("%0.2f", total_amount, grouping=True),
             'is_shipping_free': shipping_fee == 0
         }
+        order_totals['shipping_breakdown'] = seller_shipping_breakdown
         random_order_reference = generate_random_string(10)
 
     return render_template(
@@ -652,7 +692,7 @@ def submitCheckout():
                 order_id,
                 seller_id,
                 sub_reference,
-                2,
+                1,
                 f"{group_subtotal:.2f}",
                 f"{group_shipping_fee:.2f}",
                 f"{group_tax_amount:.2f}",
@@ -668,7 +708,7 @@ def submitCheckout():
         for cart_item in items:
             update_item_query = """
                 UPDATE order_items
-                SET status = 2, reference = %s, suborder_id = %s
+                SET status = 1, reference = %s, suborder_id = %s
                 WHERE order_items_id = %s
             """
             executePost(update_item_query, (reference, suborder_id, cart_item.get('order_items_id')))
@@ -734,10 +774,16 @@ def orderTrackingHub():
     for order in orders_result:
         summary = build_order_summary(order)
         items = get_order_items_by_reference(summary['reference'])
+        shipments = get_suborders_for_order(order.get('order_id'))
+        if isinstance(shipments, tuple):
+            shipments = []
+        shipping_total = sum(sub.get('shipping_fee', 0) for sub in shipments)
         card_payload = {
             'summary': summary,
             'order_items': items,
-            'primary_item': items[0] if items else None
+            'primary_item': items[0] if items else None,
+            'shipments': shipments,
+            'shipping_total': shipping_total
         }
 
         if summary['status'] >= 4:
@@ -833,6 +879,7 @@ def getSellerOrderItems(seller_id):
             os.suborder_id,
             os.reference AS sub_reference,
             os.status AS sub_status,
+            os.shipping_fee AS sub_shipping_fee,
             os.updated_at AS sub_updated_at,
             os.created_at AS sub_created_at,
             o.reference AS order_reference,
@@ -885,7 +932,8 @@ def getSellerOrderItems(seller_id):
                 'buyer_email': row.get('buyer_email') or '',
                 'updated_at': row.get('sub_updated_at') or row.get('sub_created_at'),
                 'item_list': [],
-                'group_status': row.get('sub_status') or 1
+                'group_status': row.get('sub_status') or 1,
+                'shipping_fee': float(row.get('sub_shipping_fee') or 0)
             }
 
         item_payload = {
@@ -913,6 +961,7 @@ def get_suborders_for_order(order_id):
             os.suborder_id,
             os.reference AS sub_reference,
             os.status AS sub_status,
+            os.shipping_fee AS sub_shipping_fee,
             os.updated_at,
             os.created_at,
             os.seller_id,
@@ -960,7 +1009,8 @@ def get_suborders_for_order(order_id):
                 'updated_at': row.get('updated_at') or row.get('created_at'),
                 'seller_name': seller_name or 'Seller',
                 'store_name': store_name,
-                'items': []
+                'items': [],
+                'shipping_fee': float(row.get('sub_shipping_fee') or 0)
             }
 
         price = float(row.get('price', 0) or 0)

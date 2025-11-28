@@ -1,9 +1,67 @@
-from flask import render_template, request, jsonify, session, redirect, url_for
+from flask import render_template, request, jsonify, session, redirect, url_for, current_app
+from itsdangerous import BadSignature, SignatureExpired
 from helpers.HelperFunction import responseData, hashing, allowed_image_file, generate_random_filename
 from helpers.QueryHelpers import executeGet, executePost
 from helpers.Session import setSession, sessionRemove
+from helpers.VerificationHelper import (
+    confirm_email_token,
+    generate_email_token,
+    generate_otp,
+    get_otp_expiry,
+    hash_otp,
+    seconds_until_resend,
+    send_sms_otp,
+    send_verification_email,
+)
 from werkzeug.utils import secure_filename
 import os
+from datetime import datetime
+
+
+def _initiate_user_verification(user_id, email, phone):
+    token = generate_email_token(email)
+    otp = generate_otp()
+    otp_hash = hash_otp(otp)
+    otp_expiry = get_otp_expiry()
+    now = datetime.utcnow()
+
+    update_query = """
+        UPDATE users
+        SET verification_token = %s,
+            otp_hash = %s,
+            otp_expires_at = %s,
+            otp_attempts = 0,
+            otp_last_sent_at = %s,
+            email_verified = 0,
+            phone_verified = 0,
+            status = 0
+        WHERE user_id = %s
+    """
+    executePost(update_query, (token, otp_hash, otp_expiry, now, user_id))
+
+    email_sent = True
+    try:
+        send_verification_email(email, token)
+    except Exception:
+        email_sent = False
+
+    sms_sent = send_sms_otp(phone, otp)
+    if not sms_sent:
+        executePost("UPDATE users SET otp_last_sent_at = NULL WHERE user_id = %s", (user_id,))
+
+    return {
+        "email_sent": email_sent,
+        "sms_sent": sms_sent,
+    }
+
+
+def _activate_user_if_verified(user_id):
+    activate_query = """
+        UPDATE users
+        SET status = 1
+        WHERE user_id = %s AND email_verified = 1 AND phone_verified = 1
+    """
+    executePost(activate_query, (user_id,))
 
 
 def login():
@@ -13,8 +71,9 @@ def login():
         if user_role == 1:
             return redirect('/dashboard')
         else:
-            return redirect('/') 
+            return redirect('/')
     return render_template('views/login.html')
+
 
 def LoginSubmit():
     email = request.form.get('email')
@@ -36,6 +95,10 @@ def LoginSubmit():
     if user:
         user = user[0]
         
+        if not user.get('email_verified'):
+            return responseData("error", "Please verify your email before logging in.", {"email": user['email']}, 200)
+        if not user.get('phone_verified'):
+            return responseData("error", "Please verify your phone number with the OTP we sent.", {"phone": user['phone']}, 200)
         if user['status'] != 1:
             return responseData("error", "Your account is not active. Please contact support.", None, 200)
             
@@ -98,6 +161,8 @@ def signupSubmit():
         return responseData("error", "Password is required", "", 200)
     if confirmPassword is None or confirmPassword == "":
         return responseData("error", "confirmPassword is required", "", 200)
+    if password != confirmPassword:
+        return responseData("error", "Passwords do not match", "", 200)
     
     select_query = "SELECT email FROM users WHERE email = %s"
     check_email = executeGet(select_query, (email,))
@@ -107,8 +172,18 @@ def signupSubmit():
         hashed_password = hashing(password)
 
         insert_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        user_inserted = executePost(insert_query, (fname, lname, email, hashed_password, phone, 3, 1))
-        return responseData("success", "User registered successfully", "", 200)
+        user_inserted = executePost(insert_query, (fname, lname, email, hashed_password, phone, 2, 0))
+
+        if user_inserted and user_inserted.get('last_inserted_id'):
+            verification_status = _initiate_user_verification(user_inserted['last_inserted_id'], email, phone)
+            message = "Account created! Please verify your email and enter the OTP sent to your phone."
+            return responseData("success", message, {
+                "email": email,
+                "phone": phone,
+                "email_sent": verification_status['email_sent'],
+                "sms_sent": verification_status['sms_sent']
+            }, 200)
+        return responseData("error", "Failed to create user account", "", 200)
 
 
 def dashboard():
@@ -208,7 +283,7 @@ def sellerSignupSubmit():
 
         # Insert user with role_id = 3 (Buyer/Seller)
         insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 3, 1))
+        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 3, 0))
         
         if user_inserted and user_inserted.get('last_inserted_id'):
             user_id = user_inserted['last_inserted_id']
@@ -225,7 +300,14 @@ def sellerSignupSubmit():
             ))
             
             if seller_inserted:
-                return responseData("success", "Seller application submitted! We'll review and contact you within 48 hours.", "", 200)
+                verification_status = _initiate_user_verification(user_id, email, phone)
+                message = "Seller application submitted! Verify your email and phone so we can keep you updated."
+                return responseData("success", message, {
+                    "email": email,
+                    "phone": phone,
+                    "email_sent": verification_status['email_sent'],
+                    "sms_sent": verification_status['sms_sent']
+                }, 200)
             else:
                 return responseData("error", "Failed to create seller profile", "", 200)
         else:
@@ -334,7 +416,7 @@ def deliveryPartnerSignupSubmit():
 
         # Insert user with role_id = 4 (Rider)
         insert_user_query = "INSERT INTO users (firstname, lastname, email, password, phone, role_id, status) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 4, 1))
+        user_inserted = executePost(insert_user_query, (fname, lname, email, hashed_password, phone, 4, 0))
 
         if user_inserted and user_inserted.get('last_inserted_id'):
             user_id = user_inserted['last_inserted_id']
@@ -353,7 +435,14 @@ def deliveryPartnerSignupSubmit():
             ))
 
             if partner_inserted:
-                return responseData("success", "Application submitted! We'll review and contact you within 48 hours.", "", 200)
+                verification_status = _initiate_user_verification(user_id, email, phone)
+                message = "Application submitted! Verify your email and phone so we can reach you."
+                return responseData("success", message, {
+                    "email": email,
+                    "phone": phone,
+                    "email_sent": verification_status['email_sent'],
+                    "sms_sent": verification_status['sms_sent']
+                }, 200)
             else:
                 return responseData("error", "Failed to create delivery partner profile", "", 200)
         else:
@@ -446,3 +535,159 @@ def getSellerDocuments(user_id):
             
     except Exception as e:
         return responseData("error", f"Database error: {str(e)}", [], 200)
+
+
+def verifyEmail(token):
+    status = "error"
+    message = "Invalid or expired verification link."
+    try:
+        email = confirm_email_token(token)
+        user = executeGet("SELECT user_id, email_verified FROM users WHERE email = %s", (email,))
+        if user and isinstance(user, list):
+            user = user[0]
+            if user['email_verified']:
+                status = "info"
+                message = "Your email is already verified."
+            else:
+                now = datetime.utcnow()
+                update_query = """
+                    UPDATE users
+                    SET email_verified = 1,
+                        email_verified_at = %s,
+                        verification_token = NULL
+                    WHERE user_id = %s
+                """
+                executePost(update_query, (now, user['user_id']))
+                _activate_user_if_verified(user['user_id'])
+                status = "success"
+                message = "Email verification successful! You can now continue signing in."
+        else:
+            message = "We could not find an account for this email."
+    except SignatureExpired:
+        message = "This verification link has expired. Please request a new one."
+    except BadSignature:
+        message = "This verification link is invalid."
+
+    return render_template('views/verify-email.html', status=status, message=message)
+
+
+def resendVerificationEmail():
+    email = request.form.get('email', '').strip()
+    if not email:
+        return responseData("error", "Email is required", "", 200)
+
+    user = executeGet("SELECT user_id, email_verified FROM users WHERE email = %s", (email,))
+    if not user or not isinstance(user, list):
+        return responseData("error", "No account found for that email", "", 200)
+
+    user = user[0]
+    if user['email_verified']:
+        return responseData("success", "Email is already verified.", "", 200)
+
+    token = generate_email_token(email)
+    executePost("UPDATE users SET verification_token = %s WHERE user_id = %s", (token, user['user_id']))
+
+    try:
+        send_verification_email(email, token)
+    except Exception:
+        return responseData("error", "Failed to send verification email. Please try again later.", "", 200)
+
+    return responseData("success", "Verification email resent. Please check your inbox.", "", 200)
+
+
+def verifyOtp():
+    email = request.form.get('email', '').strip()
+    otp = request.form.get('otp', '').strip()
+
+    if not email or not otp:
+        return responseData("error", "Email and OTP are required", "", 200)
+
+    user = executeGet("""
+        SELECT user_id, phone, phone_verified, otp_hash, otp_expires_at, otp_attempts
+        FROM users
+        WHERE email = %s
+    """, (email,))
+
+    if not user or not isinstance(user, list):
+        return responseData("error", "No account found for that email", "", 200)
+
+    user = user[0]
+    if user['phone_verified']:
+        return responseData("success", "Phone number is already verified.", "", 200)
+
+    if not user.get('otp_hash') or not user.get('otp_expires_at'):
+        return responseData("error", "Please request a new OTP before verifying.", "", 200)
+
+    if user['otp_expires_at'] < datetime.utcnow():
+        return responseData("error", "OTP has expired. Please request a new one.", "", 200)
+
+    hashed_input = hash_otp(otp)
+    attempts = user.get('otp_attempts') or 0
+    max_attempts = current_app.config.get('OTP_MAX_ATTEMPTS', 3)
+
+    if hashed_input != user['otp_hash']:
+        attempts += 1
+        executePost("UPDATE users SET otp_attempts = %s WHERE user_id = %s", (attempts, user['user_id']))
+        if attempts >= max_attempts:
+            return responseData("error", "Maximum OTP attempts reached. Please resend a new OTP.", "", 200)
+        remaining = max_attempts - attempts
+        return responseData("error", f"Invalid OTP. You have {remaining} attempt(s) left.", "", 200)
+
+    now = datetime.utcnow()
+    executePost("""
+        UPDATE users
+        SET phone_verified = 1,
+            phone_verified_at = %s,
+            otp_hash = NULL,
+            otp_expires_at = NULL,
+            otp_attempts = 0,
+            otp_last_sent_at = NULL
+        WHERE user_id = %s
+    """, (now, user['user_id']))
+    _activate_user_if_verified(user['user_id'])
+
+    return responseData("success", "Phone verification successful!", "", 200)
+
+
+def resendOtp():
+    email = request.form.get('email', '').strip()
+    if not email:
+        return responseData("error", "Email is required", "", 200)
+
+    user = executeGet("""
+        SELECT user_id, phone, phone_verified, otp_last_sent_at
+        FROM users
+        WHERE email = %s
+    """, (email,))
+
+    if not user or not isinstance(user, list):
+        return responseData("error", "No account found for that email", "", 200)
+
+    user = user[0]
+    if user['phone_verified']:
+        return responseData("success", "Phone number is already verified.", "", 200)
+
+    cooldown = seconds_until_resend(user.get('otp_last_sent_at'))
+    if cooldown > 0:
+        return responseData("error", f"Please wait {cooldown} seconds before requesting another OTP.", {"cooldown": cooldown}, 200)
+
+    otp = generate_otp()
+    otp_hash = hash_otp(otp)
+    expiry = get_otp_expiry()
+    now = datetime.utcnow()
+
+    executePost("""
+        UPDATE users
+        SET otp_hash = %s,
+            otp_expires_at = %s,
+            otp_attempts = 0,
+            otp_last_sent_at = %s
+        WHERE user_id = %s
+    """, (otp_hash, expiry, now, user['user_id']))
+
+    sms_sent = send_sms_otp(user['phone'], otp)
+    if not sms_sent:
+        executePost("UPDATE users SET otp_last_sent_at = NULL WHERE user_id = %s", (user['user_id'],))
+        return responseData("error", "Unable to send OTP SMS right now. Please try again later.", "", 200)
+
+    return responseData("success", "OTP resent successfully.", "", 200)

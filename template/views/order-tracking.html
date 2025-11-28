@@ -1,174 +1,246 @@
 {% extends "base.html" %}
 {% block title %}Order Tracking{% endblock %}
 
+{% set status_map = {
+    1: ('badge rounded-pill bg-soft-primary text-primary', 'Order Placed'),
+    2: ('badge rounded-pill bg-soft-info text-info', 'Shipped'),
+    3: ('badge rounded-pill bg-soft-warning text-warning', 'Out for Delivery'),
+    4: ('badge rounded-pill bg-soft-success text-success', 'Delivered')
+} %}
+
+{% set timeline_template = [
+    {'title': 'Order Placed', 'description': 'We received your order and shared it with the seller.'},
+    {'title': 'Shipped', 'description': 'Seller handed off your package to the courier.'},
+    {'title': 'Out for Delivery', 'description': 'Your rider is on the way.'},
+    {'title': 'Delivered', 'description': 'Package has been delivered to the destination.'}
+] %}
+
+{% block style %}{% endblock %}
+
 {% block content %}
-<div class="container py-5 order-tracking-page">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-5 gap-3">
-        <div>
-            <p class="text-muted mb-1 text-uppercase fw-semibold">Tracking Detail</p>
-            <h1 class="fw-bold mb-2">Order #{{ order_summary.reference }}</h1>
-            <p class="text-muted mb-0">Placed on {{ order_summary.created_at }} · ETA {{ order_summary.estimated_delivery }}</p>
-        </div>
-        <div class="text-md-end">
-            <p class="text-muted mb-1">Shipping To</p>
-            <h6 class="mb-0">{{ shipping_address or 'Address not available' }}</h6>
-            {% if can_cancel %}
-            <button class="btn btn-outline-danger btn-sm rounded-pill mt-3" data-cancel-order data-reference="{{ order_summary.reference }}">
-                <i class="bi bi-x-circle me-1"></i> Cancel Order
-            </button>
-            {% endif %}
+<div class="tracking-page container py-5">
+    <div class="tracking-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+                <p class="text-muted text-uppercase small mb-1">Order</p>
+                <h1 class="fw-bold mb-1">Order #{{ order_summary.reference }}</h1>
+                <p class="text-muted mb-0">Ordered on {{ order_summary.created_at }} · ETA {{ order_summary.estimated_delivery }}</p>
+            </div>
+            <div class="text-md-end">
+                <a href="{{ url_for('order_tracking_hub') }}" class="btn btn-outline-secondary btn-back me-2">
+                    <i class="bi bi-arrow-left"></i> Back to Orders
+                </a>
+                {% if can_cancel %}
+                <button class="btn btn-outline-danger" data-cancel-order data-reference="{{ order_summary.reference }}">
+                    Cancel Order
+                </button>
+                {% endif %}
+            </div>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="timeline-wrapper bg-light-subtle rounded-4 p-4">
-                {% for step in timeline_steps %}
-                <div class="timeline-step d-flex gap-3 py-4 {% if not loop.last %}border-bottom{% endif %}">
-                    <div class="timeline-marker text-center">
-                        <div class="rounded-circle d-inline-flex justify-content-center align-items-center step-circle {% if step.completed %}bg-primary text-white{% else %}border border-2 border-secondary-subtle text-secondary{% endif %}">
-                            {{ step.step_number }}
+            {% if suborders %}
+                {% for sub in suborders %}
+                {% set sub_items = sub['items'] %}
+                {% set primary_item = sub_items[0] if sub_items else None %}
+                {% set pill = status_map.get(sub.status or 1, ('badge rounded-pill bg-soft-secondary text-secondary', 'Pending')) %}
+                <div class="suborder-card mb-4">
+                    <div class="d-flex flex-column flex-md-row gap-3">
+                        <div class="tracking-thumb rounded-4 overflow-hidden">
+                            <img src="{{ primary_item.product_image if primary_item and primary_item.product_image else url_for('static', filename='images/no-image.jpg') }}" alt="{{ primary_item.product_name if primary_item else 'Shipment image' }}">
                         </div>
-                        {% if not loop.last %}
-                        <div class="timeline-line mx-auto bg-secondary-subtle"></div>
-                        {% endif %}
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <p class="text-muted small text-uppercase mb-1">Shipment</p>
+                                    <h4 class="mb-1">{{ primary_item.product_name if primary_item else 'Seller Shipment' }}</h4>
+                                    <p class="text-muted mb-0">Ref {{ sub.sub_reference }}</p>
+                                </div>
+                                <span class="{{ pill[0] }}">{{ pill[1] }}</span>
+                            </div>
+                            <div class="tracking-meta mt-3">
+                                <div>
+                                    <small class="text-muted">Seller</small>
+                                    <p class="mb-0 fw-semibold">{{ sub.store_name }}</p>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Est. Delivery</small>
+                                    <p class="mb-0 fw-semibold">{{ order_summary.estimated_delivery }}</p>
+                                </div>
+                                <div>
+                                    <small class="text-muted">Shipping Fee</small>
+                                    {% set sub_shipping = sub.shipping_fee or 0 %}
+                                    <p class="mb-0 fw-semibold">
+                                        {% if sub_shipping == 0 %}
+                                            Free
+                                        {% else %}
+                                            ₱{{ '{:,.2f}'.format(sub_shipping) }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="mb-1 {{ 'text-primary' if step.active else '' }}">Step {{ step.step_number }} · {{ step.title }}</h6>
-                        <p class="text-muted mb-2 small">{{ step.description }}</p>
-                        {% if step.active %}
-                        <div class="alert alert-success py-2 px-3 mb-0 small">
-                            <strong>Latest Update:</strong> We're working on this stage now.
+
+                    <ul class="timeline-list mt-4">
+                        {% set current_status = sub.status or 1 %}
+                        {% for step in timeline_template %}
+                        {% set step_number = loop.index %}
+                        {% set is_complete = current_status > step_number %}
+                        {% set is_active = current_status == step_number %}
+                        <li class="timeline-item">
+                            <div class="timeline-node">
+                                <span class="timeline-dot {% if is_complete %}complete{% elif is_active %}active{% endif %}"></span>
+                            </div>
+                            <div>
+                                <p class="mb-1 fw-semibold {% if is_complete %}text-success{% elif is_active %}text-primary{% endif %}">{{ step.title }}</p>
+                                <p class="mb-0 text-muted small">{{ step.description }}</p>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="tracking-items-grid mt-4">
+                        {% for item in sub_items %}
+                        <div class="mini-item-card d-flex align-items-center gap-3">
+                            <div class="mini-thumb">
+                                <img src="{{ item.product_image if item.product_image else url_for('static', filename='images/no-image.jpg') }}" alt="{{ item.product_name }}">
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 fw-semibold">{{ item.product_name }}</p>
+                                <small class="text-muted">Qty {{ item.quantity }}</small>
+                            </div>
+                            <div class="text-end">
+                                <p class="mb-0 fw-semibold">₱{{ '%.2f' % item.unit_price }}</p>
+                                <small class="text-muted">Line: ₱{{ '%.2f' % item.line_total }}</small>
+                            </div>
                         </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
                 {% endfor %}
-            </div>
-
-            <div class="row g-3 mt-4">
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <p class="text-muted small mb-1">Payment Method</p>
-                            <h5 class="mb-1">{{ order_summary.payment_method }}</h5>
-                            <span class="badge rounded-pill px-3 py-1 {% if order_summary.status < 4 %}bg-warning-subtle text-warning{% else %}bg-success-subtle text-success{% endif %}">
-                                {{ order_summary.status_text }}
-                            </span>
-                        </div>
-                    </div>
+            {% else %}
+                <div class="suborder-card text-center">
+                    <h5 class="mb-2">No shipment details yet</h5>
+                    <p class="text-muted mb-0">Tracking cards will appear once sellers confirm their shipments.</p>
                 </div>
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body">
-                            <p class="text-muted small mb-1">Need help?</p>
-                            <h5 class="mb-2">Having issues with this order?</h5>
-                            <p class="text-muted small mb-3">Reach out to support and we’ll make things right.</p>
-                            <a href="mailto:support@zyntra.com" class="btn btn-outline-primary btn-sm rounded-pill">Contact Support</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
 
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">Order Summary</h5>
-                    <small class="text-muted">{{ order_items|length }} item{{ '' if order_items|length == 1 else 's' }}</small>
-                </div>
-                <div class="card-body">
-                    <div class="vstack gap-3 mb-3">
-                        {% for item in order_items %}
-                        <div class="d-flex align-items-center gap-3">
+            {% if order_items %}
+                {% set item_count = order_items|length %}
+                {% set convenience_share_raw = (order_summary.tax_amount_raw or 0) / (item_count if item_count > 0 else 1) %}
+                {% for item in order_items %}
+                {% set item_shipping_fee = item.shipping_fee_raw or 0 %}
+                {% set shipping_label = 'Free' if item_shipping_fee == 0 else '₱{:,.2f}'.format(item_shipping_fee) %}
+                {% set item_subtotal_raw = item.line_total_raw or 0 %}
+                {% set total_with_fees = item_subtotal_raw + item_shipping_fee + convenience_share_raw %}
+                <div class="summary-card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <p class="text-muted small mb-1">Order Summary</p>
+                                <h5 class="mb-0">Order #{{ order_summary.reference }}</h5>
+                                <small class="text-muted">Seller · {{ item.store_name }}</small>
+                            </div>
+                            <span class="badge rounded-pill px-3 py-2 {{ 'bg-soft-warning text-warning' if order_summary.status < 4 else 'bg-soft-success text-success' }}">{{ order_summary.status_text }}</span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="order-item-thumb">
-                                <img src="{{ url_for('static', filename=item.attachment) if item.attachment else url_for('static', filename='images/no-image.jpg') }}" class="img-fluid rounded" alt="{{ item.product_name }}">
+                                <img src="{{ url_for('static', filename=item.attachment) if item.attachment else url_for('static', filename='images/no-image.jpg') }}" alt="{{ item.product_name }}">
                             </div>
                             <div class="flex-grow-1">
-                                <h6 class="mb-0">{{ item.product_name }}</h6>
-                                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                                <p class="mb-1 fw-semibold">{{ item.product_name }}</p>
+                                <small class="text-muted">Qty {{ item.quantity }} · {{ order_summary.payment_method }}</small>
                             </div>
                             <div class="text-end">
                                 <p class="mb-0 fw-semibold">₱{{ item.formatted_total }}</p>
-                                <small class="text-muted">₱{{ item.formatted_price }}</small>
+                                <small class="text-muted">₱{{ item.formatted_price }} each</small>
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Subtotal</span>
-                        <span>₱{{ order_summary.subtotal }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Shipping</span>
-                        <span class="text-success">{% if order_summary.shipping_fee == '0.00' %}Free{% else %}₱{{ order_summary.shipping_fee }}{% endif %}</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Tax</span>
-                        <span>₱{{ order_summary.tax_amount }}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">Total</span>
-                        <span class="fw-bold fs-4">₱{{ order_summary.total_amount }}</span>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-body d-flex gap-3">
-                    <div class="text-primary display-6"><i class="bi bi-info-circle"></i></div>
-                    <div>
-                        <h6 class="fw-bold mb-1">Return Policy</h6>
-                        <p class="text-muted small mb-0">Need to return this item? You have 30 days from delivery. Keep the packaging for smoother processing.</p>
-                    </div>
-                </div>
-            </div>
-
-            {% if suborders %}
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">Per-Seller Shipments</h5>
-                    <small class="text-muted">Track progress for each seller fulfillment.</small>
-                </div>
-                <div class="card-body">
-                    <div class="vstack gap-3">
-                        {% for sub in suborders %}
-                        {% set pill = status_map.get(sub.status or 1, ('bg-secondary','Pending')) %}
-                        <div class="border rounded-3 p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <p class="text-muted small mb-1">Seller</p>
-                                    <h6 class="mb-0">{{ sub.store_name }}</h6>
-                                    <small class="text-muted">Ref: {{ sub.sub_reference }}</small>
-                                </div>
-                                <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
+                        <div class="vstack gap-2 small text-muted">
+                            <div class="d-flex justify-content-between">
+                                <span>Unit Price</span>
+                                <span>₱{{ item.formatted_price }}</span>
                             </div>
-                            <ul class="list-unstyled mb-0">
-                                {% for item in sub.items %}
-                                <li class="d-flex justify-content-between text-muted small py-1 border-top">
-                                    <span>{{ item.product_name }} · {{ item.quantity }} pc(s)</span>
-                                    <span>₱{{ '%.2f' % item.line_total }}</span>
-                                </li>
-                                {% endfor %}
-                            </ul>
+                            <div class="d-flex justify-content-between">
+                                <span>Quantity</span>
+                                <span>{{ item.quantity }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Item Subtotal</span>
+                                <span>₱{{ item.formatted_total }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Shipping</span>
+                                <span class="fw-semibold">{{ shipping_label }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Convenience Fee</span>
+                                <span>₱{{ '{:,.2f}'.format(convenience_share_raw) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-semibold text-body">
+                                <span>Total (incl. fees)</span>
+                                <span>₱{{ '{:,.2f}'.format(total_with_fees) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Payment Method</span>
+                                <span class="fw-semibold">{{ order_summary.payment_method }}</span>
+                            </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
-            </div>
+                {% endfor %}
+            {% else %}
+                <div class="summary-card border-0 shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Order Summary</p>
+                        <h6 class="mb-0">No items found for this order.</h6>
+                    </div>
+                </div>
             {% endif %}
+
+            <div class="shipping-card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <p class="text-muted small mb-1">Shipping To</p>
+                    <h6 class="mb-0">{{ shipping_address or 'Address not available' }}</h6>
+                </div>
+            </div>
+
+            <div class="status-card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <p class="text-muted small mb-2">Status Overview</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for status_id in [1, 2, 3, 4] %}
+                        {% set count = (suborders | selectattr('status', 'equalto', status_id) | list | length) %}
+                        {% if count > 0 %}
+                            <span class="status-pill">{{ count }} {{ status_map[status_id][1] }}</span>
+                        {% endif %}
+                        {% endfor %}
+                        {% if (suborders | length) == 0 %}
+                            <span class="text-muted small">No shipments yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="support-card border-0 shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted small mb-1">Need Help?</p>
+                    <h5 class="mb-2">We're here for you.</h5>
+                    <p class="text-muted small mb-3">Reach out if you'd like us to follow up with a seller or courier.</p>
+                    <a href="mailto:support@zyntra.com" class="btn btn-outline-primary rounded-pill">Contact Support</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
-{% set status_map = {
-  1: ('badge bg-label-primary','Order Placed'),
-  2: ('badge bg-label-info','Shipped'),
-  3: ('badge bg-label-warning','Out for Delivery'),
-  4: ('badge bg-label-success','Delivered')
-} %}
 
 {% block script %}
 <script>

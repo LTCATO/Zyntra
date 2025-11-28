@@ -8,7 +8,22 @@ from helpers.HelperFunction import responseData
 
 # Controllers
 from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead
-from controller.LoginController import login, LoginSubmit, signup, signupSubmit, sellerSignup, sellerSignupSubmit, deliveryPartnerSignup, deliveryPartnerSignupSubmit, getDeliveryPartnerDocuments, getSellerDocuments
+from controller.LoginController import (
+    login,
+    LoginSubmit,
+    signup,
+    signupSubmit,
+    sellerSignup,
+    sellerSignupSubmit,
+    deliveryPartnerSignup,
+    deliveryPartnerSignupSubmit,
+    getDeliveryPartnerDocuments,
+    getSellerDocuments,
+    verifyEmail,
+    resendVerificationEmail,
+    verifyOtp,
+    resendOtp,
+)
 from controller.DashboardController import dashboardIndex
 from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
@@ -95,6 +110,22 @@ def setup_routes(app: Flask):
     @app.route('/signup', methods=['POST'])
     def signup_submit():
         return signupSubmit()
+    
+    @app.route('/verify-email/<token>')
+    def verify_email(token):
+        return verifyEmail(token)
+
+    @app.route('/resend-verification-email', methods=['POST'])
+    def resend_verification_email():
+        return resendVerificationEmail()
+
+    @app.route('/verify-otp', methods=['POST'])
+    def verify_otp():
+        return verifyOtp()
+
+    @app.route('/resend-otp', methods=['POST'])
+    def resend_otp():
+        return resendOtp()
     
     # Public Seller Signup (no login required)
     @app.route('/sell')

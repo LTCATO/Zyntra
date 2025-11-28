@@ -55,6 +55,27 @@
                                     <span>₱{{ card.summary.total_amount }}</span>
                                     <span><i class="bi bi-truck"></i> ETA {{ card.summary.estimated_delivery }}</span>
                                 </div>
+                                {% set shipments = card.shipments or [] %}
+                                {% set has_multi = shipments|length > 1 %}
+                                <div class="mt-2 small">
+                                    <span class="text-muted">Shipping:</span>
+                                    {% if card.shipping_total == 0 %}
+                                        <span class="fw-semibold text-success">Free</span>
+                                    {% else %}
+                                        <span class="fw-semibold">₱{{ '{:,.2f}'.format(card.shipping_total) }}</span>
+                                    {% endif %}
+                                    {% if has_multi %}
+                                    <div class="mt-1 text-muted">
+                                        {% for shipment in shipments %}
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ shipment.store_name }}</span>
+                                            {% set ship_fee = shipment.shipping_fee or 0 %}
+                                            <span>{% if ship_fee == 0 %}Free{% else %}₱{{ '{:,.2f}'.format(ship_fee) }}{% endif %}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         <div class="text-lg-end">
@@ -101,6 +122,27 @@
                                     <span><i class="bi bi-box"></i> {{ card.order_items|length }} item{{ '' if card.order_items|length == 1 else 's' }}</span>
                                     <span><i class="bi bi-currency-dollar"></i> ₱{{ card.summary.total_amount }}</span>
                                     <span><i class="bi bi-patch-check"></i> Delivery complete</span>
+                                </div>
+                                {% set shipments = card.shipments or [] %}
+                                {% set has_multi = shipments|length > 1 %}
+                                <div class="mt-2 small">
+                                    <span class="text-muted">Shipping:</span>
+                                    {% if card.shipping_total == 0 %}
+                                        <span class="fw-semibold text-success">Free</span>
+                                    {% else %}
+                                        <span class="fw-semibold">₱{{ '{:,.2f}'.format(card.shipping_total) }}</span>
+                                    {% endif %}
+                                    {% if has_multi %}
+                                    <div class="mt-1 text-muted">
+                                        {% for shipment in shipments %}
+                                        <div class="d-flex justify-content-between">
+                                            <span>{{ shipment.store_name }}</span>
+                                            {% set ship_fee = shipment.shipping_fee or 0 %}
+                                            <span>{% if ship_fee == 0 %}Free{% else %}₱{{ '{:,.2f}'.format(ship_fee) }}{% endif %}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>

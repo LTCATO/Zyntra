@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 28, 2025 at 03:59 PM
+-- Generation Time: Nov 28, 2025 at 09:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -479,35 +479,34 @@ CREATE TABLE `users` (
   `phone` varchar(20) DEFAULT NULL,
   `email_verified` tinyint(1) DEFAULT 0,
   `email_verified_at` datetime DEFAULT NULL,
-  `phone_verified` tinyint(1) DEFAULT 0,
-  `phone_verified_at` datetime DEFAULT NULL,
+  `email_code_hash` varchar(255) DEFAULT NULL,
+  `email_code_expires_at` datetime DEFAULT NULL,
+  `email_code_attempts` tinyint(4) DEFAULT 0,
+  `email_code_last_sent_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `status` int(1) DEFAULT 1,
-  `verification_token` varchar(255) DEFAULT NULL,
-  `otp_hash` varchar(255) DEFAULT NULL,
-  `otp_expires_at` datetime DEFAULT NULL,
-  `otp_attempts` tinyint(4) DEFAULT 0
+  `otp_last_sent_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `email_verified`, `email_verified_at`, `phone_verified`, `phone_verified_at`, `created_at`, `updated_at`, `status`, `verification_token`, `otp_hash`, `otp_expires_at`, `otp_attempts`) VALUES
-(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1, NULL, NULL, NULL, 0),
-(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', 0, NULL, 0, NULL, '2025-10-12 14:03:40', '2025-10-12 22:14:28', 1, NULL, NULL, NULL, 0),
-(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-15 19:19:56', 1, NULL, NULL, NULL, 0),
-(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-21 20:45:48', 1, NULL, NULL, NULL, 0),
-(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-17 00:45:05', 1, NULL, NULL, NULL, 0),
-(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-21 14:54:18', 1, NULL, NULL, NULL, 0),
-(28, 3, 'Aaron', 'Karl De La Cruz', 'aron@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '098765432123', 0, NULL, 0, NULL, '2025-11-21 06:02:49', '2025-11-21 14:33:32', 1, NULL, NULL, NULL, 0),
-(29, 2, 'Xarco', 'Batumbakal', 'xarco@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, 0, NULL, '2025-11-21 06:04:38', '2025-11-21 14:04:38', 1, NULL, NULL, NULL, 0),
-(30, 3, 'Sam', 'Luansing', 'oyencelis@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09632123445', 0, NULL, 0, NULL, '2025-11-21 06:55:47', '2025-11-21 14:55:47', 2, NULL, NULL, NULL, 0),
-(31, 4, 'Lawrence', 'Celis', 'serisuaruse@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, 0, NULL, '2025-11-21 07:27:00', '2025-11-21 20:46:28', 1, NULL, NULL, NULL, 0),
-(32, 3, 'Cedrick', 'Gayoso', 'sedo@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', 0, NULL, 0, NULL, '2025-11-21 07:58:55', '2025-11-21 18:50:21', 1, NULL, NULL, NULL, 0),
-(33, 3, 'Arce', 'LC', '123456@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, 0, NULL, '2025-11-23 15:18:13', '2025-11-23 23:18:13', 2, NULL, NULL, NULL, 0),
-(35, 2, 'Dennrick', 'Agustin', 'denn@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, 0, NULL, '2025-11-24 15:11:02', '2025-11-24 23:11:02', 1, NULL, NULL, NULL, 0);
+INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `email_verified`, `email_verified_at`, `email_code_hash`, `email_code_expires_at`, `email_code_attempts`, `email_code_last_sent_at`, `created_at`, `updated_at`, `status`, `otp_last_sent_at`) VALUES
+(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, NULL, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1, NULL),
+(8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', 1, NULL, NULL, NULL, 0, NULL, '2025-10-12 14:03:40', '2025-11-29 01:11:28', 1, NULL),
+(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-29 03:04:32', 1, NULL),
+(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-21 20:45:48', 1, NULL),
+(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, NULL, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-17 00:45:05', 1, NULL),
+(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-21 14:54:18', 1, NULL),
+(28, 3, 'Aaron', 'Karl De La Cruz', 'aron@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '098765432123', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 06:02:49', '2025-11-21 14:33:32', 1, NULL),
+(29, 2, 'Xarco', 'Batumbakal', 'xarco@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 06:04:38', '2025-11-21 14:04:38', 1, NULL),
+(31, 4, 'Lawrence', 'Celis', 'serisuaruse@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 07:27:00', '2025-11-21 20:46:28', 1, NULL),
+(32, 3, 'Cedrick', 'Gayoso', 'sedo@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 07:58:55', '2025-11-21 18:50:21', 1, NULL),
+(33, 3, 'Arce', 'LC', '123456@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, NULL, NULL, 0, NULL, '2025-11-23 15:18:13', '2025-11-23 23:18:13', 2, NULL),
+(35, 2, 'Dennrick', 'Agustin', 'denn@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-24 15:11:02', '2025-11-24 23:11:02', 1, NULL),
+(51, 2, 'Lawrence', 'Ame', 'oyencelis@gmail.com', '15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225', '09641334934', 1, '2025-11-28 20:03:20', NULL, NULL, 0, NULL, '2025-11-28 20:02:47', '2025-11-29 04:03:20', 1, NULL);
 
 --
 -- Indexes for dumped tables
@@ -704,7 +703,7 @@ ALTER TABLE `seller_details`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- Constraints for dumped tables

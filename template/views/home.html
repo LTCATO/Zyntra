@@ -220,7 +220,13 @@
           {% set final_price = base_price %}
         {% endif %}
         <div class="col-lg-2 col-md-3 col-6 mb-3">
-          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card text-decoration-none" data-product-id="{{ product.product_id }}">
+          <div class="product-minimal-card text-decoration-none h-100" data-product-id="{{ product.product_id }}">
+            <div class="product-card-actions">
+              <button class="btn-icon btn-wishlist{% if product.product_id in wishlist_ids %} is-active{% endif %}" type="button" data-action="wishlist" data-product-id="{{ product.product_id }}" title="Wishlist">
+                <i class="bi {% if product.product_id in wishlist_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+              </button>
+            </div>
+            <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="stretched-link"></a>
             <div class="product-minimal-img">
               <img 
                 src="{{ product.attachment if product.attachment else url_for('static', filename='images/no-image.jpg') }}" 
@@ -229,10 +235,13 @@
               >
             </div>
             <div class="product-minimal-info">
+              <div class="d-flex align-items-center gap-1 small text-muted">
+                <span class="badge bg-light text-secondary border">Options Available</span>
+              </div>
               <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(40) }}</h6>
               <p class="product-minimal-price mb-0">{{ final_price|currency }}</p>
             </div>
-          </a>
+          </div>
         </div>
         {% endfor %}
       {% endif %}
@@ -304,17 +313,28 @@ $(document).ready(function () {
           if (!loadedProductIds.includes(product.product_id)) {
             var truncatedProductName = truncateString(product.product_name, 40);
             var finalPrice = computeFinalPrice(product);
+            var imageSrc = product.attachment || "{{ url_for('static', filename='images/no-image.jpg') }}";
+            var wishlistClass = product.is_in_wishlist ? ' is-active' : '';
             var productHtml = `
               <div class="col-lg-2 col-md-3 col-6 mb-3">
-                <a href="/product/view/${product.product_id}" class="product-minimal-card text-decoration-none" data-product-id="${product.product_id}">
+                <div class="product-minimal-card text-decoration-none h-100" data-product-id="${product.product_id}">
+                  <div class="product-card-actions">
+                    <button class="btn-icon btn-wishlist${wishlistClass}" type="button" data-action="wishlist" data-product-id="${product.product_id}" title="Wishlist">
+                      <i class="bi ${product.is_in_wishlist ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                    </button>
+                  </div>
+                  <a href="/product/view/${product.product_id}" class="stretched-link"></a>
                   <div class="product-minimal-img">
-                    <img src="${product.attachment}" alt="${truncatedProductName}" loading="lazy">
+                    <img src="${imageSrc}" alt="${truncatedProductName}" loading="lazy">
                   </div>
                   <div class="product-minimal-info">
+                    <div class="d-flex align-items-center gap-1 small text-muted">
+                      <span class="badge bg-light text-secondary border">Options Available</span>
+                    </div>
                     <h6 class="product-minimal-name mb-1" title="${product.product_name}">${truncatedProductName}</h6>
                     <p class="product-minimal-price mb-0">${formatCurrency(finalPrice)}</p>
                   </div>
-                </a>
+                </div>
               </div>`;
             productGrid.append(productHtml);
             loadedProductIds.push(product.product_id);
@@ -367,8 +387,8 @@ $(document).ready(function () {
       data: { product_id: productId, quantity: 1 },
       success: function(response) {
         if (response.status === 'success') {
-          // Update cart count in navbar
-          updateCartCount();
+          // Update navbar badge counts using server response
+          updateNavbarCounts(response.data);
 
           // Show success message
           showNotification('Product added to cart successfully!', 'success');
@@ -388,15 +408,26 @@ $(document).ready(function () {
   });
 
   function updateCartCount() {
-    $.get('/cart', function(data) {
-      var cartCount = data.cart_items ? data.cart_items.length : 0;
-      $('.zyn-cart-badge').text(cartCount);
-      if (cartCount > 0) {
-        $('.zyn-cart-badge').show();
-      } else {
-        $('.zyn-cart-badge').hide();
-      }
-    });
+    // Deprecated helper retained for backward compatibility
+    // Prefer updateNavbarCounts with API responses
+  }
+
+  function updateNavbarCounts(data) {
+    if (!data) return;
+
+    var cartBadge = document.querySelector('.zyn-cart-btn[title="Cart"] .zyn-cart-badge');
+    if (cartBadge) {
+      var cartCount = parseInt(data.cart_count, 10) || 0;
+      cartBadge.textContent = cartCount > 0 ? cartCount : '';
+      cartBadge.classList.toggle('d-none', cartCount === 0);
+    }
+
+    var wishlistBadge = document.querySelector('[data-wishlist-count]');
+    if (wishlistBadge) {
+      var wishlistCount = parseInt(data.wishlist_count, 10) || 0;
+      wishlistBadge.textContent = wishlistCount > 0 ? wishlistCount : '';
+      wishlistBadge.classList.toggle('d-none', wishlistCount === 0);
+    }
   }
 
   function showNotification(message, type) {

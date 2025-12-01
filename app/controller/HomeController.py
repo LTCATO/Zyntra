@@ -3,6 +3,7 @@ from flask import render_template, request, session, g, url_for, redirect
 from helpers.QueryHelpers import executeGet, executePost, changeStatus
 from helpers.HelperFunction import responseData, allowed_image_file, generate_random_filename, generate_random_string
 from controller.UserController import getSellers
+from middleware.auth import login_required
 import json
 import locale
 import os
@@ -12,6 +13,27 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 PH_JSON_DIR = os.path.join(BASE_DIR, 'static', 'ph-json')
 LOCATION_CACHE = {}
+
+
+def build_product_image_url(attachment):
+    if not attachment or attachment in ('no-image.jpg', ''):
+        return '/static/images/no-image.jpg'
+
+    clean_path = attachment.replace('\\', '/').lstrip('/')
+
+    if clean_path.startswith('static/'):
+        return '/' + clean_path if not clean_path.startswith('/') else clean_path
+
+    if clean_path.startswith('images/'):
+        return f"/static/{clean_path}"
+
+    if clean_path.startswith('uploads/'):
+        return f"/static/{clean_path}"
+
+    if clean_path.startswith('products/'):
+        return f"/static/uploads/{clean_path}"
+
+    return f"/static/uploads/products/{clean_path}"
 
 
 def load_location_cache(filename, code_key, name_key):
@@ -85,9 +107,8 @@ def calculate_order_totals(cart_items):
         subtotal += price * quantity
 
     shipping_fee = 0 if subtotal >= 2000 or subtotal == 0 else 79
-    taxable_amount = subtotal + shipping_fee
-    tax_amount = taxable_amount * 0.01
-    total_amount = taxable_amount + tax_amount
+    tax_amount = 0
+    total_amount = subtotal + shipping_fee
 
     return subtotal, shipping_fee, tax_amount, total_amount
 
@@ -228,6 +249,35 @@ def group_cart_items_by_seller(cart_items):
             continue
         grouped.setdefault(seller_id, []).append(item)
     return grouped
+
+
+def get_wishlist_items_for_user(user_id):
+    query = """
+        SELECT
+            w.wishlist_id,
+            w.product_id,
+            p.product_name,
+            p.price,
+            sd.store_name,
+            (
+                SELECT pa.attachment
+                FROM product_attachments pa
+                WHERE pa.product_id = p.product_id AND pa.status = 1
+                ORDER BY pa.updated_at DESC, pa.product_attachment_id DESC
+                LIMIT 1
+            ) AS attachment
+        FROM wishlists w
+        LEFT JOIN products p ON w.product_id = p.product_id
+        LEFT JOIN seller_details sd ON sd.user_id = p.user_id
+        WHERE w.user_id = %s
+        ORDER BY w.wishlist_id DESC
+    """
+    return executeGet(query, (user_id,)) or []
+
+
+def get_user_wishlist_ids(user_id):
+    items = get_wishlist_items_for_user(user_id)
+    return {item.get('product_id') for item in items}
 
 
 def create_order_notifications(order_id, reference, buyer_name, suborders_payload):
@@ -374,14 +424,31 @@ def home():
     query = request.args.get('query', '')
     page = request.args.get('page', 1, type=int)
     categories = getCategoriesInHome("WHERE status = 1")
-    
+
     if query:  # Check if there is a search query
         products = getProductsBySearch(query)  # Call the search function
     else:
         products = getProductsInHome("WHERE p.status = 1", page=page)  # Default products
 
     cart_items = session.get('cart', {})
-    return render_template('views/home.html', cat_data=categories, prod_data=products, page=page, per_page=10, cart_items=cart_items)
+    wishlist_ids = set()
+    if g.authenticated and g.authenticated.get('user_id'):
+        wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
+    wishlist_list = list(wishlist_ids)
+
+    for product in products or []:
+        product['is_in_wishlist'] = product.get('product_id') in wishlist_ids
+
+    return render_template(
+        'views/home.html',
+        cat_data=categories,
+        prod_data=products,
+        page=page,
+        per_page=10,
+        cart_items=cart_items,
+        wishlist_ids=wishlist_list
+    )
+
 
 def shop():
     # Get all products with pagination
@@ -437,6 +504,16 @@ def getProductsBySearch(query):
     query = f"%{query}%"
     sql_query = "SELECT p.product_id, p.category_id, p.product_name, c.category_name, pa.attachment, p.description, p.price, p.qty, p.created_at, p.status FROM products p LEFT JOIN categories c ON p.category_id = c.category_id LEFT JOIN product_attachments pa ON p.product_id = pa.product_id WHERE p.product_name LIKE %s AND p.status = 1"
     results = executeGet(sql_query, (query,))
+    if not results:
+        return []
+
+    for product in results:
+        product_price = float(product.get('price', 0) or 0)
+        product['formatted_price'] = locale.format_string("%0.2f", product_price, grouping=True)
+
+        attachment = product.get('attachment')
+        product['attachment'] = build_product_image_url(attachment)
+
     return results
 
 def getCategoriesInHome(condition=""):
@@ -490,21 +567,55 @@ def getProductsInHome(condition="", page=1, per_page=10, params=None):
 def loadMoreProducts():
     page = request.args.get('page', 1, type=int)
     products = getProductsInHome("WHERE p.status = 1", page=page)
+    wishlist_ids = set()
+    if g.authenticated and g.authenticated.get('user_id'):
+        wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
+
+    for product in products or []:
+        product['is_in_wishlist'] = product.get('product_id') in wishlist_ids
     
     if products is None or products == "":
         return responseData("error", "No more products found.", [], 200)
 
     return responseData("success", "Products loaded successfully.", products, 200)
 
+
+@login_required
+def wishlistPage():
+    user_id = g.authenticated.get('user_id')
+    if not user_id:
+        return redirect(url_for('login_page'))
+
+    categories = getCategoriesInHome("WHERE status = 1")
+    wishlist_items = get_wishlist_items_for_user(user_id)
+
+    for item in wishlist_items:
+        price = float(item.get('price', 0) or 0)
+        item['formatted_price'] = locale.format_string("%0.2f", price, grouping=True)
+        attachment = item.get('attachment')
+        item['image_url'] = build_product_image_url(attachment)
+
+    wishlist_ids = [item.get('product_id') for item in wishlist_items]
+
+    return render_template(
+        'views/wishlist.html',
+        cat_data=categories,
+        wishlist_items=wishlist_items,
+        wishlist_ids=wishlist_ids
+    )
+
 def categoryPage(category_id):
     products = getProductsInCategoryGrouped(category_id)
     categories = getCategoriesInHome("WHERE status = 1")
 
-    # Check if products list is empty
-    if not products:
-        return render_template('views/category.html', data=[], cat_data=categories)  # Pass an empty list
+    wishlist_ids = set()
+    if g.authenticated and g.authenticated.get('user_id'):
+        wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
 
-    return render_template('views/category.html', data=products, cat_data=categories)
+    for product in products or []:
+        product['is_in_wishlist'] = product.get('product_id') in wishlist_ids
+
+    return render_template('views/category.html', data=products, cat_data=categories, wishlist_ids=list(wishlist_ids))
 
 def getProductsInCategoryGrouped(category_id, page=1, per_page=10):
     offset = (page - 1) * per_page
@@ -575,9 +686,8 @@ def cart():
         subtotal, shipping_fee, tax_amount, total_amount = calculate_order_totals(cart_items)
         if seller_shipping_breakdown:
             shipping_fee = sum(entry.get('shipping_fee', 0) for entry in seller_shipping_breakdown)
-            taxable_amount = subtotal + shipping_fee
-            tax_amount = taxable_amount * 0.01
-            total_amount = taxable_amount + tax_amount
+            tax_amount = 0
+            total_amount = subtotal + shipping_fee
         total_sum = total_amount
         order_totals = {
             'subtotal': subtotal,
@@ -677,8 +787,8 @@ def submitCheckout():
             group_subtotal += price * quantity
 
         group_shipping_fee = 0 if group_subtotal >= 2000 or group_subtotal == 0 else 79
-        group_tax_amount = (group_subtotal + group_shipping_fee) * 0.01
-        group_total_amount = group_subtotal + group_shipping_fee + group_tax_amount
+        group_tax_amount = 0
+        group_total_amount = group_subtotal + group_shipping_fee
 
         sub_reference = f"{reference}-{index:02d}"
         insert_suborder_query = """
@@ -768,8 +878,10 @@ def orderTrackingHub():
     categories = getCategoriesInHome("WHERE status = 1")
     user_address, formatted_address, address_texts = get_user_address_details(user_id)
 
-    incoming_orders = []
-    received_orders = []
+    placed_orders = []
+    shipped_orders = []
+    out_for_delivery_orders = []
+    completed_orders = []
 
     for order in orders_result:
         summary = build_order_summary(order)
@@ -786,16 +898,23 @@ def orderTrackingHub():
             'shipping_total': shipping_total
         }
 
-        if summary['status'] >= 4:
-            received_orders.append(card_payload)
+        status = summary.get('status', 1)
+        if status >= 4:
+            completed_orders.append(card_payload)
+        elif status == 3:
+            out_for_delivery_orders.append(card_payload)
+        elif status == 2:
+            shipped_orders.append(card_payload)
         else:
-            incoming_orders.append(card_payload)
+            placed_orders.append(card_payload)
 
     return render_template(
         'views/order-tracking-hub.html',
         cat_data=categories,
-        incoming_orders=incoming_orders,
-        received_orders=received_orders,
+        placed_orders=placed_orders,
+        shipped_orders=shipped_orders,
+        out_for_delivery_orders=out_for_delivery_orders,
+        completed_orders=completed_orders,
         shipping_address=formatted_address,
         user_address=user_address,
         address_texts=address_texts

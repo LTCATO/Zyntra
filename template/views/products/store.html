@@ -91,7 +91,13 @@
     <div class="row g-4">
       {% for product in products %}
       <div class="col-xxl-2 col-xl-3 col-lg-3 col-md-4 col-sm-6 col-6">
-        <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card store-product-card text-decoration-none h-100">
+        <div class="product-minimal-card store-product-card text-decoration-none h-100 position-relative" data-product-id="{{ product.product_id }}">
+          <div class="product-card-actions">
+            <button class="btn-icon btn-wishlist{% if wishlist_ids and product.product_id in wishlist_ids %} is-active{% endif %}" type="button" data-action="wishlist" data-product-id="{{ product.product_id }}" title="Wishlist">
+              <i class="bi {% if wishlist_ids and product.product_id in wishlist_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            </button>
+          </div>
+          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="stretched-link"></a>
           <div class="product-minimal-img store-product-image">
             <img src="{{ product.image_url }}" alt="{{ product.product_name }}" loading="lazy" onerror="this.onerror=null; this.src='/static/images/no-image.jpg'">
           </div>
@@ -99,7 +105,7 @@
             <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(32) }}</h6>
             <p class="product-minimal-price mb-0">₱{{ "{:,.2f}".format(product.price) }}</p>
           </div>
-        </a>
+        </div>
       </div>
       {% endfor %}
     </div>

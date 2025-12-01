@@ -1,6 +1,33 @@
 .order-tracking-page .timeline-wrapper {
   position: relative;
 }
+.tracking-status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-pill);
+  background: var(--color-surface);
+  margin-bottom: 1.5rem;
+}
+.tracking-status-tabs .nav-link {
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+}
+.tracking-status-tabs .nav-link.active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+}
+.suborder-empty-state {
+  border: 1px dashed var(--color-border-light);
+  border-radius: 1rem;
+  background: #fff;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Order Tracking Detail Page                                                 */
@@ -281,6 +308,7 @@
 }
 
 .product-minimal-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -296,6 +324,58 @@
 .product-minimal-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
+}
+
+.product-card-actions {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.35rem;
+  z-index: 2;
+}
+
+.product-card-actions .btn-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(6px);
+}
+
+.product-card-actions .btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.product-card-actions .btn-icon:hover {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.product-card-actions .btn-wishlist.is-active,
+.product-card-actions .btn-bookmark.is-active {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+}
+
+.product-card-actions .btn-wishlist.is-active i,
+.product-card-actions .btn-bookmark.is-active i {
+  color: #fff;
+}
+
+.product-minimal-card .stretched-link {
+  color: inherit;
 }
 
 .product-minimal-img {
@@ -2400,7 +2480,7 @@ a:hover {
     width: 48px;
     height: 48px;
     border-radius: 8px;
-    display: flex;
+    border: 1px solid var(--color-border-light);
     align-items: center;
     justify-content: center;
     background: #f8fafc;
@@ -2412,6 +2492,28 @@ a:hover {
 .btn-wishlist:hover {
     background: #f1f5f9;
     color: var(--color-primary);
+}
+
+.btn-wishlist.is-active,
+.btn-wishlist.is-active:hover {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+.btn-wishlist.is-active i {
+    color: #fff;
+}
+
+.wishlist-page .section-header {
+  max-width: 640px;
+}
+
+.wishlist-empty-state {
+  border: 1px dashed var(--color-border-light);
+  border-radius: 1.25rem;
+  background: #fff;
+  padding: 3rem;
 }
 
 /* Delivery Info */

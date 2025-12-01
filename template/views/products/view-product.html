@@ -60,7 +60,13 @@
                     <span>{{ store_name if store_name else 'Zyntra Store' }}</span>
                     {% endif %}
                 </h4>
-                <div class="product-price h2 text-primary">₱{{ "{:,.2f}".format(product_price) }}</div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="product-price h2 text-primary mb-0">₱{{ "{:,.2f}".format(product_price) }}</div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-2 btn-wishlist-toggle" data-action="wishlist" data-product-id="{{ product_id }}">
+                        <i class="bi bi-heart"></i>
+                        <span>Wishlist</span>
+                    </button>
+                </div>
                 
                 <!-- Stock Status -->
                 <div class="stock-status {% if product_qty > 0 %}in-stock{% else %}out-of-stock{% endif %}">
@@ -234,17 +240,28 @@
     $("form[action='/add-to-cart']").on('submit', function(e) {
       e.preventDefault();
 
-      var data = $(this).serialize();
-      let url = $(this).attr('action');
+      const data = $(this).serialize();
+      const url = $(this).attr('action');
+      const showToast = window.ZynToast || function(type, message) {
+        const icon = type === 'error' ? 'error' : 'success';
+        if (window.Swal && Swal.fire) {
+          Swal.fire({ toast: true, position: 'top-end', icon, title: message, timer: 2200, showConfirmButton: false });
+        } else {
+          alert(message);
+        }
+      };
 
       $.post(url, data).done(function(response) {
         if (response.status === 'success') {
-          $.SystemScript.swalAlertMessage('Success!', response.message, 'success').then(() => {
-            location.reload();
-          });
+          if (response.data) {
+            updateCartBadge(response.data);
+          }
+          showToast('success', response.message || 'Added to cart.');
         } else {
-          $.SystemScript.swalAlertMessage('Oops!', response.message, 'error');
+          showToast('error', response.message || 'Unable to add to cart.');
         }
+      }).fail(function() {
+        showToast('error', 'Something went wrong.');
       });
     });
   });
@@ -255,6 +272,15 @@
 
   function showLoginReminder() {
     $('#loginReminderModal').modal('show');
+  }
+
+  function updateCartBadge(data) {
+    const cartBadge = document.querySelector('.zyn-cart-btn[title="Cart"] .zyn-cart-badge');
+    if (!cartBadge || !data) return;
+
+    const count = parseInt(data.cart_count, 10) || 0;
+    cartBadge.textContent = count > 0 ? count : '';
+    cartBadge.classList.toggle('d-none', count === 0);
   }
 
   function closeModal() {

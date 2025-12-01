@@ -78,11 +78,13 @@
             <a class="zyn-cart-btn position-relative" href="javascript:void(0)" title="Notifications">
               <i class="bi bi-bell fs-5"></i>
             </a>
+            <a class="zyn-cart-btn position-relative" href="{{ url_for('wishlist_page') }}" title="Wishlist">
+              <i class="bi bi-heart fs-5"></i>
+              <span class="zyn-cart-badge{% if not g.wishlist_count %} d-none{% endif %}" data-wishlist-count>{{ g.wishlist_count or '' }}</span>
+            </a>
             <a class="zyn-cart-btn position-relative" href="{{ url_for('cart_page') }}" title="Cart">
               <i class="bi bi-cart3 fs-5"></i>
-              {% if g.cart_item_count and g.cart_item_count > 0 %}
-              <span class="zyn-cart-badge">{{ g.cart_item_count }}</span>
-              {% endif %}
+              <span class="zyn-cart-badge{% if not g.cart_item_count %} d-none{% endif %}" data-cart-count>{{ g.cart_item_count or '' }}</span>
             </a>
           {% endif %}
         </div>
@@ -124,18 +126,8 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link zyn-nav-link" href="{{ url_for('home_page') }}#bestsellers">
-              <i class="bi bi-trophy me-1"></i>Best Sellers
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link zyn-nav-link" href="{{ url_for('about_page') }}">
               <i class="bi bi-headset me-1"></i>Support
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link zyn-nav-link" href="{{ url_for('home_page') }}#deals">
-              <i class="bi bi-tag me-1"></i>Deals
             </a>
           </li>
         </ul>
@@ -171,9 +163,6 @@
         <div class="zyn-mobile-links">
           <a class="zyn-mobile-link" href="{{ url_for('home_page') }}#featured">
             <i class="bi bi-star me-2"></i>Featured Products
-          </a>
-          <a class="zyn-mobile-link" href="{{ url_for('home_page') }}#bestsellers">
-            <i class="bi bi-trophy me-2"></i>Best Sellers
           </a>
           <a class="zyn-mobile-link" href="{{ url_for('about_page') }}">
             <i class="bi bi-headset me-2"></i>Customer Support

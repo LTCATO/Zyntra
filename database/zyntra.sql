@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 28, 2025 at 09:06 PM
+-- Generation Time: Dec 01, 2025 at 04:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -48,7 +48,8 @@ CREATE TABLE `addresses` (
 INSERT INTO `addresses` (`address_id`, `user_id`, `floor_unit_number`, `region`, `province`, `city_municipality`, `barangay`, `street`, `other_notes`, `created_at`, `updated_at`) VALUES
 (1, 26, 'N/A', '04', '0434', '043408', '043408007', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:40:30', '2025-11-23 01:20:16'),
 (2, 26, 'N/A', '04', '0434', '043408', '043408007', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:57:01', '2025-11-23 01:20:16'),
-(3, 29, '2F C', '07', '0761', '076104', '076104012', 'N/A', '', '2025-11-24 02:50:39', '2025-11-24 02:50:39');
+(3, 29, '2F C', '07', '0761', '076104', '076104012', 'N/A', '', '2025-11-24 02:50:39', '2025-11-24 02:50:39'),
+(4, 52, 'N/A', '17', '1751', '175110', '175110011', 'N/A', 'sa likod ng sementeryo', '2025-11-29 03:38:39', '2025-11-29 03:38:39');
 
 -- --------------------------------------------------------
 
@@ -108,7 +109,7 @@ CREATE TABLE `delivery_partners` (
 
 INSERT INTO `delivery_partners` (`partner_id`, `user_id`, `full_name`, `email`, `phone`, `vehicle_type`, `plate_number`, `region`, `province`, `city`, `barangay`, `street`, `drivers_license_path`, `gov_id_path`, `created_at`, `updated_at`, `status`) VALUES
 (8, 25, 'Delivery', 'driver@gmail.com', '09692991918', 'motorcycle', 'qweqwe', 'National Capital Region (NCR)', 'City Of Manila', 'San Nicolas', 'Barangay 285', 'qwe', 'static/uploads/delivery_documents\\826498360863382.pdf', 'static/uploads/delivery_documents\\361721546715047.pdf', '2025-11-15 11:19:04', '2025-11-21 12:45:48', 1),
-(9, 27, 'Aedrian Dave Anounevo', 'adi@gmail.com', '09876543213', 'motorcycle', '123456', 'Region IV-A (CALABARZON)', 'Laguna', 'City Of Santa Rosa', 'Kanluran (Pob.)', '12', 'static/uploads/delivery_documents\\789152144340050.webp', 'static/uploads/delivery_documents\\435655022415638.pdf', '2025-11-20 18:54:15', '2025-11-20 18:54:15', 0),
+(9, 27, 'Aedrian Dave Anounevo', 'adi@gmail.com', '09876543213', 'motorcycle', '123456', 'Region IV-A (CALABARZON)', 'Laguna', 'City Of Santa Rosa', 'Kanluran (Pob.)', '12', 'static/uploads/delivery_documents\\789152144340050.webp', 'static/uploads/delivery_documents\\435655022415638.pdf', '2025-11-20 18:54:15', '2025-11-29 03:46:45', 1),
 (10, 31, 'Lawrence Celis', 'serisuaruse@gmail.com', '09876543212', 'motorcycle', 'WEC 322', 'Region X (Northern Mindanao)', 'Bukidnon', 'San Fernando', 'Magkalungay', 'N/A', 'static/uploads/delivery_documents\\456823856940413.jpg', 'static/uploads/delivery_documents\\580315944908889.jpg', '2025-11-21 07:27:00', '2025-11-21 12:46:28', 1);
 
 -- --------------------------------------------------------
@@ -141,8 +142,9 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (5, 5, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-26 21:38:29', '2025-11-25 03:28:13'),
 (6, 24, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-02) containing 1 item(s): Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:28:13'),
 (7, 24, NULL, 'New order placed', 'User User placed order sIJc8va31v (Sub-order sIJc8va31v-01) containing 1 item(s): WD 2TB Elements Portable External Hard Drive - USB 3.0 ', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:31:18'),
-(8, 5, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 0, NULL, '2025-11-26 14:28:26'),
-(9, 24, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 1, '2025-11-27 01:03:22', '2025-11-26 14:28:26');
+(8, 5, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-29 11:41:54', '2025-11-26 14:28:26'),
+(9, 24, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 1, '2025-11-27 01:03:22', '2025-11-26 14:28:26'),
+(10, 24, 11, 'New order placed', 'Czeanne  Barado placed order 5p9rgSYrk6 (Sub-order 5p9rgSYrk6-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-11-29 03:39:59');
 
 -- --------------------------------------------------------
 
@@ -169,7 +171,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `cash_type`, `created_at`, `updated_at`, `status`) VALUES
-(10, 26, 'uRy6D0gi1m', 82789.00, 0.00, 827.89, '83616.89', 'cod', '2025-11-26 14:28:26', '2025-11-26 22:28:26', 1);
+(10, 26, 'uRy6D0gi1m', 82789.00, 0.00, 827.89, '83616.89', 'cod', '2025-11-26 14:28:26', '2025-11-26 22:28:26', 1),
+(11, 52, '5p9rgSYrk6', 80990.00, 0.00, 809.90, '81799.90', 'cod', '2025-11-29 03:39:59', '2025-11-29 11:39:59', 1);
 
 -- --------------------------------------------------------
 
@@ -193,7 +196,8 @@ CREATE TABLE `order_items` (
 
 INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `reference`, `status`) VALUES
 (25, 32, 26, 8, 1, 'uRy6D0gi1m', 2),
-(26, 33, 26, 7, 1, 'uRy6D0gi1m', 1);
+(26, 33, 26, 7, 1, 'uRy6D0gi1m', 2),
+(27, 32, 52, 9, 1, '5p9rgSYrk6', 2);
 
 -- --------------------------------------------------------
 
@@ -220,8 +224,9 @@ CREATE TABLE `order_suborders` (
 --
 
 INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`) VALUES
-(7, 10, 5, 'uRy6D0gi1m-01', 1, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-26 14:28:26'),
-(8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-26 17:28:48');
+(7, 10, 5, 'uRy6D0gi1m-01', 2, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-29 03:42:46'),
+(8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-29 02:40:52'),
+(9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32');
 
 -- --------------------------------------------------------
 
@@ -458,7 +463,7 @@ CREATE TABLE `seller_details` (
 
 INSERT INTO `seller_details` (`seller_detail_id`, `user_id`, `store_name`, `description`, `region`, `province`, `city`, `barangay`, `street`, `gov_id_path`, `business_permit_path`, `created_at`, `updated_at`, `status`) VALUES
 (1, 5, 'Techonologia', NULL, 'Cordillera Administrative Region (CAR)', 'Ifugao', 'Mayoyao', 'Guinihon', '12', 'static/uploads/seller_documents\\770661652449458.jpg', NULL, '2025-10-10 18:10:13', '2025-11-14 09:55:44', 1),
-(9, 24, 'Seller', 'imissher', 'Region XII (SOCCSKSARGEN)', 'Cotabato (North Cotabato)', 'Pigkawayan', 'Lower Pangangkalan', 'qwe', 'static/uploads/seller_documents\\465302976581719.pdf', 'static/uploads/seller_documents\\612746791708541.pdf', '2025-11-15 11:18:25', '2025-11-23 15:18:31', 1),
+(9, 24, 'Seller', 'imissher', 'Region XII (SOCCSKSARGEN)', 'Cotabato (North Cotabato)', 'Pigkawayan', 'Lower Pangangkalan', 'qwe', 'static/uploads/seller_documents\\465302976581719.pdf', 'static/uploads/seller_documents\\612746791708541.pdf', '2025-11-15 11:18:25', '2025-11-29 03:47:04', 2),
 (10, 28, 'TiTECH', NULL, 'Region XI (Davao Region)', 'Davao Del Sur', 'Santa Cruz', 'Tibolo', 'N/A', 'static/uploads/seller_documents\\914265887858780.jpg', 'static/uploads/seller_documents\\769676331233912.jpg', '2025-11-21 06:02:49', '2025-11-21 06:33:32', 1),
 (11, 32, 'myTech', NULL, 'Region VI (Western Visayas)', 'Capiz', 'Pontevedra', 'Binuntucan', '12', 'static/uploads/seller_documents\\509090198778154.png', NULL, '2025-11-21 07:58:55', '2025-11-21 10:50:21', 1),
 (12, 33, 'iTech', 'ble ble ble', 'Region II (Cagayan Valley)', 'Quirino', 'Diffun', 'Campamento', 'N/A', 'static/uploads/seller_documents\\670659047964883.webp', NULL, '2025-11-23 15:18:13', '2025-11-23 15:18:13', 0);
@@ -494,19 +499,33 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `email_verified`, `email_verified_at`, `email_code_hash`, `email_code_expires_at`, `email_code_attempts`, `email_code_last_sent_at`, `created_at`, `updated_at`, `status`, `otp_last_sent_at`) VALUES
-(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, NULL, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-14 17:55:44', 1, NULL),
+(5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 1, NULL, NULL, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-29 11:40:52', 1, NULL),
 (8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', 1, NULL, NULL, NULL, 0, NULL, '2025-10-12 14:03:40', '2025-11-29 01:11:28', 1, NULL),
-(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-29 03:04:32', 1, NULL),
-(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-21 20:45:48', 1, NULL),
-(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 0, NULL, NULL, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-17 00:45:05', 1, NULL),
-(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-21 14:54:18', 1, NULL),
+(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-29 11:47:04', 2, NULL),
+(25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-29 10:39:58', 1, NULL),
+(26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-29 10:40:10', 1, NULL),
+(27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-29 11:46:45', 1, NULL),
 (28, 3, 'Aaron', 'Karl De La Cruz', 'aron@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '098765432123', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 06:02:49', '2025-11-21 14:33:32', 1, NULL),
 (29, 2, 'Xarco', 'Batumbakal', 'xarco@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 06:04:38', '2025-11-21 14:04:38', 1, NULL),
 (31, 4, 'Lawrence', 'Celis', 'serisuaruse@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 07:27:00', '2025-11-21 20:46:28', 1, NULL),
 (32, 3, 'Cedrick', 'Gayoso', 'sedo@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543218', 0, NULL, NULL, NULL, 0, NULL, '2025-11-21 07:58:55', '2025-11-21 18:50:21', 1, NULL),
 (33, 3, 'Arce', 'LC', '123456@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543212', 0, NULL, NULL, NULL, 0, NULL, '2025-11-23 15:18:13', '2025-11-23 23:18:13', 2, NULL),
 (35, 2, 'Dennrick', 'Agustin', 'denn@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-24 15:11:02', '2025-11-24 23:11:02', 1, NULL),
-(51, 2, 'Lawrence', 'Ame', 'oyencelis@gmail.com', '15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225', '09641334934', 1, '2025-11-28 20:03:20', NULL, NULL, 0, NULL, '2025-11-28 20:02:47', '2025-11-29 04:03:20', 1, NULL);
+(51, 2, 'Lawrence', 'Ame', 'oyencelis@gmail.com', '15e2b0d3c33891ebb0f1ef609ec419420c20e320ce94c65fbc8c3312448eb225', '09641334934', 1, '2025-11-28 20:03:20', NULL, NULL, 0, NULL, '2025-11-28 20:02:47', '2025-11-29 04:03:20', 1, NULL),
+(52, 2, 'Czeanne ', 'Barado', 'cznn.parado@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543211', 1, '2025-11-29 03:35:05', NULL, NULL, 0, NULL, '2025-11-29 03:34:41', '2025-11-29 11:35:05', 1, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `wishlists`
+--
+
+CREATE TABLE `wishlists` (
+  `wishlist_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -555,7 +574,8 @@ ALTER TABLE `order_items`
   ADD PRIMARY KEY (`order_items_id`),
   ADD KEY `product_id` (`product_id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `suborder_id` (`suborder_id`);
+  ADD KEY `suborder_id` (`suborder_id`),
+  ADD KEY `idx_order_items_wishlist` (`user_id`);
 
 --
 -- Indexes for table `order_suborders`
@@ -618,6 +638,15 @@ ALTER TABLE `users`
   ADD KEY `FK_users` (`role_id`);
 
 --
+-- Indexes for table `wishlists`
+--
+ALTER TABLE `wishlists`
+  ADD PRIMARY KEY (`wishlist_id`),
+  ADD UNIQUE KEY `uq_user_product` (`user_id`,`product_id`),
+  ADD KEY `idx_wishlists_user` (`user_id`),
+  ADD KEY `idx_wishlists_product` (`product_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -625,7 +654,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `addresses`
 --
 ALTER TABLE `addresses`
-  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -643,25 +672,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -703,7 +732,13 @@ ALTER TABLE `seller_details`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
+-- AUTO_INCREMENT for table `wishlists`
+--
+ALTER TABLE `wishlists`
+  MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -779,6 +814,13 @@ ALTER TABLE `seller_details`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `FK_users` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`);
+
+--
+-- Constraints for table `wishlists`
+--
+ALTER TABLE `wishlists`
+  ADD CONSTRAINT `fk_wishlists_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_wishlists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -43,7 +43,13 @@
           {% set final_price = base_price %}
         {% endif %}
         <div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-3 col-xxl-2">
-          <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="product-minimal-card text-decoration-none" data-product-id="{{ product.product_id }}">
+          <div class="product-minimal-card text-decoration-none h-100" data-product-id="{{ product.product_id }}">
+            <div class="product-card-actions">
+              <button class="btn-icon btn-wishlist{% if wishlist_ids and product.product_id in wishlist_ids %} is-active{% endif %}" type="button" data-action="wishlist" data-product-id="{{ product.product_id }}" title="Wishlist">
+                <i class="bi bi-heart"></i>
+              </button>
+            </div>
+            <a href="{{ url_for('view_product', product_id=product.product_id) }}" class="stretched-link"></a>
             <div class="product-minimal-img">
               <img 
                 src="{{ product.attachment if product.attachment else url_for('static', filename='images/no-image.jpg') }}" 
@@ -52,10 +58,13 @@
               >
             </div>
             <div class="product-minimal-info">
+              <div class="d-flex align-items-center gap-1 small text-muted">
+                <span class="badge bg-light text-secondary border">Options Available</span>
+              </div>
               <h6 class="product-minimal-name mb-1" title="{{ product.product_name }}">{{ product.product_name|truncate(40) }}</h6>
               <p class="product-minimal-price mb-0">{{ final_price|currency }}</p>
             </div>
-          </a>
+          </div>
         </div>
         {% endfor %}
       {% endif %}
@@ -136,9 +145,16 @@ $(document).ready(function() {
               var truncatedName = truncateString(product.product_name || '', 40);
               var finalPrice = computeFinalPrice(product);
               var imageSrc = product.attachment || "{{ url_for('static', filename='images/no-image.jpg') }}";
+              var wishlistClass = product.is_in_wishlist ? ' is-active' : '';
               return `
                 <div class="col-xxl-2 col-xl-3 col-lg-4 col-md-4 col-sm-6 col-6" data-id="${product.product_id}">
-                  <a href="/product/view/${product.product_id}" class="product-minimal-card text-decoration-none" data-product-id="${product.product_id}">
+                  <div class="product-minimal-card text-decoration-none h-100" data-product-id="${product.product_id}">
+                    <div class="product-card-actions">
+                      <button class="btn-icon btn-wishlist${wishlistClass}" type="button" data-action="wishlist" data-product-id="${product.product_id}" title="Wishlist">
+                        <i class="bi bi-heart"></i>
+                      </button>
+                    </div>
+                    <a href="/product/view/${product.product_id}" class="stretched-link"></a>
                     <div class="product-minimal-img">
                       <img 
                         src="${imageSrc}" 
@@ -147,25 +163,26 @@ $(document).ready(function() {
                       >
                     </div>
                     <div class="product-minimal-info">
+                      <div class="d-flex align-items-center gap-1 small text-muted">
+                        <span class="badge bg-light text-secondary border">Options Available</span>
+                      </div>
                       <h6 class="product-minimal-name mb-1" title="${product.product_name}">${truncatedName}</h6>
                       <p class="product-minimal-price mb-0">${formatCurrency(finalPrice)}</p>
                     </div>
-                  </a>
+                  </div>
                 </div>`;
             }).join('');
             
             productGrid.append(productsHtml);
-            
-            // Update page number
+            if (window.ZynWishlist && typeof window.ZynWishlist.refresh === 'function') {
+              window.ZynWishlist.refresh();
+            }
             $button.data('page', page);
-            
-            // Hide load more button if we've reached the end
-            if (response.data.length < 24) { // Assuming 24 is the default per page
+            if (response.data.length < 24) {
               hasMore = false;
               $button.hide();
             }
           } else {
-            // No new products
             hasMore = false;
             $button.hide();
           }

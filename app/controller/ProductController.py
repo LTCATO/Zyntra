@@ -4,7 +4,7 @@ from helpers.HelperFunction import responseData, allowed_image_file, generate_ra
 import os
 from werkzeug.utils import secure_filename
 import uuid
-from controller.HomeController import getCategoriesInHome
+from controller.HomeController import getCategoriesInHome, get_user_wishlist_ids
 from controller.UserController import getSellers
 import locale
 
@@ -26,6 +26,48 @@ try:
 except Exception as e:
     print(f"Error creating directory {UPLOAD_FOLDER}: {str(e)}")
     raise
+
+def _get_product_id_from_request():
+    payload = request.get_json(silent=True)
+    product_id = None
+    if payload and 'product_id' in payload:
+        product_id = payload.get('product_id')
+    elif 'product_id' in request.form:
+        product_id = request.form.get('product_id')
+
+    try:
+        return int(product_id)
+    except (TypeError, ValueError):
+        return None
+
+
+def _ensure_buyer_authenticated():
+    if not g.authenticated:
+        return None, responseData("error", "Please login to continue.", "", 401)
+
+    user_id = g.authenticated.get('user_id')
+    role_id = g.authenticated.get('role_id')
+
+    if role_id != 2:
+        return None, responseData("error", "Only buyers can perform this action.", "", 403)
+
+    return user_id, None
+
+
+def _get_wishlist_count(user_id):
+    query = "SELECT COUNT(*) AS total FROM wishlists WHERE user_id = %s"
+    result = executeGet(query, (user_id,))
+    if isinstance(result, tuple):
+        return 0
+    return (result[0].get('total') if result else 0) or 0
+
+
+def _get_cart_count(user_id):
+    query = "SELECT COUNT(*) AS total FROM order_items WHERE user_id = %s AND status = 1"
+    result = executeGet(query, (user_id,))
+    if isinstance(result, tuple):
+        return 0
+    return (result[0].get('total') if result else 0) or 0
 
 def build_product_image_url(attachment):
     if not attachment or attachment in ('no-image.jpg', ''):
@@ -294,6 +336,12 @@ def viewProduct(product_id):
         if not clean_images:
             clean_images = [product_image_url]
 
+        wishlist_ids = set()
+        if g.authenticated and g.authenticated.get('user_id'):
+            wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
+
+        is_in_wishlist = product_id in wishlist_ids
+
         return render_template('views/Products/view-product.html',
                              product_name=product['product_name'],
                              product_description=product['description'],
@@ -306,7 +354,9 @@ def viewProduct(product_id):
                              cart_items=cart_items,
                              store_name=product.get('store_name', 'Zyntra Store'),
                              store_description=product.get('store_description'),
-                             seller_id=product.get('seller_id'))  # Pass store details to template
+                             seller_id=product.get('seller_id'),
+                             is_in_wishlist=is_in_wishlist,
+                             wishlist_ids=list(wishlist_ids))
     except Exception as e:
         print(f"Error in viewProduct: {str(e)}")
         return render_template('views/404.html'), 404
@@ -396,6 +446,10 @@ def storeProducts(seller_id):
     if not isinstance(seller_products, (list, tuple)):
         return seller_products
 
+    wishlist_ids = set()
+    if g.authenticated and g.authenticated.get('user_id'):
+        wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
+
     for product in seller_products:
         product['image_url'] = build_product_image_url(product.get('attachment'))
         try:
@@ -403,6 +457,7 @@ def storeProducts(seller_id):
         except (TypeError, ValueError):
             product['price'] = 0.0
         product['qty'] = product.get('qty') or 0
+        product['is_in_wishlist'] = product.get('product_id') in wishlist_ids
 
     total_inventory = sum(prod['qty'] for prod in seller_products)
 
@@ -419,7 +474,8 @@ def storeProducts(seller_id):
         stats=stats,
         seller_id=seller_id,
         cat_data=categories,
-        cart_items=cart_items
+        cart_items=cart_items,
+        wishlist_ids=list(wishlist_ids)
     )
 
 
@@ -604,7 +660,11 @@ def addToCart():
         if isinstance(insert_result, tuple):
             return insert_result
 
-    return responseData("success", "Product added to cart", "", 200)
+    counts = {
+        "cart_count": _get_cart_count(user_id),
+        "wishlist_count": _get_wishlist_count(user_id)
+    }
+    return responseData("success", "Product added to cart", counts, 200)
 
 def removeFromCart():
     product_id = request.form.get('product_id')
@@ -637,6 +697,138 @@ def calculateTotalSum(user_id):
     query = "SELECT SUM(quantity * price) FROM order_items WHERE user_id = %s"
     result = executeGet(query, (user_id,))
     return result[0]['SUM(quantity * price)'] if result else 0
+
+
+def toggleWishlist():
+    user_id, auth_error = _ensure_buyer_authenticated()
+    if auth_error:
+        return auth_error
+
+    product_id = _get_product_id_from_request()
+    if not product_id:
+        return responseData("error", "Invalid product.", "", 400)
+
+    product_rows = executeGet("SELECT product_id FROM products WHERE product_id = %s AND status = 1", (product_id,))
+    if isinstance(product_rows, tuple):
+        return product_rows
+    if not product_rows:
+        return responseData("error", "Product not found.", "", 404)
+
+    wishlist_entry = executeGet(
+        """
+            SELECT wishlist_id
+            FROM wishlists
+            WHERE user_id = %s AND product_id = %s
+        """,
+        (user_id, product_id)
+    )
+    if isinstance(wishlist_entry, tuple):
+        return wishlist_entry
+
+    if wishlist_entry:
+        delete_result = executePost("DELETE FROM wishlists WHERE wishlist_id = %s", (wishlist_entry[0]['wishlist_id'],))
+        if isinstance(delete_result, tuple):
+            return delete_result
+        is_wishlist = False
+        message = "Removed from wishlist."
+    else:
+        insert_result = executePost(
+            """
+                INSERT INTO wishlists (user_id, product_id)
+                VALUES (%s, %s)
+            """,
+            (user_id, product_id)
+        )
+        if isinstance(insert_result, tuple):
+            return insert_result
+        is_wishlist = True
+        message = "Saved to wishlist."
+
+    data = {
+        "is_wishlist": is_wishlist,
+        "wishlist_count": _get_wishlist_count(user_id),
+        "cart_count": _get_cart_count(user_id)
+    }
+    return responseData("success", message, data, 200)
+
+
+def wishlistMoveToCart():
+    user_id, auth_error = _ensure_buyer_authenticated()
+    if auth_error:
+        return auth_error
+
+    product_id = _get_product_id_from_request()
+    if not product_id:
+        return responseData("error", "Invalid product.", "", 400)
+
+    wishlist_item = executeGet(
+        """
+            SELECT wishlist_id
+            FROM wishlists
+            WHERE user_id = %s AND product_id = %s
+        """,
+        (user_id, product_id)
+    )
+    if isinstance(wishlist_item, tuple):
+        return wishlist_item
+    if not wishlist_item:
+        return responseData("error", "Item not found in wishlist.", "", 404)
+
+    product_rows = executeGet("SELECT qty FROM products WHERE product_id = %s AND status = 1", (product_id,))
+    if isinstance(product_rows, tuple):
+        return product_rows
+    if not product_rows:
+        return responseData("error", "Product not found.", "", 404)
+
+    available_qty = int(product_rows[0].get('qty') or 0)
+    if available_qty <= 0:
+        return responseData("error", "This product is currently out of stock.", "", 400)
+
+    cart_item = executeGet(
+        """
+            SELECT order_items_id, quantity
+            FROM order_items
+            WHERE user_id = %s AND product_id = %s AND status = 1
+        """,
+        (user_id, product_id)
+    )
+    if isinstance(cart_item, tuple):
+        return cart_item
+
+    wishlist_entry_id = wishlist_item[0]['wishlist_id']
+
+    if cart_item:
+        new_quantity = int(cart_item[0]['quantity'] or 0) + 1
+        update_cart_result = executePost(
+            "UPDATE order_items SET quantity = %s WHERE order_items_id = %s",
+            (new_quantity, cart_item[0]['order_items_id'])
+        )
+        if isinstance(update_cart_result, tuple):
+            return update_cart_result
+
+        delete_result = executePost("DELETE FROM wishlists WHERE wishlist_id = %s", (wishlist_entry_id,))
+        if isinstance(delete_result, tuple):
+            return delete_result
+    else:
+        insert_cart = executePost(
+            """
+                INSERT INTO order_items (product_id, user_id, quantity, reference, status)
+                VALUES (%s, %s, %s, %s, %s)
+            """,
+            (product_id, user_id, 1, '', 1)
+        )
+        if isinstance(insert_cart, tuple):
+            return insert_cart
+
+        delete_result = executePost("DELETE FROM wishlists WHERE wishlist_id = %s", (wishlist_entry_id,))
+        if isinstance(delete_result, tuple):
+            return delete_result
+
+    data = {
+        "wishlist_count": _get_wishlist_count(user_id),
+        "cart_count": _get_cart_count(user_id)
+    }
+    return responseData("success", "Item moved to cart.", data, 200)
 
 def checkout():
     user_id = g.authenticated.get('user_id')  # Get the logged-in user's ID

@@ -18,24 +18,34 @@
         </div>
     </div>
 
-    <ul class="nav nav-pills rounded-pill bg-light-subtle p-2 mb-4" id="trackingTab" role="tablist">
+    <ul class="nav nav-pills rounded-pill bg-light-subtle p-2 mb-4 flex-wrap gap-2" id="trackingTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active rounded-pill px-4" id="incoming-tab" data-bs-toggle="pill" data-bs-target="#incoming" type="button" role="tab" aria-controls="incoming" aria-selected="true">
-                Incoming ({{ incoming_orders|length }})
+            <button class="nav-link active rounded-pill px-4" id="placed-tab" data-bs-toggle="pill" data-bs-target="#placed" type="button" role="tab" aria-controls="placed" aria-selected="true">
+                Order Placed ({{ placed_orders|length }})
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link rounded-pill px-4" id="received-tab" data-bs-toggle="pill" data-bs-target="#received" type="button" role="tab" aria-controls="received" aria-selected="false">
-                Received ({{ received_orders|length }})
+            <button class="nav-link rounded-pill px-4" id="shipped-tab" data-bs-toggle="pill" data-bs-target="#shipped" type="button" role="tab" aria-controls="shipped" aria-selected="false">
+                Shipped ({{ shipped_orders|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4" id="ofd-tab" data-bs-toggle="pill" data-bs-target="#out-for-delivery" type="button" role="tab" aria-controls="out-for-delivery" aria-selected="false">
+                Out for Delivery ({{ out_for_delivery_orders|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill px-4" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed" type="button" role="tab" aria-controls="completed" aria-selected="false">
+                Completed ({{ completed_orders|length }})
             </button>
         </li>
     </ul>
 
     <div class="tab-content" id="trackingTabContent">
-        <div class="tab-pane fade show active" id="incoming" role="tabpanel" aria-labelledby="incoming-tab">
-            {% if incoming_orders %}
+        <div class="tab-pane fade show active" id="placed" role="tabpanel" aria-labelledby="placed-tab">
+            {% if placed_orders %}
             <div class="vstack gap-3">
-                {% for card in incoming_orders %}
+                {% for card in placed_orders %}
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center gap-4">
                         <div class="d-flex align-items-center gap-3 flex-grow-1">
@@ -93,17 +103,105 @@
             {% else %}
             <div class="text-center py-5">
                 <i class="bi bi-bag-check display-4 text-muted"></i>
-                <h4 class="fw-bold mt-3">No incoming orders</h4>
-                <p class="text-muted">Your active orders will appear here once you checkout.</p>
+                <h4 class="fw-bold mt-3">No orders placed yet</h4>
+                <p class="text-muted">Orders you place will appear here while awaiting seller confirmation.</p>
                 <a href="{{ url_for('home_page') }}" class="btn btn-primary rounded-pill px-4">Start Shopping</a>
             </div>
             {% endif %}
         </div>
 
-        <div class="tab-pane fade" id="received" role="tabpanel" aria-labelledby="received-tab">
-            {% if received_orders %}
+        <div class="tab-pane fade" id="shipped" role="tabpanel" aria-labelledby="shipped-tab">
+            {% if shipped_orders %}
             <div class="vstack gap-3">
-                {% for card in received_orders %}
+                {% for card in shipped_orders %}
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center gap-4">
+                        <div class="d-flex align-items-center gap-3 flex-grow-1">
+                            <div class="order-thumb rounded-4 overflow-hidden">
+                                {% if card.primary_item and card.primary_item.attachment %}
+                                    <img src="{{ url_for('static', filename=card.primary_item.attachment) }}" alt="{{ card.primary_item.product_name }}" class="img-fluid">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/no-image.jpg') }}" alt="Product" class="img-fluid">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Reference</p>
+                                <h5 class="mb-1">#{{ card.summary.reference }}</h5>
+                                <p class="text-muted small mb-2">Ready for courier pick-up</p>
+                                <div class="d-flex flex-wrap gap-3 align-items-center text-muted small">
+                                    <span><i class="bi bi-box"></i> {{ card.order_items|length }} item{{ '' if card.order_items|length == 1 else 's' }}</span>
+                                    <span>₱{{ card.summary.total_amount }}</span>
+                                    <span><i class="bi bi-truck"></i> ETA {{ card.summary.estimated_delivery }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-lg-end">
+                            <span class="badge rounded-pill px-3 py-2 bg-info-subtle text-info">Shipped</span>
+                            <div class="d-flex flex-column flex-lg-row gap-2 mt-3">
+                                <a href="{{ url_for('order_tracking', reference=card.summary.reference) }}" class="btn btn-outline-primary rounded-pill px-4">Track Order</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-box-seam display-4 text-muted"></i>
+                <h4 class="fw-bold mt-3">No shipped orders</h4>
+                <p class="text-muted">Once sellers hand packages to couriers, they’ll move here.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="out-for-delivery" role="tabpanel" aria-labelledby="ofd-tab">
+            {% if out_for_delivery_orders %}
+            <div class="vstack gap-3">
+                {% for card in out_for_delivery_orders %}
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center gap-4">
+                        <div class="d-flex align-items-center gap-3 flex-grow-1">
+                            <div class="order-thumb rounded-4 overflow-hidden">
+                                {% if card.primary_item and card.primary_item.attachment %}
+                                    <img src="{{ url_for('static', filename=card.primary_item.attachment) }}" alt="{{ card.primary_item.product_name }}" class="img-fluid">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/no-image.jpg') }}" alt="Product" class="img-fluid">
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-muted small mb-1">Reference</p>
+                                <h5 class="mb-1">#{{ card.summary.reference }}</h5>
+                                <p class="text-muted small mb-2">Courier is en route</p>
+                                <div class="d-flex flex-wrap gap-3 align-items-center text-muted small">
+                                    <span><i class="bi bi-box"></i> {{ card.order_items|length }} item{{ '' if card.order_items|length == 1 else 's' }}</span>
+                                    <span>₱{{ card.summary.total_amount }}</span>
+                                    <span><i class="bi bi-geo-alt"></i> ETA {{ card.summary.estimated_delivery }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-lg-end">
+                            <span class="badge rounded-pill px-3 py-2 bg-warning-subtle text-warning">Out for Delivery</span>
+                            <div class="d-flex flex-column flex-lg-row gap-2 mt-3">
+                                <a href="{{ url_for('order_tracking', reference=card.summary.reference) }}" class="btn btn-outline-primary rounded-pill px-4">Track Rider</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-truck display-4 text-muted"></i>
+                <h4 class="fw-bold mt-3">No orders out for delivery</h4>
+                <p class="text-muted">Keep an eye here once riders start heading your way.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+            {% if completed_orders %}
+            <div class="vstack gap-3">
+                {% for card in completed_orders %}
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center gap-4">
                         <div class="d-flex align-items-center gap-3 flex-grow-1">

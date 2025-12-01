@@ -7,7 +7,8 @@ from helpers.Session import sessionRemove
 from helpers.HelperFunction import responseData
 
 # Controllers
-from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead
+from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead, wishlistPage
+
 from controller.LoginController import (
     login,
     LoginSubmit,
@@ -24,7 +25,8 @@ from controller.LoginController import (
     resendEmailCode,
 )
 from controller.DashboardController import dashboardIndex
-from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts
+from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts, toggleWishlist, wishlistMoveToCart
+
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
 from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
 
@@ -46,9 +48,6 @@ def seller_management_routes(app):
         return render_template('/views/dashboard/admin/approved_seller.html', menu='seller-approved')
 
 
-
-
-
 def setup_routes(app: Flask):
     # Initialize seller management routes
     seller_management_routes(app)
@@ -68,8 +67,18 @@ def setup_routes(app: Flask):
             """
             result = executeGet(query, (g.authenticated['user_id'],))
             g.cart_item_count = result[0]['item_count'] if result else 0
+
+            wishlist_query = """
+                SELECT COUNT(w.wishlist_id) as wishlist_count
+                FROM wishlists w
+                WHERE w.user_id = %s
+            """
+            wishlist_result = executeGet(wishlist_query, (g.authenticated['user_id'],))
+            g.wishlist_count = wishlist_result[0]['wishlist_count'] if wishlist_result else 0
         else:
             g.cart_item_count = 0
+            g.wishlist_count = 0
+
 
     #HomeController
     @app.route('/')
@@ -214,6 +223,11 @@ def setup_routes(app: Flask):
     def store_products(seller_id):
         return storeProducts(seller_id)
     
+    @app.route('/wishlist')
+    @login_required
+    def wishlist_page():
+        return wishlistPage()
+    
     @app.route('/profile')
     @login_required
     def manage_profile():
@@ -294,6 +308,16 @@ def setup_routes(app: Flask):
     @app.route('/update-cart', methods=['POST'])
     def update_cart():
         return updateCart()
+
+    @app.route('/api/wishlist/toggle', methods=['POST'])
+    @login_required
+    def wishlist_toggle():
+        return toggleWishlist()
+
+    @app.route('/api/wishlist/add-to-cart', methods=['POST'])
+    @login_required
+    def wishlist_add_to_cart():
+        return wishlistMoveToCart()
     
     # API endpoint for fetching delivery partner documents
     @app.route('/api/delivery-partners/<int:user_id>/documents', methods=['GET'])

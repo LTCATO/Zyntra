@@ -528,6 +528,49 @@ CREATE TABLE `wishlists` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `wishlists`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversations`
+--
+
+CREATE TABLE `conversations` (
+  `conversation_id` int(11) NOT NULL,
+  `buyer_id` int(11) NOT NULL,
+  `seller_id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `conversations`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversation_messages`
+--
+
+CREATE TABLE `conversation_messages` (
+  `message_id` int(11) NOT NULL,
+  `conversation_id` int(11) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `message_text` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `conversation_messages`
+--
+
+--
 -- Indexes for dumped tables
 --
 
@@ -647,6 +690,26 @@ ALTER TABLE `wishlists`
   ADD KEY `idx_wishlists_product` (`product_id`);
 
 --
+-- Indexes for table `conversations`
+--
+
+ALTER TABLE `conversations`
+  ADD PRIMARY KEY (`conversation_id`),
+  ADD UNIQUE KEY `uq_conversation_pair` (`buyer_id`,`seller_id`),
+  ADD KEY `idx_conversations_buyer` (`buyer_id`),
+  ADD KEY `idx_conversations_seller` (`seller_id`),
+  ADD KEY `idx_conversations_order` (`order_id`);
+
+--
+-- Indexes for table `conversation_messages`
+--
+
+ALTER TABLE `conversation_messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `idx_conv_messages_conversation` (`conversation_id`),
+  ADD KEY `idx_conv_messages_sender` (`sender_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -741,6 +804,18 @@ ALTER TABLE `wishlists`
   MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `conversations`
+--
+ALTER TABLE `conversations`
+  MODIFY `conversation_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `conversation_messages`
+--
+ALTER TABLE `conversation_messages`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
 
@@ -821,6 +896,23 @@ ALTER TABLE `users`
 ALTER TABLE `wishlists`
   ADD CONSTRAINT `fk_wishlists_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_wishlists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `conversations`
+--
+
+ALTER TABLE `conversations`
+  ADD CONSTRAINT `fk_conversations_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_conversations_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `conversation_messages`
+--
+
+ALTER TABLE `conversation_messages`
+  ADD CONSTRAINT `fk_conv_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`conversation_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_conv_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

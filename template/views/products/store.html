@@ -1,6 +1,61 @@
 {% extends 'base.html' %}
 {% block title %}{{ store.store_name }} | Store{% endblock %}
 
+{% block style %}
+{{ super() }}
+<style>
+  .store-chat-section .chat-support-card {
+    border: none;
+    border-radius: 1.25rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f7f9ff 60%, #eef2ff 100%);
+    box-shadow: 0 20px 45px rgba(99, 102, 241, 0.08);
+  }
+
+  .store-chat-section .chat-messages {
+    min-height: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 1.25rem;
+    background: #fff;
+    border-radius: 1rem;
+    border: 1px solid rgba(99, 102, 241, 0.08);
+  }
+
+  .store-chat-section .chat-bubble {
+    border-radius: 1rem;
+    padding: 0.85rem 1rem;
+    background: #f3f4ff;
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.05);
+  }
+
+  .store-chat-section .chat-bubble-own {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff;
+  }
+
+  .store-chat-section .chat-bubble-own small,
+  .store-chat-section .chat-bubble-own .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+
+  .store-chat-section .chat-input-group .form-control {
+    border-radius: 999px;
+    padding: 0.9rem 1.2rem;
+  }
+
+  .store-chat-section .chat-input-group .btn {
+    border-radius: 999px;
+    padding: 0.65rem 1.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .store-chat-section .chat-messages {
+      max-height: 360px;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="store-hero py-5 mb-5">
   <div class="container-fluid px-4 px-xl-5">
@@ -77,6 +132,58 @@
   </div>
 </section>
 
+{% if g.authenticated and g.authenticated.role_id == 2 %}
+<section class="store-chat-section py-4">
+  <div class="container">
+    <div class="card shadow-sm chat-support-card" id="storeChatWidget" data-chat-role="{{ g.authenticated.role_id }}" data-chat-user="{{ g.authenticated.user_id }}" data-chat-seller="{{ seller_id }}">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+          <h5 class="mb-0">Chat with {{ store.store_name }}</h5>
+          <small class="text-muted">Ask product questions or coordinate orders directly with the seller.</small>
+        </div>
+        <button type="button" class="btn btn-primary" data-action="start-store-chat">
+          <i class="bi bi-chat-dots me-1"></i> Start Conversation
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row justify-content-center" data-chat="chat-panel">
+          <div class="col-lg-10 col-xl-8 d-flex flex-column">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <p class="text-muted mb-0 small">Messaging as</p>
+                <p class="fw-semibold mb-0">{{ g.authenticated.firstname }} {{ g.authenticated.lastname }}</p>
+              </div>
+              <span class="badge bg-label-primary text-uppercase">Live chat</span>
+            </div>
+            <div class="alert alert-warning py-2 px-3 d-none" data-chat="status"></div>
+            <div class="chat-messages flex-grow-1 mb-3" data-chat="messages"></div>
+            <form class="mt-auto" data-chat="message-form">
+              <div class="input-group chat-input-group">
+                <input type="text" class="form-control" placeholder="Type your message" data-chat="message-input" autocomplete="off">
+                <button class="btn btn-primary" type="submit">
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="store-chat-section py-4">
+  <div class="container">
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+      <i class="bi bi-chat-left-text me-2 fs-4"></i>
+      <div>
+        <strong>Want to chat with this seller?</strong> <a href="{{ url_for('login_page') }}" class="alert-link">Log in as a buyer</a> to start a conversation.
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <section class="store-products-section pb-5">
   <div class="container">
     <div class="store-products-header">
@@ -129,4 +236,64 @@
     }
   });
 </script>
+
+{% if g.authenticated and g.authenticated.role_id == 2 %}
+<script src="{{ url_for('static', filename='js/chat-widget.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const chatRoot = document.getElementById('storeChatWidget');
+    if (!chatRoot || !window.ChatWidget) {
+      return;
+    }
+
+    const roleId = parseInt(chatRoot.dataset.chatRole || '0', 10);
+    const userId = parseInt(chatRoot.dataset.chatUser || '0', 10);
+    const sellerId = parseInt(chatRoot.dataset.chatSeller || '0', 10);
+    if (!roleId || !userId || !sellerId) {
+      return;
+    }
+
+    const buyerChat = new ChatWidget({
+      root: chatRoot,
+      roleId: roleId,
+      userId: userId,
+      counterpartLabel: 'Seller',
+      counterpartListEnabled: false,
+      fixedCounterpartId: sellerId,
+      fixedCounterpartName: '{{ store.store_name }}',
+      conversationFilter: function (conversation) {
+        return conversation && conversation.seller_id === sellerId;
+      }
+    });
+    buyerChat.init();
+
+    const chatPanel = chatRoot.querySelector('[data-chat="chat-panel"]');
+    const startButton = chatRoot.querySelector('[data-action="start-store-chat"]');
+
+    function ensureChatVisible() {
+      if (chatPanel) {
+        chatPanel.classList.remove('d-none');
+      }
+    }
+
+    if (startButton) {
+      startButton.addEventListener('click', function() {
+        ensureChatVisible();
+        buyerChat.startConversationWith(sellerId);
+      });
+    }
+
+    // Auto-open chat when buyer already has an active conversation with this seller
+    buyerChat.fetchConversations?.().then(() => {
+      const conversation = (buyerChat.state?.conversations || []).find(function(item) {
+        return item && item.seller_id === sellerId;
+      });
+      if (conversation) {
+        ensureChatVisible();
+        buyerChat.openConversation(conversation.conversation_id);
+      }
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}

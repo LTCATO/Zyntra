@@ -2,6 +2,46 @@
 
 {% block title %}Dashboard{% endblock %}
 
+{% block style %}
+<style>
+  .chat-support-card .chat-messages {
+    min-height: 320px;
+    max-height: 420px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 0.75rem;
+    padding: 1rem;
+  }
+
+  .chat-support-card .chat-bubble {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    max-width: 85%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  }
+
+  .chat-support-card .chat-bubble-own {
+    background: #7367f0;
+    color: #fff;
+  }
+
+  .chat-support-card .chat-bubble-own .text-muted,
+  .chat-support-card .chat-bubble-own small {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  .chat-support-card .list-group-item-action {
+    cursor: pointer;
+  }
+
+  .chat-support-card .chat-sidebar {
+    max-height: 480px;
+    overflow-y: auto;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-xxl flex-grow-1 container-p-y">
   <!-- Header -->
@@ -426,20 +466,83 @@
       </div>
     </div>
   </div>
+
+  {% if g.authenticated and g.authenticated.role_id == 3 %}
+  <div class="card chat-support-card" id="sellerChatWidget" data-chat-role="{{ g.authenticated.role_id }}" data-chat-user="{{ g.authenticated.user_id }}">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+      <div>
+        <h5 class="mb-0">Buyer Chat Center</h5>
+        <small class="text-muted">Message buyers, answer questions, and close deals faster.</small>
+      </div>
+      <span class="badge bg-label-primary">Live</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="chat-sidebar mb-4">
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Conversations</h6>
+                <small class="text-muted">Recent</small>
+              </div>
+              <div class="list-group" data-chat="conversation-list"></div>
+            </div>
+            <div class="text-muted small fst-italic">Buyers appear here after they message you.</div>
+          </div>
+        </div>
+        <div class="col-lg-8 d-flex flex-column">
+          <div class="alert alert-warning py-2 px-3 d-none" data-chat="status"></div>
+          <div class="chat-messages flex-grow-1 mb-3" data-chat="messages"></div>
+          <form class="mt-auto" data-chat="message-form">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Type your message" data-chat="message-input" autocomplete="off">
+              <button class="btn btn-primary" type="submit">
+                <i class="bx bx-send"></i> Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block script %}
 <script>
-  // Simple chart initialization (placeholder)
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard loaded successfully!');
-    
-    // You can add ApexCharts initialization here
-    // Example: Revenue Chart
+    // Placeholder for future chart initialization
     if (document.querySelector('#revenueChartEl')) {
-      // Chart code here
+      // Chart code hook
     }
   });
 </script>
+
+{% if g.authenticated and g.authenticated.role_id == 3 %}
+<script src="{{ url_for('static', filename='js/chat-widget.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sellerChatRoot = document.getElementById('sellerChatWidget');
+    if (!sellerChatRoot || !window.ChatWidget) {
+      return;
+    }
+
+    const roleId = parseInt(sellerChatRoot.dataset.chatRole || '0', 10);
+    const userId = parseInt(sellerChatRoot.dataset.chatUser || '0', 10);
+    if (!roleId || !userId) {
+      return;
+    }
+
+    const sellerChat = new ChatWidget({
+      root: sellerChatRoot,
+      roleId: roleId,
+      userId: userId,
+      counterpartLabel: 'Buyer',
+      counterpartListEnabled: false
+    });
+    sellerChat.init();
+  });
+</script>
+{% endif %}
 {% endblock %}

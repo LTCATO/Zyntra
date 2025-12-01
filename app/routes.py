@@ -29,6 +29,13 @@ from controller.ProductController import productCategories, addCategories, chang
 
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
 from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
+from controller.ChatController import (
+    ensureConversation,
+    getConversationMessages,
+    postConversationMessage,
+    getUserConversations,
+    getChatCounterparts,
+)
 
 # Seller Management routes
 def seller_management_routes(app):
@@ -328,6 +335,33 @@ def setup_routes(app: Flask):
     @app.route('/api/sellers/<int:user_id>/documents', methods=['GET'])
     def get_seller_documents(user_id):
         return getSellerDocuments(user_id)
+
+    # Chat APIs
+    @app.route('/api/chat/conversations', methods=['GET'])
+    @login_required
+    def api_list_conversations():
+        return getUserConversations()
+
+    @app.route('/api/chat/counterparts', methods=['GET'])
+    @login_required
+    def api_chat_counterparts():
+        return getChatCounterparts()
+
+    @app.route('/api/chat/conversations', methods=['POST'])
+    @login_required
+    def api_ensure_conversation():
+        return ensureConversation()
+
+    @app.route('/api/chat/conversations/<int:conversation_id>/messages', methods=['GET'])
+    @login_required
+    def api_get_conversation_messages(conversation_id):
+        return getConversationMessages(conversation_id)
+
+    @app.route('/api/chat/conversations/<int:conversation_id>/messages', methods=['POST'])
+    @login_required
+    def api_post_conversation_message(conversation_id):
+        return postConversationMessage(conversation_id)
+
     
     @app.route('/checkout')
     def checkout_page():

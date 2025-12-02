@@ -1,3 +1,45 @@
+def notify_riders_pickup_available(suborder_id):
+    if not suborder_id:
+        return
+
+    suborder_query = """
+        SELECT os.order_id, os.reference AS sub_reference, o.reference AS order_reference
+        FROM order_suborders os
+        JOIN orders o ON os.order_id = o.order_id
+        WHERE os.suborder_id = %s
+        LIMIT 1
+    """
+
+    suborder_result = executeGet(suborder_query, (suborder_id,))
+    if not suborder_result:
+        return
+
+    suborder = suborder_result[0]
+    order_id = suborder.get('order_id')
+    sub_reference = suborder.get('sub_reference') or suborder.get('order_reference')
+
+    riders_query = """
+        SELECT dp.user_id
+        FROM delivery_partners dp
+        JOIN users u ON dp.user_id = u.user_id
+        WHERE dp.status = 1 AND u.status = 1
+    """
+
+    riders = executeGet(riders_query)
+    if not riders:
+        return
+
+    insert_query = """
+        INSERT INTO notifications (user_id, order_id, title, message, notification_type, is_read, created_at)
+        VALUES (%s, %s, %s, %s, 'system', 0, NOW())
+    """
+
+    title = 'Pickup Available'
+    message = f'Sub-order {sub_reference} is ready for pickup.' if sub_reference else 'A sub-order is ready for pickup.'
+
+    for rider in riders:
+        executePost(insert_query, (rider.get('user_id'), order_id, title, message))
+
 from datetime import datetime, timedelta
 from flask import render_template, request, session, g, url_for, redirect
 from helpers.QueryHelpers import executeGet, executePost, changeStatus
@@ -1181,12 +1223,35 @@ def updateSuborderStatus():
     if not ownership:
         return responseData("error", "Sub-order not found or you do not have permission to update it.", "", 404)
 
-    update_suborder_query = """
+    pickup_clauses = []
+    pickup_params = []
+
+    if status == 2:
+        # Seller marked as shipped; make available for riders again
+        pickup_clauses.extend([
+            "pickup_status = %s",
+            "pickup_rider_id = NULL",
+            "pickup_claimed_at = NULL",
+            "pickup_completed_at = NULL"
+        ])
+        pickup_params.append(1)  # awaiting pickup
+    elif status == 3:
+        pickup_clauses.append("pickup_status = %s")
+        pickup_params.append(3)  # in transit
+    elif status == 4:
+        pickup_clauses.append("pickup_status = %s")
+        pickup_clauses.append("pickup_completed_at = NOW()")
+        pickup_params.append(4)  # delivered
+
+    set_clauses = ["status = %s", "updated_at = NOW()"] + pickup_clauses
+    update_suborder_query = f"""
         UPDATE order_suborders
-        SET status = %s, updated_at = NOW()
+        SET {', '.join(set_clauses)}
         WHERE suborder_id = %s
     """
-    suborder_result = executePost(update_suborder_query, (status, suborder_id))
+
+    suborder_params = [status] + pickup_params + [suborder_id]
+    suborder_result = executePost(update_suborder_query, tuple(suborder_params))
     if isinstance(suborder_result, tuple):
         return suborder_result
 
@@ -1196,6 +1261,9 @@ def updateSuborderStatus():
         WHERE suborder_id = %s
     """
     executePost(update_items_query, (status, suborder_id))
+
+    if status == 2:
+        notify_riders_pickup_available(suborder_id)
 
     status_labels = {
         2: 'Shipped',

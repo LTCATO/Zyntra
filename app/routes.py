@@ -1,8 +1,10 @@
 from functools import wraps
 from flask import Flask, session, redirect, url_for, g, render_template, request
-#Middleware
+
+# Middleware
 from middleware.auth import login_required
-#Helpers
+
+# Helpers
 from helpers.Session import sessionRemove
 from helpers.HelperFunction import responseData
 
@@ -30,6 +32,13 @@ from controller.ProductController import productCategories, addCategories, chang
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile, profileOverview, updateProfileInfo
 
 from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
+from controller.RiderController import (
+    riderPickupDashboard,
+    getRiderPickups,
+    claimPickupAssignment,
+    updatePickupStatus,
+)
+
 from controller.ChatController import (
     ensureConversation,
     getConversationMessages,
@@ -55,6 +64,15 @@ def seller_management_routes(app):
     def approved_sellers():
         return render_template('/views/dashboard/admin/approved_seller.html', menu='seller-approved')
 
+    @app.route('/admin/riders')
+    @login_required
+    def admin_riders():
+        return rider()
+
+    @app.route('/admin/riders/update', methods=['POST'])
+    @login_required
+    def admin_update_rider():
+        return updateRider()
 
 def setup_routes(app: Flask):
     # Initialize seller management routes
@@ -268,13 +286,8 @@ def setup_routes(app: Flask):
     @app.route('/rider')
     @login_required
     def rider_dashboard():
-        return rider()
+        return riderPickupDashboard()
         
-    @app.route('/update-rider', methods=['GET', 'POST'])
-    @login_required
-    def update_rider():
-        return updateRider()
-    
     @app.route('/load_more_products', methods=['GET'])
     def load_more_products():
         return loadMoreProducts()
@@ -351,6 +364,22 @@ def setup_routes(app: Flask):
     @app.route('/api/sellers/<int:user_id>/documents', methods=['GET'])
     def get_seller_documents(user_id):
         return getSellerDocuments(user_id)
+
+    # Rider pickup APIs
+    @app.route('/api/rider/pickups', methods=['GET'])
+    @login_required
+    def api_rider_pickups():
+        return getRiderPickups()
+
+    @app.route('/api/rider/pickups/<int:suborder_id>/claim', methods=['POST'])
+    @login_required
+    def api_rider_claim_pickup(suborder_id):
+        return claimPickupAssignment(suborder_id)
+
+    @app.route('/api/rider/pickups/<int:suborder_id>/status', methods=['POST'])
+    @login_required
+    def api_rider_update_pickup(suborder_id):
+        return updatePickupStatus(suborder_id)
 
     # Chat APIs
     @app.route('/api/chat/conversations', methods=['GET'])

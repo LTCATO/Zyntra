@@ -265,20 +265,24 @@ CREATE TABLE `order_suborders` (
   `tax_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `pickup_status` tinyint(1) NOT NULL DEFAULT 0 COMMENT '0=pending fulfillment,1=awaiting pickup,2=claimed,3=in transit,4=delivered',
+  `pickup_rider_id` int(11) DEFAULT NULL,
+  `pickup_claimed_at` datetime DEFAULT NULL,
+  `pickup_completed_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `order_suborders`
 --
 
-INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`) VALUES
-(7, 10, 5, 'uRy6D0gi1m-01', 2, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-29 03:42:46'),
-(8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-29 02:40:52'),
-(9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32'),
-(10, 12, 5, 'qspqyKN6Aq-01', 2, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 14:03:40', '2025-12-02 14:05:46'),
-(11, 13, 5, 'AiJ8BJNGI6-01', 1, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57'),
-(12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57');
+INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`, `pickup_status`, `pickup_rider_id`, `pickup_claimed_at`, `pickup_completed_at`) VALUES
+(7, 10, 5, 'uRy6D0gi1m-01', 2, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-29 03:42:46', 0, NULL, NULL, NULL),
+(8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-29 02:40:52', 0, NULL, NULL, NULL),
+(9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32', 0, NULL, NULL, NULL),
+(10, 12, 5, 'qspqyKN6Aq-01', 2, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 14:03:40', '2025-12-02 14:05:46', 0, NULL, NULL, NULL),
+(11, 13, 5, 'AiJ8BJNGI6-01', 1, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL),
+(12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 

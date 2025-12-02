@@ -27,7 +27,8 @@ from controller.LoginController import (
 from controller.DashboardController import dashboardIndex
 from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts, toggleWishlist, wishlistMoveToCart
 
-from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile
+from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile, profileOverview, updateProfileInfo
+
 from controller.UserController import seller, updateSeller, buyer, updateBuyer, rider, updateRider
 from controller.ChatController import (
     ensureConversation,
@@ -237,8 +238,18 @@ def setup_routes(app: Flask):
     
     @app.route('/profile')
     @login_required
-    def manage_profile():
+    def profile_page():
+        return profileOverview()
+
+    @app.route('/profiles')
+    @login_required
+    def manage_profile_dashboard():
         return manageProfile()
+    
+    @app.route('/profile/update', methods=['POST'])
+    @login_required
+    def profile_update():
+        return updateProfileInfo()
     
     @app.route('/update-seller', methods=['GET', 'POST'])
     def update_seller():
@@ -247,6 +258,11 @@ def setup_routes(app: Flask):
     @app.route('/update-buyer', methods=['GET', 'POST'])
     def update_buyer():
         return updateBuyer()
+    
+    @app.route('/messages')
+    @login_required
+    def messages_page():
+        return render_template('views/dashboard/messages.html', menu='messages')
         
     # Rider routes
     @app.route('/rider')

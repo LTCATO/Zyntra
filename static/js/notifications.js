@@ -6,6 +6,12 @@
         emptyState: null,
         markAllBtn: null,
         toggle: null,
+        modal: null,
+        modalInstance: null,
+        modalTitleEl: null,
+        modalMessageEl: null,
+        modalTimeEl: null,
+        modalReferenceEl: null,
         isLoading: false,
         hasLoaded: false,
 
@@ -20,6 +26,14 @@
             this.emptyState = this.root.querySelector('[data-notification-empty]');
             this.markAllBtn = this.root.querySelector('[data-notification-markall]');
             this.toggle = this.root.querySelector('[data-notification-toggle]');
+            this.modal = document.getElementById('notificationModal');
+            if (this.modal && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                this.modalInstance = bootstrap.Modal.getOrCreateInstance(this.modal);
+                this.modalTitleEl = this.modal.querySelector('[data-notification-modal-title]');
+                this.modalMessageEl = this.modal.querySelector('[data-notification-modal-message]');
+                this.modalTimeEl = this.modal.querySelector('[data-notification-modal-time]');
+                this.modalReferenceEl = this.modal.querySelector('[data-notification-modal-reference]');
+            }
 
             if (this.markAllBtn) {
                 this.markAllBtn.addEventListener('click', (event) => {
@@ -44,13 +58,30 @@
 
             this.listContainer?.addEventListener('click', (event) => {
                 const button = event.target.closest('[data-notification-read]');
-                if (!button) {
+                if (button) {
+                    const id = button.getAttribute('data-notification-read');
+                    if (id) {
+                        event.preventDefault();
+                        this.markSingleRead(id);
+                    }
                     return;
                 }
-                const id = button.getAttribute('data-notification-read');
-                if (id) {
+
+                const openTarget = event.target.closest('[data-notification-open]');
+                if (openTarget) {
                     event.preventDefault();
-                    this.markSingleRead(id);
+                    this.openModal(openTarget);
+                }
+            });
+
+            this.listContainer?.addEventListener('keydown', (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') {
+                    return;
+                }
+                const openTarget = event.target.closest('[data-notification-open]');
+                if (openTarget) {
+                    event.preventDefault();
+                    this.openModal(openTarget);
                 }
             });
 
@@ -98,20 +129,37 @@
             items.forEach((item) => {
                 const li = document.createElement('li');
                 li.className = 'dropdown-item px-3 py-2 notification-item';
+                li.dataset.notificationOpen = 'true';
+                li.dataset.notificationTitle = item.title || 'Notification';
+                li.dataset.notificationMessage = item.message || '';
+                li.dataset.notificationTime = item.created_at_display || '';
+                li.dataset.notificationId = item.notification_id || '';
+                if (item.reference) {
+                    li.dataset.notificationReference = item.reference;
+                } else {
+                    delete li.dataset.notificationReference;
+                }
+                li.dataset.notificationUnread = (!item.is_read).toString();
+                li.setAttribute('role', 'button');
+                li.setAttribute('tabindex', '0');
 
                 const isUnread = !item.is_read;
-                const reference = item.reference ? `<span class="text-primary fw-semibold">${item.reference}</span>` : '';
+                const reference = item.reference ? `<span class="badge bg-light text-primary ms-2">${escapeHtml(item.reference)}</span>` : '';
+                const title = escapeHtml(item.title || 'Notification');
+                const timestamp = escapeHtml(item.created_at_display || '');
+                const message = escapeHtml(item.message || '');
+                const unreadClass = isUnread ? 'notification-unread' : '';
 
                 li.innerHTML = `
-                    <div class="d-flex flex-column gap-1 ${isUnread ? 'fw-semibold' : ''}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div>${escapeHtml(item.title || 'Notification')}</div>
-                                <small class="text-muted">${item.created_at_display || ''}</small>
+                    <div class="notification-item-body d-flex flex-column gap-1 ${unreadClass}">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="flex-grow-1">
+                                <div>${title}${reference}</div>
+                                <small class="text-muted">${timestamp}</small>
                             </div>
                             ${isUnread ? `<button class="btn btn-link btn-sm p-0" data-notification-read="${item.notification_id}">Mark read</button>` : ''}
                         </div>
-                        <div class="small text-body">${escapeHtml(item.message || '')} ${reference}</div>
+                        <div class="small text-body text-truncate-3">${message}</div>
                     </div>
                 `;
 
@@ -170,6 +218,51 @@
             }
             this.emptyState.classList.remove('d-none');
             this.emptyState.textContent = text;
+        },
+
+        openModal(targetEl) {
+            const dataset = targetEl?.dataset || {};
+            if (!this.modalInstance) {
+                return;
+            }
+
+            const title = dataset.notificationTitle || 'Notification';
+            const message = dataset.notificationMessage || '';
+            const time = dataset.notificationTime || '';
+            const reference = dataset.notificationReference || '';
+            const notificationId = dataset.notificationId;
+            const wasUnread = dataset.notificationUnread === 'true';
+
+            if (this.modalTitleEl) {
+                this.modalTitleEl.textContent = title;
+            }
+            if (this.modalMessageEl) {
+                this.modalMessageEl.textContent = message;
+            }
+            if (this.modalTimeEl) {
+                this.modalTimeEl.textContent = time;
+            }
+            if (this.modalReferenceEl) {
+                if (reference) {
+                    this.modalReferenceEl.textContent = `Reference: ${reference}`;
+                    this.modalReferenceEl.classList.remove('d-none');
+                } else {
+                    this.modalReferenceEl.classList.add('d-none');
+                    this.modalReferenceEl.textContent = '';
+                }
+            }
+
+            if (notificationId && wasUnread) {
+                dataset.notificationUnread = 'false';
+                targetEl.querySelector('.notification-item-body')?.classList.remove('notification-unread');
+                const readBtn = targetEl.querySelector('[data-notification-read]');
+                if (readBtn) {
+                    readBtn.remove();
+                }
+                this.markSingleRead(notificationId);
+            }
+
+            this.modalInstance.show();
         }
     };
 

@@ -206,7 +206,8 @@
         if (data.status === 'success') {
           const conversationId = data.data.conversation_id;
           await this.fetchConversations();
-          this.openConversation(conversationId);
+          await this.openConversation(conversationId);
+          return conversationId;
         } else {
           this.setStatus(data.message || 'Unable to start conversation');
         }
@@ -214,6 +215,8 @@
         console.error(error);
         this.setStatus('Network error while starting conversation');
       }
+
+      return null;
     }
 
     async openConversation(conversationId) {

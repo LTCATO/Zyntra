@@ -44,6 +44,12 @@
             <div class="text-truncate">Support</div>
           </a>
         </li>
+        <li class="menu-item {% if 'messages' in menu %}active{% endif %}">
+          <a href="/messages" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-message-dots"></i>
+            <div class="text-truncate">Messages</div>
+          </a>
+        </li>
         <li class="menu-header small text-uppercase"><span class="menu-header-text">Account</span></li>
         <li class="menu-item {% if 'manage' in menu %}active{% endif %}">
           <a href="/profiles" class="menu-link">
@@ -120,6 +126,12 @@
           <a href="/payment" class="menu-link">
             <i class="menu-icon tf-icons bx bx-dollar"></i>
             <div class="text-truncate" data-i18n="Email">Payment</div>
+          </a>
+        </li>
+        <li class="menu-item {% if 'messages' in menu %} active {% endif%}">
+          <a href="/messages" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-message-dots"></i>
+            <div class="text-truncate">Messages</div>
           </a>
         </li>
 

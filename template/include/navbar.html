@@ -45,10 +45,8 @@
         <div class="d-flex align-items-center gap-2">
           {% if g.authenticated %}
             <div class="dropdown">
-              <button class="btn zyn-user-avatar" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="zyn-avatar-circle">
-                  {{ g.authenticated.firstname[:1] }}
-                </div>
+              <button class="btn zyn-account-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="fw-semibold">{{ g.authenticated.firstname }} {{ g.authenticated.lastname }}</span>
               </button>
               <ul class="dropdown-menu dropdown-menu-end zyn-dropdown">
                 <li class="dropdown-header">
@@ -56,7 +54,7 @@
                   <div class="text-muted small">{{ g.authenticated.email }}</div>
                 </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item zyn-dropdown-item" href="{{ url_for('manage_profile') }}">
+                <li><a class="dropdown-item zyn-dropdown-item" href="{{ url_for('profile_page') }}">
                   <i class="bi bi-person me-2"></i>Profile
                 </a></li>
                 <li><a class="dropdown-item zyn-dropdown-item" href="{{ url_for('order_tracking_hub') }}">
@@ -121,7 +119,7 @@
         <!-- Quick Links -->
         <ul class="nav zyn-quick-links">
           <li class="nav-item">
-            <a class="nav-link zyn-nav-link" href="{{ url_for('home_page') }}#featured">
+            <a class="nav-link zyn-nav-link" href="{{ url_for('home_page') }}#featured-products" data-scroll-target="#featured-products">
               <i class="bi bi-star me-1"></i>Featured
             </a>
           </li>
@@ -161,7 +159,7 @@
 
         <!-- Mobile Links -->
         <div class="zyn-mobile-links">
-          <a class="zyn-mobile-link" href="{{ url_for('home_page') }}#featured">
+          <a class="zyn-mobile-link" href="{{ url_for('home_page') }}#featured-products" data-scroll-target="#featured-products">
             <i class="bi bi-star me-2"></i>Featured Products
           </a>
           <a class="zyn-mobile-link" href="{{ url_for('about_page') }}">
@@ -178,3 +176,35 @@
     </div>
   </div>
 </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const homePath = "{{ url_for('home_page') }}";
+  const scrollLinks = document.querySelectorAll('[data-scroll-target]');
+
+  function scrollToTarget(targetSelector) {
+    if (!targetSelector) return;
+    const targetEl = document.querySelector(targetSelector);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  scrollLinks.forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      const targetSelector = link.getAttribute('data-scroll-target');
+      if (!targetSelector) return;
+
+      const isOnHomePage = window.location.pathname === homePath;
+      if (isOnHomePage) {
+        event.preventDefault();
+        scrollToTarget(targetSelector);
+      }
+    });
+  });
+
+  if (window.location.pathname === homePath && window.location.hash === '#featured-products') {
+    scrollToTarget('#featured-products');
+  }
+});
+</script>

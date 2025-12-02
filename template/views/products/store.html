@@ -1,130 +1,65 @@
 {% extends 'base.html' %}
 {% block title %}{{ store.store_name }} | Store{% endblock %}
 
-{% block style %}
-{{ super() }}
-<style>
-  .store-chat-section .chat-support-card {
-    border: none;
-    border-radius: 1.25rem;
-    background: linear-gradient(135deg, #ffffff 0%, #f7f9ff 60%, #eef2ff 100%);
-    box-shadow: 0 20px 45px rgba(99, 102, 241, 0.08);
-  }
-
-  .store-chat-section .chat-messages {
-    min-height: 320px;
-    max-height: 420px;
-    overflow-y: auto;
-    padding: 1.25rem;
-    background: #fff;
-    border-radius: 1rem;
-    border: 1px solid rgba(99, 102, 241, 0.08);
-  }
-
-  .store-chat-section .chat-bubble {
-    border-radius: 1rem;
-    padding: 0.85rem 1rem;
-    background: #f3f4ff;
-    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.05);
-  }
-
-  .store-chat-section .chat-bubble-own {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: #fff;
-  }
-
-  .store-chat-section .chat-bubble-own small,
-  .store-chat-section .chat-bubble-own .text-muted {
-    color: rgba(255, 255, 255, 0.75) !important;
-  }
-
-  .store-chat-section .chat-input-group .form-control {
-    border-radius: 999px;
-    padding: 0.9rem 1.2rem;
-  }
-
-  .store-chat-section .chat-input-group .btn {
-    border-radius: 999px;
-    padding: 0.65rem 1.5rem;
-  }
-
-  @media (max-width: 768px) {
-    .store-chat-section .chat-messages {
-      max-height: 360px;
-    }
-  }
-</style>
-{% endblock %}
+{% block style %}{{ super() }}{% endblock %}
 
 {% block content %}
-<section class="store-hero py-5 mb-5">
-  <div class="container-fluid px-4 px-xl-5">
-    <div class="store-hero-main row g-4 align-items-center">
-        <div class="col-lg-7">
-          <div class="store-identity">
-            <span class="store-badge"><i class="bi bi-shield-check me-1"></i>Verified Seller</span>
-            <h1 class="store-title text-primary mb-1">{{ store.store_name }}</h1>
-            <p class="store-owner text-muted mb-3">{{ (store.firstname|default('') ~ ' ' ~ store.lastname|default(''))|trim if store.firstname or store.lastname else 'Trusted marketplace merchant' }}</p>
-            <p class="hero-description mb-4">{{ store.description if store.description else 'Bringing you curated tech and lifestyle essentials.' }}</p>
-            <div class="store-meta-panel">
-              {% if store.address_text %}
-              <div class="store-meta-line">
-                <i class="bi bi-geo-alt"></i>
-                <span>{{ store.address_text }}</span>
-              </div>
-              {% endif %}
-              <div class="store-meta-line">
-                <i class="bi bi-card-heading"></i>
-                <span>ID: {{ 'STORE-' ~ '%04d'|format(seller_id|int) }}</span>
-              </div>
-            </div>
+<section class="store-hero-v2 py-5">
+  <div class="container">
+    <div class="store-hero-card row g-4 align-items-center">
+      <div class="col-lg-7">
+        <div class="store-identity">
+          <span class="store-badge"><i class="bi bi-shield-check me-1"></i>Verified Seller</span>
+          <h1 class="store-title text-primary mb-1">{{ store.store_name }}</h1>
+          <p class="store-owner text-muted mb-3">{{ (store.firstname|default('') ~ ' ' ~ store.lastname|default(''))|trim if store.firstname or store.lastname else 'Trusted marketplace merchant' }}</p>
+          <p class="hero-description mb-4">{{ store.description if store.description else 'Bringing you curated tech and lifestyle essentials.' }}</p>
+          <div class="store-info-pill-group mb-4">
+            {% if store.address_text %}
+            <span class="store-info-pill"><i class="bi bi-geo-alt me-1"></i>{{ store.address_text }}</span>
+            {% endif %}
+            <span class="store-info-pill"><i class="bi bi-card-heading me-1"></i>ID: {{ 'STORE-' ~ '%04d'|format(seller_id|int) }}</span>
           </div>
-        </div>
-        <div class="col-lg-5">
-          <div class="store-metrics-grid">
-            <div class="store-metric-card">
-              <p>Products</p>
-              <h3>{{ stats.products }}</h3>
-            </div>
-            <div class="store-metric-card">
-              <p>Inventory</p>
-              <h3>{{ stats.inventory }}</h3>
-            </div>
-            <div class="store-metric-card store-rating-card">
-              <p>Seller Rating</p>
-              <h3>{{ stats.rating }} <span class="text-warning"><i class="bi bi-star-fill"></i></span></h3>
-              <small>Top rated seller</small>
-            </div>
+          <div class="store-hero-actions d-flex flex-wrap gap-3">
+            {% if g.authenticated and g.authenticated.role_id == 2 %}
+              <button class="btn btn-primary btn-lg shadow-sm" data-bs-toggle="modal" data-bs-target="#storeChatModal">
+                <i class="bi bi-chat-dots me-2"></i>Message {{ store.store_name }}
+              </button>
+            {% elif not g.authenticated %}
+              <a class="btn btn-primary btn-lg shadow-sm" href="{{ url_for('login_page') }}">
+                <i class="bi bi-person-check me-2"></i>Login to Chat
+              </a>
+            {% else %}
+              <div class="alert alert-info mb-0 p-2 px-3">
+                Chat is available to buyer accounts.
+              </div>
+            {% endif %}
+            <a class="btn btn-outline-primary btn-lg" href="#store-products">
+              <i class="bi bi-bag me-2"></i>Browse Products
+            </a>
           </div>
         </div>
       </div>
-
-      <div class="store-summary-row">
-        <div class="store-summary-card">
-          <div class="summary-icon icon-blue">
-            <i class="bi bi-box-seam"></i>
+      <div class="col-lg-5">
+        <div class="store-metrics-grid">
+          <div class="store-metric-card">
+            <p>Products</p>
+            <h3>{{ stats.products }}</h3>
+            <small>In catalog</small>
           </div>
-          <div>
-            <p>Products Listed</p>
-            <h4>{{ stats.products }}</h4>
+          <div class="store-metric-card">
+            <p>Inventory</p>
+            <h3>{{ stats.inventory }}</h3>
+            <small>Items on hand</small>
           </div>
-        </div>
-        <div class="store-summary-card">
-          <div class="summary-icon icon-pink">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <div>
+          <div class="store-metric-card">
             <p>Total Sales</p>
-            <h4>{{ stats.total_sales if stats.total_sales is defined else '625+' }}</h4>
+            <h3>{{ stats.total_sales if stats.total_sales is defined else '625+' }}</h3>
+            <small>Lifetime orders</small>
           </div>
-        </div>
-        <div class="store-summary-card">
-          <div class="summary-icon icon-orange">
-            <i class="bi bi-lightning-charge"></i>
-          </div>
-          <div>
-            <p>Response Rate</p>
-            <h4>{{ stats.response_rate if stats.response_rate is defined else '98%' }}</h4>
+          <div class="store-metric-card store-rating-card">
+            <p>Seller Rating</p>
+            <h3>{{ stats.rating }} <span class="text-warning"><i class="bi bi-star-fill"></i></span></h3>
+            <small>Response {{ stats.response_rate if stats.response_rate is defined else '98%' }}</small>
           </div>
         </div>
       </div>
@@ -132,59 +67,78 @@
   </div>
 </section>
 
-{% if g.authenticated and g.authenticated.role_id == 2 %}
-<section class="store-chat-section py-4">
+<section class="store-highlights py-4">
   <div class="container">
-    <div class="card shadow-sm chat-support-card" id="storeChatWidget" data-chat-role="{{ g.authenticated.role_id }}" data-chat-user="{{ g.authenticated.user_id }}" data-chat-seller="{{ seller_id }}">
-      <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <div>
-          <h5 class="mb-0">Chat with {{ store.store_name }}</h5>
-          <small class="text-muted">Ask product questions or coordinate orders directly with the seller.</small>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="store-highlight-card">
+          <span class="highlight-icon bg-primary-subtle text-primary"><i class="bi bi-lightning-charge"></i></span>
+          <h6>Fast fulfillment</h6>
+          <p>Orders are prepared within 24 hours on average.</p>
         </div>
-        <button type="button" class="btn btn-primary" data-action="start-store-chat">
-          <i class="bi bi-chat-dots me-1"></i> Start Conversation
-        </button>
       </div>
-      <div class="card-body">
-        <div class="row justify-content-center" data-chat="chat-panel">
-          <div class="col-lg-10 col-xl-8 d-flex flex-column">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-              <div>
-                <p class="text-muted mb-0 small">Messaging as</p>
-                <p class="fw-semibold mb-0">{{ g.authenticated.firstname }} {{ g.authenticated.lastname }}</p>
-              </div>
-              <span class="badge bg-label-primary text-uppercase">Live chat</span>
+      <div class="col-md-4">
+        <div class="store-highlight-card">
+          <span class="highlight-icon bg-success-subtle text-success"><i class="bi bi-shield-lock"></i></span>
+          <h6>Secure transactions</h6>
+          <p>Payments are protected by Zyntra’s buyer guarantee.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="store-highlight-card">
+          <span class="highlight-icon bg-warning-subtle text-warning"><i class="bi bi-chat-dots"></i></span>
+          <h6>Direct support</h6>
+          <p>Chat with {{ store.store_name }} for custom orders or clarifications.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="store-story py-5">
+  <div class="container">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <div class="store-story-card">
+          <span class="store-story-badge">About the store</span>
+          <h4 class="mb-3">We deliver curated tech & lifestyle essentials</h4>
+          <p class="mb-4">{{ store.description if store.description else 'Our team sources best-in-class devices, accessories, and everyday tools so you can focus on what matters most.' }}</p>
+          <ul class="list-unstyled store-story-list">
+            <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Nationwide shipping with real-time tracking</li>
+            <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Responsive customer care for pre and post sales</li>
+            <li><i class="bi bi-check-circle-fill text-primary me-2"></i>Flexible bulk and corporate procurement options</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="store-info-tile">
+              <span class="label">Years active</span>
+              <strong>{{ stats.years_active if stats.years_active is defined else '5+' }}</strong>
+              <small>Trusted marketplace seller</small>
             </div>
-            <div class="alert alert-warning py-2 px-3 d-none" data-chat="status"></div>
-            <div class="chat-messages flex-grow-1 mb-3" data-chat="messages"></div>
-            <form class="mt-auto" data-chat="message-form">
-              <div class="input-group chat-input-group">
-                <input type="text" class="form-control" placeholder="Type your message" data-chat="message-input" autocomplete="off">
-                <button class="btn btn-primary" type="submit">
-                  <i class="bi bi-send"></i>
-                </button>
-              </div>
-            </form>
+          </div>
+          <div class="col-6">
+            <div class="store-info-tile">
+              <span class="label">Fulfillment rate</span>
+              <strong>{{ stats.fulfillment_rate if stats.fulfillment_rate is defined else '99%' }}</strong>
+              <small>Orders shipped on time</small>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="store-info-tile">
+              <span class="label">Customer promise</span>
+              <p class="mb-0">Every package leaves our warehouse inspected, insured, and packaged with care.</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-{% else %}
-<section class="store-chat-section py-4">
-  <div class="container">
-    <div class="alert alert-info d-flex align-items-center" role="alert">
-      <i class="bi bi-chat-left-text me-2 fs-4"></i>
-      <div>
-        <strong>Want to chat with this seller?</strong> <a href="{{ url_for('login_page') }}" class="alert-link">Log in as a buyer</a> to start a conversation.
-      </div>
-    </div>
-  </div>
-</section>
-{% endif %}
 
-<section class="store-products-section pb-5">
+<section class="store-products-section pb-5" id="store-products">
   <div class="container">
     <div class="store-products-header">
       <div>
@@ -224,16 +178,42 @@
     </div>
     {% endif %}
   </div>
-</section>
+{% if g.authenticated and g.authenticated.role_id == 2 %}
+<div class="modal fade store-chat-modal" id="storeChatModal" tabindex="-1" aria-labelledby="storeChatModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="storeChatModalLabel">Chat with {{ store.store_name }}</h5>
+          <small class="text-muted">Get real-time support for any order.</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="storeChatWidget" class="store-chat-modal-body d-flex flex-column" data-chat-role="{{ g.authenticated.role_id }}" data-chat-user="{{ g.authenticated.user_id }}" data-chat-seller="{{ seller_id }}">
+          <div class="alert alert-warning py-2 px-3 d-none" data-chat="status"></div>
+          <div class="chat-messages flex-grow-1 mb-3" data-chat="messages"></div>
+          <form data-chat="message-form">
+            <div class="input-group chat-input-group">
+              <input type="text" class="form-control" placeholder="Type your message" data-chat="message-input" autocomplete="off">
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const hero = document.querySelector('.store-hero-banner');
-    if (hero) {
-      hero.classList.add('loaded');
-    }
+    const heroCard = document.querySelector('.store-hero-card');
+    heroCard?.classList.add('is-ready');
   });
 </script>
 
@@ -242,7 +222,8 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const chatRoot = document.getElementById('storeChatWidget');
-    if (!chatRoot || !window.ChatWidget) {
+    const chatModal = document.getElementById('storeChatModal');
+    if (!chatRoot || !chatModal || !window.ChatWidget) {
       return;
     }
 
@@ -255,8 +236,8 @@
 
     const buyerChat = new ChatWidget({
       root: chatRoot,
-      roleId: roleId,
-      userId: userId,
+      roleId,
+      userId,
       counterpartLabel: 'Seller',
       counterpartListEnabled: false,
       fixedCounterpartId: sellerId,
@@ -265,34 +246,22 @@
         return conversation && conversation.seller_id === sellerId;
       }
     });
-    buyerChat.init();
 
-    const chatPanel = chatRoot.querySelector('[data-chat="chat-panel"]');
-    const startButton = chatRoot.querySelector('[data-action="start-store-chat"]');
+    let storeChatInitialized = false;
 
-    function ensureChatVisible() {
-      if (chatPanel) {
-        chatPanel.classList.remove('d-none');
+    async function ensureStoreChatSession() {
+      if (!storeChatInitialized) {
+        buyerChat.init();
+        storeChatInitialized = true;
+      }
+      try {
+        await buyerChat.startConversationWith(sellerId);
+      } catch (error) {
+        console.error('Unable to start store chat conversation', error);
       }
     }
 
-    if (startButton) {
-      startButton.addEventListener('click', function() {
-        ensureChatVisible();
-        buyerChat.startConversationWith(sellerId);
-      });
-    }
-
-    // Auto-open chat when buyer already has an active conversation with this seller
-    buyerChat.fetchConversations?.().then(() => {
-      const conversation = (buyerChat.state?.conversations || []).find(function(item) {
-        return item && item.seller_id === sellerId;
-      });
-      if (conversation) {
-        ensureChatVisible();
-        buyerChat.openConversation(conversation.conversation_id);
-      }
-    });
+    chatModal.addEventListener('shown.bs.modal', ensureStoreChatSession);
   });
 </script>
 {% endif %}

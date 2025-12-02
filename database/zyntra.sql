@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 02, 2025 at 06:14 PM
+-- Generation Time: Dec 02, 2025 at 07:42 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -193,7 +193,13 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (10, 24, 11, 'New order placed', 'Czeanne  Barado placed order 5p9rgSYrk6 (Sub-order 5p9rgSYrk6-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-11-29 03:39:59'),
 (11, 5, NULL, 'New order placed', 'User User placed order qspqyKN6Aq (Sub-order qspqyKN6Aq-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-12-02 22:58:35', '2025-12-02 14:03:40'),
 (12, 5, 13, 'New order placed', 'User User placed order AiJ8BJNGI6 (Sub-order AiJ8BJNGI6-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 0, NULL, '2025-12-02 16:37:57'),
-(13, 24, 13, 'New order placed', 'User User placed order AiJ8BJNGI6 (Sub-order AiJ8BJNGI6-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-02 16:37:57');
+(13, 24, 13, 'New order placed', 'User User placed order AiJ8BJNGI6 (Sub-order AiJ8BJNGI6-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-02 16:37:57'),
+(14, 24, 14, 'New order placed', 'User User placed order K7OWGTjpIT (Sub-order K7OWGTjpIT-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-02 18:15:37'),
+(15, 24, 15, 'New order placed', 'User User placed order 9imjSpbITY (Sub-order 9imjSpbITY-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-02 18:35:28'),
+(16, 24, 16, 'New order placed', 'User User placed order jKDMiUpgTQ (Sub-order jKDMiUpgTQ-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-02 18:40:18'),
+(17, 25, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 1, '2025-12-03 02:41:09', '2025-12-02 18:40:45'),
+(18, 27, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 0, NULL, '2025-12-02 18:40:45'),
+(19, 31, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 0, NULL, '2025-12-02 18:40:45');
 
 -- --------------------------------------------------------
 
@@ -221,7 +227,10 @@ CREATE TABLE `orders` (
 
 INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `cash_type`, `created_at`, `updated_at`, `status`) VALUES
 (11, 52, '5p9rgSYrk6', 80990.00, 0.00, 809.90, '81799.90', 'cod', '2025-11-29 03:39:59', '2025-11-29 11:39:59', 1),
-(13, 26, 'AiJ8BJNGI6', 82789.00, 0.00, 0.00, '82789.00', 'cod', '2025-12-02 16:37:57', '2025-12-03 00:37:57', 1);
+(13, 26, 'AiJ8BJNGI6', 82789.00, 0.00, 0.00, '82789.00', 'cod', '2025-12-02 16:37:57', '2025-12-03 00:37:57', 1),
+(14, 26, 'K7OWGTjpIT', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:15:36', '2025-12-03 02:15:36', 1),
+(15, 26, '9imjSpbITY', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:35:28', '2025-12-03 02:35:28', 1),
+(16, 26, 'jKDMiUpgTQ', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:40:18', '2025-12-03 02:40:18', 1);
 
 -- --------------------------------------------------------
 
@@ -245,8 +254,9 @@ CREATE TABLE `order_items` (
 
 INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `reference`, `status`) VALUES
 (27, 32, 52, 9, 1, '5p9rgSYrk6', 2),
-(29, 33, 26, 11, 1, 'AiJ8BJNGI6', 1),
-(30, 32, 26, 12, 1, 'AiJ8BJNGI6', 1);
+(31, 31, 26, 13, 1, 'K7OWGTjpIT', 2),
+(32, 31, 26, 14, 1, '9imjSpbITY', 2),
+(33, 31, 26, 15, 1, 'jKDMiUpgTQ', 2);
 
 -- --------------------------------------------------------
 
@@ -282,7 +292,10 @@ INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `referenc
 (9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32', 0, NULL, NULL, NULL),
 (10, 12, 5, 'qspqyKN6Aq-01', 2, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 14:03:40', '2025-12-02 14:05:46', 0, NULL, NULL, NULL),
 (11, 13, 5, 'AiJ8BJNGI6-01', 1, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL),
-(12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL);
+(12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL),
+(13, 14, 24, 'K7OWGTjpIT-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:15:36', '2025-12-02 18:16:39', 4, 25, '2025-12-03 02:16:21', '2025-12-03 02:16:39'),
+(14, 15, 24, '9imjSpbITY-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:35:28', '2025-12-02 18:39:59', 4, 25, '2025-12-03 02:39:56', '2025-12-03 02:39:59'),
+(15, 16, 24, 'jKDMiUpgTQ-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:40:18', '2025-12-02 18:41:41', 4, 25, '2025-12-03 02:41:14', '2025-12-03 02:41:41');
 
 -- --------------------------------------------------------
 
@@ -519,7 +532,7 @@ CREATE TABLE `seller_details` (
 
 INSERT INTO `seller_details` (`seller_detail_id`, `user_id`, `store_name`, `description`, `region`, `province`, `city`, `barangay`, `street`, `gov_id_path`, `business_permit_path`, `created_at`, `updated_at`, `status`) VALUES
 (1, 5, 'Techonologia', NULL, 'Cordillera Administrative Region (CAR)', 'Ifugao', 'Mayoyao', 'Guinihon', '12', 'static/uploads/seller_documents\\770661652449458.jpg', NULL, '2025-10-10 18:10:13', '2025-11-14 09:55:44', 1),
-(9, 24, 'Seller', 'imissher', 'Region XII (SOCCSKSARGEN)', 'Cotabato (North Cotabato)', 'Pigkawayan', 'Lower Pangangkalan', 'qwe', 'static/uploads/seller_documents\\465302976581719.pdf', 'static/uploads/seller_documents\\612746791708541.pdf', '2025-11-15 11:18:25', '2025-11-29 03:47:04', 2),
+(9, 24, 'Seller', 'imissher', 'Region XII (SOCCSKSARGEN)', 'Cotabato (North Cotabato)', 'Pigkawayan', 'Lower Pangangkalan', 'qwe', 'static/uploads/seller_documents\\465302976581719.pdf', 'static/uploads/seller_documents\\612746791708541.pdf', '2025-11-15 11:18:25', '2025-12-02 18:15:02', 1),
 (10, 28, 'TiTECH', NULL, 'Region XI (Davao Region)', 'Davao Del Sur', 'Santa Cruz', 'Tibolo', 'N/A', 'static/uploads/seller_documents\\914265887858780.jpg', 'static/uploads/seller_documents\\769676331233912.jpg', '2025-11-21 06:02:49', '2025-11-21 06:33:32', 1),
 (11, 32, 'myTech', NULL, 'Region VI (Western Visayas)', 'Capiz', 'Pontevedra', 'Binuntucan', '12', 'static/uploads/seller_documents\\509090198778154.png', NULL, '2025-11-21 07:58:55', '2025-11-21 10:50:21', 1),
 (12, 33, 'iTech', 'ble ble ble', 'Region II (Cagayan Valley)', 'Quirino', 'Diffun', 'Campamento', 'N/A', 'static/uploads/seller_documents\\670659047964883.webp', NULL, '2025-11-23 15:18:13', '2025-11-23 15:18:13', 0);
@@ -557,7 +570,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`user_id`, `role_id`, `firstname`, `lastname`, `email`, `password`, `phone`, `email_verified`, `email_verified_at`, `email_code_hash`, `email_code_expires_at`, `email_code_attempts`, `email_code_last_sent_at`, `created_at`, `updated_at`, `status`, `otp_last_sent_at`) VALUES
 (5, 3, 'Arce', 'LC', 'arcelc@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543215', 1, NULL, NULL, NULL, 0, NULL, '2025-10-10 18:10:13', '2025-11-29 11:40:52', 1, NULL),
 (8, 1, 'Admin', 'Risu', 'admin@gmail.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '09876543217', 1, NULL, NULL, NULL, 0, NULL, '2025-10-12 14:03:40', '2025-11-29 01:11:28', 1, NULL),
-(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-11-29 11:47:04', 2, NULL),
+(24, 3, 'Seller', '', 'Seller@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:18:25', '2025-12-03 02:15:02', 1, NULL),
 (25, 4, 'Delivery', '', 'driver@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-15 11:19:04', '2025-11-29 10:39:58', 1, NULL),
 (26, 2, 'User', 'User', 'User@gmail.com', '81954b0388567d0ef7ab6185715f02967dcb6ad8bba755b43207f7c2da065649', '09692991918', 1, NULL, NULL, NULL, 0, NULL, '2025-11-16 16:45:05', '2025-11-29 10:40:10', 1, NULL),
 (27, 4, 'Aedrian', 'Dave Anounevo', 'adi@gmail.com', 'ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f', '09876543213', 0, NULL, NULL, NULL, 0, NULL, '2025-11-20 18:54:15', '2025-11-29 11:46:45', 1, NULL),
@@ -758,25 +771,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `payments`

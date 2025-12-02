@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 04:23 PM
+-- Generation Time: Dec 02, 2025 at 06:14 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -46,8 +46,8 @@ CREATE TABLE `addresses` (
 --
 
 INSERT INTO `addresses` (`address_id`, `user_id`, `floor_unit_number`, `region`, `province`, `city_municipality`, `barangay`, `street`, `other_notes`, `created_at`, `updated_at`) VALUES
-(1, 26, 'N/A', '04', '0434', '043408', '043408007', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:40:30', '2025-11-23 01:20:16'),
-(2, 26, 'N/A', '04', '0434', '043408', '043408007', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:57:01', '2025-11-23 01:20:16'),
+(1, 26, 'N/A', '07', '0712', '071209', '071209011', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:40:30', '2025-12-02 11:03:18'),
+(2, 26, 'N/A', '07', '0712', '071209', '071209011', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:57:01', '2025-12-02 11:03:18'),
 (3, 29, '2F C', '07', '0761', '076104', '076104012', 'N/A', '', '2025-11-24 02:50:39', '2025-11-24 02:50:39'),
 (4, 52, 'N/A', '17', '1751', '175110', '175110011', 'N/A', 'sa likod ng sementeryo', '2025-11-29 03:38:39', '2025-11-29 03:38:39');
 
@@ -76,6 +76,52 @@ INSERT INTO `categories` (`category_id`, `category_name`, `created_at`, `updated
 (4, 'Smart Home Devices', '2025-10-10 13:09:17', '2025-10-10 21:09:17', 1),
 (5, 'Cameras & Photography', '2025-10-10 13:09:17', '2025-10-10 21:09:17', 1),
 (6, 'Wearable Technology', '2025-10-10 13:09:17', '2025-10-10 21:09:17', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversations`
+--
+
+CREATE TABLE `conversations` (
+  `conversation_id` int(11) NOT NULL,
+  `buyer_id` int(11) NOT NULL,
+  `seller_id` int(11) NOT NULL,
+  `order_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `conversations`
+--
+
+INSERT INTO `conversations` (`conversation_id`, `buyer_id`, `seller_id`, `order_id`, `created_at`, `updated_at`) VALUES
+(2, 26, 5, NULL, '2025-12-02 16:04:15', '2025-12-02 16:30:02');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversation_messages`
+--
+
+CREATE TABLE `conversation_messages` (
+  `message_id` int(11) NOT NULL,
+  `conversation_id` int(11) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `message_text` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `read_at` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `conversation_messages`
+--
+
+INSERT INTO `conversation_messages` (`message_id`, `conversation_id`, `sender_id`, `message_text`, `is_read`, `read_at`, `created_at`) VALUES
+(2, 2, 26, 'hi', 0, NULL, '2025-12-02 16:04:20'),
+(3, 2, 5, 'hello', 0, NULL, '2025-12-02 16:30:02');
 
 -- --------------------------------------------------------
 
@@ -142,9 +188,12 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (5, 5, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-26 21:38:29', '2025-11-25 03:28:13'),
 (6, 24, NULL, 'New order placed', 'User User placed order dHF9HABLTJ (Sub-order dHF9HABLTJ-02) containing 1 item(s): Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:28:13'),
 (7, 24, NULL, 'New order placed', 'User User placed order sIJc8va31v (Sub-order sIJc8va31v-01) containing 1 item(s): WD 2TB Elements Portable External Hard Drive - USB 3.0 ', 'order', 1, '2025-11-26 21:36:48', '2025-11-25 03:31:18'),
-(8, 5, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-29 11:41:54', '2025-11-26 14:28:26'),
-(9, 24, 10, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 1, '2025-11-27 01:03:22', '2025-11-26 14:28:26'),
-(10, 24, 11, 'New order placed', 'Czeanne  Barado placed order 5p9rgSYrk6 (Sub-order 5p9rgSYrk6-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-11-29 03:39:59');
+(8, 5, NULL, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-11-29 11:41:54', '2025-11-26 14:28:26'),
+(9, 24, NULL, 'New order placed', 'User User placed order uRy6D0gi1m (Sub-order uRy6D0gi1m-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 1, '2025-11-27 01:03:22', '2025-11-26 14:28:26'),
+(10, 24, 11, 'New order placed', 'Czeanne  Barado placed order 5p9rgSYrk6 (Sub-order 5p9rgSYrk6-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-11-29 03:39:59'),
+(11, 5, NULL, 'New order placed', 'User User placed order qspqyKN6Aq (Sub-order qspqyKN6Aq-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 1, '2025-12-02 22:58:35', '2025-12-02 14:03:40'),
+(12, 5, 13, 'New order placed', 'User User placed order AiJ8BJNGI6 (Sub-order AiJ8BJNGI6-01) containing 1 item(s): HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', 'order', 0, NULL, '2025-12-02 16:37:57'),
+(13, 24, 13, 'New order placed', 'User User placed order AiJ8BJNGI6 (Sub-order AiJ8BJNGI6-02) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-02 16:37:57');
 
 -- --------------------------------------------------------
 
@@ -171,8 +220,8 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `cash_type`, `created_at`, `updated_at`, `status`) VALUES
-(10, 26, 'uRy6D0gi1m', 82789.00, 0.00, 827.89, '83616.89', 'cod', '2025-11-26 14:28:26', '2025-11-26 22:28:26', 1),
-(11, 52, '5p9rgSYrk6', 80990.00, 0.00, 809.90, '81799.90', 'cod', '2025-11-29 03:39:59', '2025-11-29 11:39:59', 1);
+(11, 52, '5p9rgSYrk6', 80990.00, 0.00, 809.90, '81799.90', 'cod', '2025-11-29 03:39:59', '2025-11-29 11:39:59', 1),
+(13, 26, 'AiJ8BJNGI6', 82789.00, 0.00, 0.00, '82789.00', 'cod', '2025-12-02 16:37:57', '2025-12-03 00:37:57', 1);
 
 -- --------------------------------------------------------
 
@@ -195,9 +244,9 @@ CREATE TABLE `order_items` (
 --
 
 INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `reference`, `status`) VALUES
-(25, 32, 26, 8, 1, 'uRy6D0gi1m', 2),
-(26, 33, 26, 7, 1, 'uRy6D0gi1m', 2),
-(27, 32, 52, 9, 1, '5p9rgSYrk6', 2);
+(27, 32, 52, 9, 1, '5p9rgSYrk6', 2),
+(29, 33, 26, 11, 1, 'AiJ8BJNGI6', 1),
+(30, 32, 26, 12, 1, 'AiJ8BJNGI6', 1);
 
 -- --------------------------------------------------------
 
@@ -226,7 +275,10 @@ CREATE TABLE `order_suborders` (
 INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`) VALUES
 (7, 10, 5, 'uRy6D0gi1m-01', 2, 1799.00, 79.00, 18.78, 1896.78, '2025-11-26 14:28:26', '2025-11-29 03:42:46'),
 (8, 10, 24, 'uRy6D0gi1m-02', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-26 14:28:26', '2025-11-29 02:40:52'),
-(9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32');
+(9, 11, 24, '5p9rgSYrk6-01', 2, 80990.00, 0.00, 809.90, 81799.90, '2025-11-29 03:39:59', '2025-11-29 03:43:32'),
+(10, 12, 5, 'qspqyKN6Aq-01', 2, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 14:03:40', '2025-12-02 14:05:46'),
+(11, 13, 5, 'AiJ8BJNGI6-01', 1, 1799.00, 79.00, 0.00, 1878.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57'),
+(12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57');
 
 -- --------------------------------------------------------
 
@@ -528,49 +580,6 @@ CREATE TABLE `wishlists` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `wishlists`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `conversations`
---
-
-CREATE TABLE `conversations` (
-  `conversation_id` int(11) NOT NULL,
-  `buyer_id` int(11) NOT NULL,
-  `seller_id` int(11) NOT NULL,
-  `order_id` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `conversations`
---
-
--- --------------------------------------------------------
-
---
--- Table structure for table `conversation_messages`
---
-
-CREATE TABLE `conversation_messages` (
-  `message_id` int(11) NOT NULL,
-  `conversation_id` int(11) NOT NULL,
-  `sender_id` int(11) NOT NULL,
-  `message_text` text NOT NULL,
-  `is_read` tinyint(1) NOT NULL DEFAULT 0,
-  `read_at` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `conversation_messages`
---
-
---
 -- Indexes for dumped tables
 --
 
@@ -586,6 +595,24 @@ ALTER TABLE `addresses`
 --
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`category_id`);
+
+--
+-- Indexes for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD PRIMARY KEY (`conversation_id`),
+  ADD UNIQUE KEY `uq_conversation_pair` (`buyer_id`,`seller_id`),
+  ADD KEY `idx_conversations_buyer` (`buyer_id`),
+  ADD KEY `idx_conversations_seller` (`seller_id`),
+  ADD KEY `idx_conversations_order` (`order_id`);
+
+--
+-- Indexes for table `conversation_messages`
+--
+ALTER TABLE `conversation_messages`
+  ADD PRIMARY KEY (`message_id`),
+  ADD KEY `idx_conv_messages_conversation` (`conversation_id`),
+  ADD KEY `idx_conv_messages_sender` (`sender_id`);
 
 --
 -- Indexes for table `delivery_partners`
@@ -690,26 +717,6 @@ ALTER TABLE `wishlists`
   ADD KEY `idx_wishlists_product` (`product_id`);
 
 --
--- Indexes for table `conversations`
---
-
-ALTER TABLE `conversations`
-  ADD PRIMARY KEY (`conversation_id`),
-  ADD UNIQUE KEY `uq_conversation_pair` (`buyer_id`,`seller_id`),
-  ADD KEY `idx_conversations_buyer` (`buyer_id`),
-  ADD KEY `idx_conversations_seller` (`seller_id`),
-  ADD KEY `idx_conversations_order` (`order_id`);
-
---
--- Indexes for table `conversation_messages`
---
-
-ALTER TABLE `conversation_messages`
-  ADD PRIMARY KEY (`message_id`),
-  ADD KEY `idx_conv_messages_conversation` (`conversation_id`),
-  ADD KEY `idx_conv_messages_sender` (`sender_id`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -726,6 +733,18 @@ ALTER TABLE `categories`
   MODIFY `category_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
+-- AUTO_INCREMENT for table `conversations`
+--
+ALTER TABLE `conversations`
+  MODIFY `conversation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `conversation_messages`
+--
+ALTER TABLE `conversation_messages`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `delivery_partners`
 --
 ALTER TABLE `delivery_partners`
@@ -735,25 +754,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -801,19 +820,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `wishlists`
 --
 ALTER TABLE `wishlists`
-  MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `conversations`
---
-ALTER TABLE `conversations`
-  MODIFY `conversation_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `conversation_messages`
---
-ALTER TABLE `conversation_messages`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -824,6 +831,21 @@ ALTER TABLE `conversation_messages`
 --
 ALTER TABLE `addresses`
   ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`);
+
+--
+-- Constraints for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD CONSTRAINT `fk_conversations_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_conversations_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `conversation_messages`
+--
+ALTER TABLE `conversation_messages`
+  ADD CONSTRAINT `fk_conv_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`conversation_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_conv_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `delivery_partners`
@@ -896,23 +918,6 @@ ALTER TABLE `users`
 ALTER TABLE `wishlists`
   ADD CONSTRAINT `fk_wishlists_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_wishlists_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
-
---
--- Constraints for table `conversations`
---
-
-ALTER TABLE `conversations`
-  ADD CONSTRAINT `fk_conversations_buyer` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_conversations_seller` FOREIGN KEY (`seller_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_conversations_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE SET NULL;
-
---
--- Constraints for table `conversation_messages`
---
-
-ALTER TABLE `conversation_messages`
-  ADD CONSTRAINT `fk_conv_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`conversation_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_conv_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

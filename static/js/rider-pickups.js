@@ -21,7 +21,14 @@
       );
     }
 
-    const statusBadge = buildStatusBadge(data.pickup_status);
+    const statusBadge = buildStatusBadge(data.pickup_status, data.status);
+
+    const actionContent = actions.join('<div></div>');
+    const tailBadge = actionContent || (
+      data.status === 6
+        ? '<span class="badge bg-label-success">Completed</span>'
+        : '<span class="badge bg-secondary">Awaiting update</span>'
+    );
     return `
       <div class="list-group-item">
         <div class="d-flex justify-content-between align-items-start">
@@ -32,13 +39,17 @@
             <div>${statusBadge}</div>
           </div>
           <div class="d-flex flex-column gap-2">
-            ${actions.join('<div></div>') || '<span class="badge bg-secondary">Awaiting update</span>'}
+            ${tailBadge}
           </div>
         </div>
       </div>`;
   }
 
-  function buildStatusBadge(status) {
+  function buildStatusBadge(pickupStatus, orderStatus) {
+    if (orderStatus === 6) {
+      return '<span class="badge bg-label-success">Completed</span>';
+    }
+
     const labels = {
       0: ['secondary', 'Pending Fulfillment'],
       1: ['info', 'Awaiting Pickup'],
@@ -46,7 +57,7 @@
       3: ['warning', 'In Transit'],
       4: ['success', 'Delivered'],
     };
-    const [variant, text] = labels[status] || ['secondary', 'Unknown'];
+    const [variant, text] = labels[pickupStatus] || ['secondary', 'Unknown'];
     return `<span class="badge bg-label-${variant}">${text}</span>`;
   }
 

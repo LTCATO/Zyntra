@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 02, 2025 at 07:42 PM
+-- Generation Time: Dec 03, 2025 at 06:19 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -199,7 +199,22 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (16, 24, 16, 'New order placed', 'User User placed order jKDMiUpgTQ (Sub-order jKDMiUpgTQ-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-02 18:40:18'),
 (17, 25, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 1, '2025-12-03 02:41:09', '2025-12-02 18:40:45'),
 (18, 27, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 0, NULL, '2025-12-02 18:40:45'),
-(19, 31, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 0, NULL, '2025-12-02 18:40:45');
+(19, 31, 16, 'Pickup Available', 'Sub-order jKDMiUpgTQ-01 is ready for pickup.', 'system', 0, NULL, '2025-12-02 18:40:45'),
+(20, 24, 17, 'New order placed', 'User User placed order fev6q6mbg5 (Sub-order fev6q6mbg5-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-03 15:41:07'),
+(21, 25, 17, 'Pickup Available', 'Sub-order fev6q6mbg5-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 15:41:30'),
+(22, 27, 17, 'Pickup Available', 'Sub-order fev6q6mbg5-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 15:41:30'),
+(23, 31, 17, 'Pickup Available', 'Sub-order fev6q6mbg5-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 15:41:30'),
+(24, 24, 18, 'New order placed', 'User User placed order mk8HMqpFFU (Sub-order mk8HMqpFFU-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-03 16:25:38'),
+(25, 25, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:26:12'),
+(26, 27, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:26:12'),
+(27, 31, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:26:12'),
+(28, 25, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:47:09'),
+(29, 27, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:47:09'),
+(30, 31, 18, 'Pickup Available', 'Sub-order mk8HMqpFFU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 16:47:09'),
+(31, 24, 19, 'New order placed', 'User User placed order TdAv2oG6Ti (Sub-order TdAv2oG6Ti-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-03 17:06:17'),
+(32, 25, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41'),
+(33, 27, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41'),
+(34, 31, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41');
 
 -- --------------------------------------------------------
 
@@ -230,7 +245,10 @@ INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_
 (13, 26, 'AiJ8BJNGI6', 82789.00, 0.00, 0.00, '82789.00', 'cod', '2025-12-02 16:37:57', '2025-12-03 00:37:57', 1),
 (14, 26, 'K7OWGTjpIT', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:15:36', '2025-12-03 02:15:36', 1),
 (15, 26, '9imjSpbITY', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:35:28', '2025-12-03 02:35:28', 1),
-(16, 26, 'jKDMiUpgTQ', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:40:18', '2025-12-03 02:40:18', 1);
+(16, 26, 'jKDMiUpgTQ', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:40:18', '2025-12-03 02:40:18', 1),
+(17, 26, 'fev6q6mbg5', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-03 15:41:07', '2025-12-03 23:41:07', 1),
+(18, 26, 'mk8HMqpFFU', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-03 16:25:38', '2025-12-04 00:30:35', 6),
+(19, 26, 'TdAv2oG6Ti', 3998.00, 0.00, 0.00, '3998.00', 'cod', '2025-12-03 17:06:17', '2025-12-04 01:08:53', 6);
 
 -- --------------------------------------------------------
 
@@ -256,7 +274,10 @@ INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_
 (27, 32, 52, 9, 1, '5p9rgSYrk6', 2),
 (31, 31, 26, 13, 1, 'K7OWGTjpIT', 2),
 (32, 31, 26, 14, 1, '9imjSpbITY', 2),
-(33, 31, 26, 15, 1, 'jKDMiUpgTQ', 2);
+(33, 31, 26, 15, 1, 'jKDMiUpgTQ', 2),
+(34, 31, 26, 16, 1, 'fev6q6mbg5', 2),
+(35, 31, 26, 17, 1, 'mk8HMqpFFU', 6),
+(36, 31, 26, 18, 2, 'TdAv2oG6Ti', 6);
 
 -- --------------------------------------------------------
 
@@ -295,7 +316,10 @@ INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `referenc
 (12, 13, 24, 'AiJ8BJNGI6-02', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-02 16:37:57', '2025-12-02 16:37:57', 0, NULL, NULL, NULL),
 (13, 14, 24, 'K7OWGTjpIT-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:15:36', '2025-12-02 18:16:39', 4, 25, '2025-12-03 02:16:21', '2025-12-03 02:16:39'),
 (14, 15, 24, '9imjSpbITY-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:35:28', '2025-12-02 18:39:59', 4, 25, '2025-12-03 02:39:56', '2025-12-03 02:39:59'),
-(15, 16, 24, 'jKDMiUpgTQ-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:40:18', '2025-12-02 18:41:41', 4, 25, '2025-12-03 02:41:14', '2025-12-03 02:41:41');
+(15, 16, 24, 'jKDMiUpgTQ-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:40:18', '2025-12-02 18:41:41', 4, 25, '2025-12-03 02:41:14', '2025-12-03 02:41:41'),
+(16, 17, 24, 'fev6q6mbg5-01', 3, 1999.00, 79.00, 0.00, 2078.00, '2025-12-03 15:41:07', '2025-12-03 15:42:08', 3, 25, '2025-12-03 23:42:03', NULL),
+(17, 18, 24, 'mk8HMqpFFU-01', 6, 1999.00, 79.00, 0.00, 2078.00, '2025-12-03 16:25:38', '2025-12-03 16:48:50', 4, 25, '2025-12-04 00:47:42', '2025-12-04 00:48:21'),
+(18, 19, 24, 'TdAv2oG6Ti-01', 6, 3998.00, 0.00, 0.00, 3998.00, '2025-12-03 17:06:17', '2025-12-03 17:08:53', 4, 25, '2025-12-04 01:07:11', '2025-12-04 01:08:23');
 
 -- --------------------------------------------------------
 
@@ -463,6 +487,30 @@ INSERT INTO `product_attachments` (`product_attachment_id`, `product_id`, `attac
 (104, 81, 'uploads/products/73fe6780a6ab46699bb55210074c64f5.jpg', '2025-11-24 13:38:56', '2025-11-24 21:38:56', 1),
 (105, 82, 'uploads/products/76baf06ff1c946dcb98f76b535ae74b8.jpg', '2025-11-24 13:38:58', '2025-11-24 21:38:58', 1),
 (106, 83, 'uploads/products/5bd3dec9add4454eb63bb9b36f360136.jpg', '2025-11-24 13:38:59', '2025-11-24 21:38:59', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_reviews`
+--
+
+CREATE TABLE `product_reviews` (
+  `review_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `order_items_id` int(11) DEFAULT NULL,
+  `reference` varchar(255) DEFAULT NULL,
+  `rating` tinyint(1) NOT NULL COMMENT '1-5 stars',
+  `comment` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product_reviews`
+--
+
+INSERT INTO `product_reviews` (`review_id`, `product_id`, `user_id`, `order_items_id`, `reference`, `rating`, `comment`, `created_at`) VALUES
+(1, 31, 26, 35, 'mk8HMqpFFU', 4, 'Goods', '2025-12-03 17:05:23');
 
 -- --------------------------------------------------------
 
@@ -695,6 +743,15 @@ ALTER TABLE `product_attachments`
   ADD KEY `FK_product_attachments` (`product_id`);
 
 --
+-- Indexes for table `product_reviews`
+--
+ALTER TABLE `product_reviews`
+  ADD PRIMARY KEY (`review_id`),
+  ADD KEY `idx_product` (`product_id`),
+  ADD KEY `idx_user` (`user_id`),
+  ADD KEY `idx_order_item` (`order_items_id`);
+
+--
 -- Indexes for table `reviews`
 --
 ALTER TABLE `reviews`
@@ -771,25 +828,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -808,6 +865,12 @@ ALTER TABLE `products`
 --
 ALTER TABLE `product_attachments`
   MODIFY `product_attachment_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+
+--
+-- AUTO_INCREMENT for table `product_reviews`
+--
+ALTER TABLE `product_reviews`
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `reviews`

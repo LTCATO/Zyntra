@@ -179,29 +179,46 @@ def build_product_image_url(attachment):
 def get_order_items_by_reference(reference):
     items_query = """
         SELECT 
+            oi.order_items_id,
             oi.product_id,
             oi.suborder_id,
+            oi.quantity,
+            oi.status AS item_status,
+            oi.reference,
             p.product_name,
-            SUM(oi.quantity) AS total_quantity,
             p.price,
+            os.reference AS sub_reference,
+            os.status AS sub_status,
             os.shipping_fee AS sub_shipping_fee,
             sd.store_name,
             seller.firstname AS seller_firstname,
             seller.lastname AS seller_lastname,
-            (SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = p.product_id LIMIT 1) AS attachment
+            (
+                SELECT pa.attachment 
+                FROM product_attachments pa 
+                WHERE pa.product_id = p.product_id 
+                LIMIT 1
+            ) AS attachment
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN order_suborders os ON oi.suborder_id = os.suborder_id
         LEFT JOIN users seller ON os.seller_id = seller.user_id
         LEFT JOIN seller_details sd ON sd.user_id = seller.user_id
         WHERE oi.reference = %s
-        GROUP BY oi.product_id, oi.suborder_id, p.product_name, p.price, os.shipping_fee, sd.store_name, seller.firstname, seller.lastname
+        ORDER BY oi.order_items_id ASC
     """
     order_items = executeGet(items_query, (reference,)) or []
 
+    status_labels = {
+        1: 'Order Placed',
+        2: 'Shipped',
+        3: 'Out for Delivery',
+        4: 'Delivered'
+    }
+
     for item in order_items:
         price = float(item.get('price', 0) or 0)
-        quantity = float(item.get('total_quantity', item.get('quantity', 0) or 0))
+        quantity = float(item.get('quantity', 0) or 0)
         item['quantity'] = int(quantity)
         item['formatted_price'] = locale.format_string("%0.2f", price, grouping=True)
         total_price = price * quantity
@@ -216,6 +233,11 @@ def get_order_items_by_reference(reference):
         if attachment:
             item['attachment'] = attachment.lstrip('/\\')
 
+        status = int(item.get('item_status') or item.get('sub_status') or 1)
+        item['status'] = status
+        item['status_text'] = status_labels.get(status, 'Processing')
+        item['sub_reference'] = item.get('sub_reference') or item.get('reference')
+
     return order_items
 
 
@@ -224,8 +246,9 @@ def build_order_summary(order_row):
     subtotal_value = float(order_row.get('subtotal', 0) or 0)
     tax_value = float(order_row.get('tax_amount', 0) or 0)
     total_value = float(order_row.get('total_amount', 0) or 0)
-    status = order_row.get('status', 1) or 1
-    status_labels = ['', 'Order Placed', 'Shipped', 'Out for Delivery', 'Delivered']
+    status = order_row.get('status_override') or order_row.get('status', 1) or 1
+
+    status_labels = ['', 'Order Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled']
     status_text = status_labels[status] if status < len(status_labels) else 'Processing'
 
     created_at = order_row.get('created_at')
@@ -925,30 +948,76 @@ def orderTrackingHub():
     out_for_delivery_orders = []
     completed_orders = []
 
-    for order in orders_result:
-        summary = build_order_summary(order)
-        items = get_order_items_by_reference(summary['reference'])
-        shipments = get_suborders_for_order(order.get('order_id'))
-        if isinstance(shipments, tuple):
-            shipments = []
-        shipping_total = sum(sub.get('shipping_fee', 0) for sub in shipments)
-        card_payload = {
-            'summary': summary,
-            'order_items': items,
-            'primary_item': items[0] if items else None,
-            'shipments': shipments,
-            'shipping_total': shipping_total
-        }
+    status_buckets = {
+        1: placed_orders,
+        2: shipped_orders,
+        3: out_for_delivery_orders,
+        4: completed_orders,
+    }
 
-        status = summary.get('status', 1)
-        if status >= 4:
-            completed_orders.append(card_payload)
-        elif status == 3:
-            out_for_delivery_orders.append(card_payload)
-        elif status == 2:
-            shipped_orders.append(card_payload)
-        else:
-            placed_orders.append(card_payload)
+    for order in orders_result:
+        max_sub_status = max((sub.get('sub_status', 0) for sub in executeGet(
+            """
+                SELECT MAX(os.status) AS sub_status
+                FROM order_suborders os
+                WHERE os.order_id = %s
+            """,
+            (order.get('order_id'),)
+        ) or []), default=0)
+
+        summary = build_order_summary({**order, 'status_override': max(order.get('status', 1) or 1, max_sub_status or 0)})
+        items = get_order_items_by_reference(summary['reference'])
+
+        if not items:
+            fallback_status = summary.get('status', 1) or 1
+            if fallback_status >= 5:
+                continue
+            fallback_status = 4 if fallback_status >= 4 else max(1, fallback_status)
+            shipping_fee_raw = float(order.get('shipping_fee', 0) or 0)
+            fallback_shipping = 'Free' if shipping_fee_raw == 0 else f"₱{locale.format_string('%0.2f', shipping_fee_raw, grouping=True)}"
+            fallback_entry = {
+                'reference': summary['reference'],
+                'product_name': 'Order Processing',
+                'quantity': 0,
+                'formatted_total': summary.get('total_amount'),
+                'formatted_price': summary.get('total_amount'),
+                'store_name': 'Seller',
+                'attachment': None,
+                'status': fallback_status,
+                'status_text': summary.get('status_text', 'Processing'),
+                'order_created_at': summary.get('created_at'),
+                'estimated_delivery': summary.get('estimated_delivery'),
+                'shipping_label': fallback_shipping,
+                'payment_method': summary.get('payment_method') or '—'
+            }
+            status_buckets.get(fallback_status, placed_orders).append(fallback_entry)
+            continue
+
+        for item in items:
+            entry_status = int(item.get('status') or 1)
+            if entry_status == 5:
+                continue
+            entry_status = 4 if entry_status >= 4 else max(1, entry_status)
+            shipping_fee = float(item.get('shipping_fee_raw', 0) or 0)
+            shipping_label = 'Free' if shipping_fee == 0 else f"₱{locale.format_string('%0.2f', shipping_fee, grouping=True)}"
+
+            entry = {
+                'reference': summary['reference'],
+                'product_name': item.get('product_name', 'Product'),
+                'quantity': item.get('quantity', 1),
+                'formatted_total': item.get('formatted_total', '0.00'),
+                'formatted_price': item.get('formatted_price', '0.00'),
+                'store_name': item.get('store_name', 'Seller'),
+                'attachment': item.get('attachment'),
+                'status': entry_status,
+                'status_text': item.get('status_text', 'Processing'),
+                'order_created_at': summary.get('created_at'),
+                'estimated_delivery': summary.get('estimated_delivery'),
+                'shipping_label': shipping_label,
+                'payment_method': summary.get('payment_method') or '—'
+            }
+
+            status_buckets.get(entry_status, placed_orders).append(entry)
 
     return render_template(
         'views/order-tracking-hub.html',
@@ -1076,7 +1145,6 @@ def getSellerOrderItems(seller_id):
         return rows
 
     rows = rows or []
-
     grouped_orders = {}
     for row in rows:
         suborder_id = row.get('suborder_id')
@@ -1293,6 +1361,21 @@ def orderTracking(reference):
     order_data = order_row[0]
     summary = build_order_summary(order_data)
     items = get_order_items_by_reference(summary['reference'])
+    status_sequence = (1, 2, 3, 4)
+    item_groups = {status: [] for status in status_sequence}
+    for item in items:
+        status = int(item.get('status') or 1)
+        if status < 1:
+            status = 1
+        elif status > 4:
+            status = 4
+        item_groups.setdefault(status, []).append(item)
+
+    status_counts = {status: len(item_groups.get(status, [])) for status in status_sequence}
+    active_status = summary.get('status', 1) or 1
+    if active_status not in status_sequence or not item_groups.get(active_status):
+        active_status = next((status for status in status_sequence if item_groups.get(status)), 1)
+    total_status_items = sum(status_counts.values())
     timeline_steps = build_timeline_steps(summary['status'])
     suborders = get_suborders_for_order(order_data.get('order_id'))
     if isinstance(suborders, tuple):
@@ -1307,6 +1390,10 @@ def orderTracking(reference):
         order_summary=summary,
         order_items=items,
         suborders=suborders,
+        item_groups=item_groups,
+        status_counts=status_counts,
+        active_status=active_status,
+        total_status_items=total_status_items,
         timeline_steps=timeline_steps,
         shipping_address=formatted_address,
         user_address=user_address,
@@ -1362,3 +1449,55 @@ def cancelOrder(reference):
     executePost("DELETE FROM orders WHERE reference = %s AND user_id = %s", (reference, user_id))
 
     return responseData("success", "Order removed successfully.", {"reference": reference}, 200)
+
+
+def cancelOrderItem(order_item_id):
+    user_id = g.authenticated.get('user_id') if g.authenticated else None
+    if not user_id:
+        return responseData("error", "User not authenticated.", "", 401)
+
+    item_query = """
+        SELECT
+            oi.order_items_id,
+            oi.reference,
+            oi.status,
+            oi.suborder_id
+        FROM order_items oi
+        INNER JOIN orders o ON o.reference = oi.reference
+        WHERE oi.order_items_id = %s AND o.user_id = %s
+        LIMIT 1
+    """
+
+    item_rows = executeGet(item_query, (order_item_id, user_id))
+    if not item_rows:
+        return responseData("error", "Order item not found.", "", 404)
+
+    item = item_rows[0]
+    if (item.get('status') or 1) != 1:
+        return responseData("error", "This item can no longer be canceled.", "", 400)
+
+    update_item_query = """
+        UPDATE order_items
+        SET status = 5
+        WHERE order_items_id = %s
+    """
+    executePost(update_item_query, (order_item_id,))
+
+    suborder_id = item.get('suborder_id')
+    if suborder_id:
+        remaining_sub_items = executeGet(
+            "SELECT COUNT(*) AS remaining FROM order_items WHERE suborder_id = %s AND status <> 5",
+            (suborder_id,)
+        )
+        if not remaining_sub_items or remaining_sub_items[0].get('remaining', 0) == 0:
+            executePost("UPDATE order_suborders SET status = 5 WHERE suborder_id = %s", (suborder_id,))
+
+    reference = item.get('reference')
+    remaining_order_items = executeGet(
+        "SELECT COUNT(*) AS remaining FROM order_items WHERE reference = %s AND status <> 5",
+        (reference,)
+    )
+    if not remaining_order_items or remaining_order_items[0].get('remaining', 0) == 0:
+        executePost("UPDATE orders SET status = 5 WHERE reference = %s AND user_id = %s", (reference, user_id))
+
+    return responseData("success", "Item canceled successfully.", {"order_item_id": order_item_id}, 200)

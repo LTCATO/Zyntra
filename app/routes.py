@@ -277,6 +277,10 @@ def setup_routes(app: Flask):
     def update_buyer():
         return updateBuyer()
     
+    @app.route('/update-rider', methods=['GET', 'POST'])
+    def update_rider():
+        return updateRider()
+    
     @app.route('/messages')
     @login_required
     def messages_page():

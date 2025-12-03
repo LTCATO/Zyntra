@@ -110,7 +110,11 @@ def getRiders(condition, params=None):
             dp.user_id,
             dp.vehicle_type,
             dp.plate_number as license_number,
-            dp.status as rider_status,
+            CASE
+                WHEN dp.status IN (3, 4) THEN 1
+                WHEN dp.status IS NULL THEN 0
+                ELSE dp.status
+            END as rider_status,
             u.firstname,
             u.lastname,
             u.email,
@@ -140,12 +144,12 @@ def updateRider():
             return responseData("success", "Rider approved successfully.", "", 200)
         
         elif status_to == "2":  # Enable rider
-            executePost("UPDATE delivery_partners SET status = 3, updated_at = NOW() WHERE user_id = %s", (user_id,))
+            executePost("UPDATE delivery_partners SET status = 1, updated_at = NOW() WHERE user_id = %s", (user_id,))
             executePost("UPDATE users SET status = 1, updated_at = NOW() WHERE user_id = %s", (user_id,))
             return responseData("success", "Rider enabled successfully.", "", 200)
 
         elif status_to == "3":  # Disable rider
-            executePost("UPDATE delivery_partners SET status = 4, updated_at = NOW() WHERE user_id = %s", (user_id,))
+            executePost("UPDATE delivery_partners SET status = 1, updated_at = NOW() WHERE user_id = %s", (user_id,))
             executePost("UPDATE users SET status = 2, updated_at = NOW() WHERE user_id = %s", (user_id,))
             return responseData("success", "Rider disabled successfully.", "", 200)
         

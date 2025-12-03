@@ -20,72 +20,75 @@
 {% block content %}
 <div class="tracking-page container py-5">
     <div class="tracking-header mb-4">
-        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
-            <div>
-                <p class="text-muted text-uppercase small mb-1">Order</p>
-                <h1 class="fw-bold mb-1">Order #{{ order_summary.reference }}</h1>
-                <p class="text-muted mb-0">Ordered on {{ order_summary.created_at }} · ETA {{ order_summary.estimated_delivery }}</p>
-            </div>
-            <div class="text-md-end">
-                <a href="{{ url_for('order_tracking_hub') }}" class="btn btn-outline-secondary btn-back me-2">
-                    <i class="bi bi-arrow-left"></i> Back to Orders
-                </a>
-                {% if can_cancel %}
-                <button class="btn btn-outline-danger" data-cancel-order data-reference="{{ order_summary.reference }}">
-                    Cancel Order
-                </button>
-                {% endif %}
-            </div>
+        <div>
+            <p class="text-muted text-uppercase small mb-1">Order</p>
+            <h1 class="fw-bold mb-1">Order #{{ order_summary.reference }}</h1>
+            <p class="text-muted mb-0">Ordered on {{ order_summary.created_at }} · ETA {{ order_summary.estimated_delivery }}</p>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-lg-8">
-            {% if suborders %}
-                {% for sub in suborders %}
-                {% set sub_items = sub['items'] %}
-                {% set primary_item = sub_items[0] if sub_items else None %}
-                {% set pill = status_map.get(sub.status or 1, ('badge rounded-pill bg-soft-secondary text-secondary', 'Pending')) %}
-                <div class="suborder-card mb-4">
-                    <div class="d-flex flex-column flex-md-row gap-3">
-                        <div class="tracking-thumb rounded-4 overflow-hidden">
-                            <img src="{{ primary_item.product_image if primary_item and primary_item.product_image else url_for('static', filename='images/no-image.jpg') }}" alt="{{ primary_item.product_name if primary_item else 'Shipment image' }}">
+            <div class="status-panel card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div>
+                            <p class="text-muted small mb-1">Products in this order</p>
+                            <h4 class="mb-0">Item status</h4>
                         </div>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between align-items-start gap-3">
-                                <div>
-                                    <p class="text-muted small text-uppercase mb-1">Shipment</p>
-                                    <h4 class="mb-1">{{ primary_item.product_name if primary_item else 'Seller Shipment' }}</h4>
-                                    <p class="text-muted mb-0">Ref {{ sub.sub_reference }}</p>
-                                </div>
-                                <span class="{{ pill[0] }}">{{ pill[1] }}</span>
-                            </div>
-                            <div class="tracking-meta mt-3">
-                                <div>
-                                    <small class="text-muted">Seller</small>
-                                    <p class="mb-0 fw-semibold">{{ sub.store_name }}</p>
-                                </div>
-                                <div>
-                                    <small class="text-muted">Est. Delivery</small>
-                                    <p class="mb-0 fw-semibold">{{ order_summary.estimated_delivery }}</p>
-                                </div>
-                                <div>
-                                    <small class="text-muted">Shipping Fee</small>
-                                    {% set sub_shipping = sub.shipping_fee or 0 %}
-                                    <p class="mb-0 fw-semibold">
-                                        {% if sub_shipping == 0 %}
-                                            Free
-                                        {% else %}
-                                            ₱{{ '{:,.2f}'.format(sub_shipping) }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                        <small class="text-muted">Updated {{ order_summary.created_at }}</small>
                     </div>
 
-                    <ul class="timeline-list mt-4">
-                        {% set current_status = sub.status or 1 %}
+                    {% if order_items %}
+                        <div class="vstack gap-3">
+                            {% for item in order_items %}
+                            {% set pill = status_map.get(item.status, ('badge rounded-pill bg-soft-secondary text-secondary', item.status_text)) %}
+                            <div class="product-track-card border rounded-4 p-3">
+                                <div class="d-flex flex-column flex-md-row gap-3">
+                                    <div class="track-thumb rounded-4 overflow-hidden" style="width: 110px; height: 110px;">
+                                        <img src="{{ url_for('static', filename=item.attachment) if item.attachment else url_for('static', filename='images/no-image.jpg') }}" alt="{{ item.product_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
+                                            <div>
+                                                <p class="text-muted small text-uppercase mb-1">Product</p>
+                                                <h5 class="mb-1">{{ item.product_name }}</h5>
+                                                <small class="text-muted">Sub-ref {{ item.sub_reference }}</small>
+                                            </div>
+                                            <div class="text-end">
+                                                <span class="{{ pill[0] }} mb-2 d-inline-block">{{ pill[1] }}</span>
+                                                {% if item.status == 1 %}
+                                                <button class="btn btn-sm btn-outline-danger" data-cancel-item data-item-id="{{ item.order_items_id }}">
+                                                    Cancel Item
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-4 mt-3 text-muted small">
+                                            <span><i class="bi bi-shop"></i> {{ item.store_name }}</span>
+                                            <span><i class="bi bi-box"></i> Qty {{ item.quantity }}</span>
+                                            <span><i class="bi bi-currency-dollar"></i> ₱{{ item.formatted_total }}</span>
+                                            <span><i class="bi bi-truck"></i> ETA {{ order_summary.estimated_delivery }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-inboxes display-6 d-block mb-2"></i>
+                            <p class="mb-0">No products found for this order.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="timeline-card card border-0 shadow-sm rounded-4 mt-4">
+                <div class="card-body">
+                    <p class="text-muted small mb-1">Order Timeline</p>
+                    {% set current_status = order_summary.status or 1 %}
+                    <ul class="timeline-list mt-3">
                         {% for step in timeline_template %}
                         {% set step_number = loop.index %}
                         {% set is_complete = current_status > step_number %}
@@ -101,32 +104,8 @@
                         </li>
                         {% endfor %}
                     </ul>
-
-                    <div class="tracking-items-grid mt-4">
-                        {% for item in sub_items %}
-                        <div class="mini-item-card d-flex align-items-center gap-3">
-                            <div class="mini-thumb">
-                                <img src="{{ item.product_image if item.product_image else url_for('static', filename='images/no-image.jpg') }}" alt="{{ item.product_name }}">
-                            </div>
-                            <div class="flex-grow-1">
-                                <p class="mb-0 fw-semibold">{{ item.product_name }}</p>
-                                <small class="text-muted">Qty {{ item.quantity }}</small>
-                            </div>
-                            <div class="text-end">
-                                <p class="mb-0 fw-semibold">₱{{ '%.2f' % item.unit_price }}</p>
-                                <small class="text-muted">Line: ₱{{ '%.2f' % item.line_total }}</small>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="suborder-card text-center">
-                    <h5 class="mb-2">No shipment details yet</h5>
-                    <p class="text-muted mb-0">Tracking cards will appear once sellers confirm their shipments.</p>
-                </div>
-            {% endif %}
+            </div>
         </div>
 
         <div class="col-lg-4">

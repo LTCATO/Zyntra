@@ -168,6 +168,24 @@ def updatePickupStatus(suborder_id):
     if isinstance(update_result, tuple):
         return update_result
 
+    # Keep item-level status aligned with the suborder status so buyer views reflect rider actions.
+    if new_status == 3:
+        # Move items to at least "Out for Delivery" (3), but do not downgrade items already further along.
+        item_update_query = """
+            UPDATE order_items
+            SET status = CASE WHEN status < 3 THEN 3 ELSE status END
+            WHERE suborder_id = %s
+        """
+        executePost(item_update_query, (suborder_id,))
+    elif new_status == 4:
+        # Mark all items in this suborder as Delivered (4) if not cancelled.
+        item_update_query = """
+            UPDATE order_items
+            SET status = 4
+            WHERE suborder_id = %s AND status <> 5
+        """
+        executePost(item_update_query, (suborder_id,))
+
     detail = _fetch_pickup_detail(suborder_id)
     return responseData("success", "Pickup status updated.", detail, 200)
 

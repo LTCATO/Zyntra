@@ -337,10 +337,15 @@ def viewProduct(product_id):
             clean_images = [product_image_url]
 
         wishlist_ids = set()
+        user_id = None
         if g.authenticated and g.authenticated.get('user_id'):
-            wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
+            user_id = g.authenticated.get('user_id')
+            wishlist_ids = get_user_wishlist_ids(user_id)
 
         is_in_wishlist = product_id in wishlist_ids
+
+        reviews, review_count, average_rating = _get_product_reviews(product_id)
+        can_review = _buyer_can_review_product(user_id, product_id) if user_id else False
 
         return render_template('views/Products/view-product.html',
                              product_name=product['product_name'],
@@ -356,7 +361,11 @@ def viewProduct(product_id):
                              store_description=product.get('store_description'),
                              seller_id=product.get('seller_id'),
                              is_in_wishlist=is_in_wishlist,
-                             wishlist_ids=list(wishlist_ids))
+                             wishlist_ids=list(wishlist_ids),
+                             reviews=reviews,
+                             review_count=review_count,
+                             average_rating=average_rating,
+                             can_review=can_review)
     except Exception as e:
         print(f"Error in viewProduct: {str(e)}")
         return render_template('views/404.html'), 404
@@ -829,6 +838,139 @@ def wishlistMoveToCart():
         "cart_count": _get_cart_count(user_id)
     }
     return responseData("success", "Item moved to cart.", data, 200)
+
+def _get_product_reviews(product_id):
+    if not product_id:
+        return [], 0, 0.0
+
+    query = """
+        SELECT r.review_id,
+               r.rating,
+               r.comment,
+               r.created_at,
+               u.firstname,
+               u.lastname
+        FROM product_reviews r
+        LEFT JOIN users u ON r.user_id = u.user_id
+        WHERE r.product_id = %s
+        ORDER BY r.created_at DESC
+    """
+    rows = executeGet(query, (product_id,)) or []
+    if isinstance(rows, tuple):
+        return [], 0, 0.0
+
+    total_rating = 0
+    for row in rows:
+        row['reviewer_name'] = f"{row.get('firstname', '')} {row.get('lastname', '')}".strip() or 'Buyer'
+        try:
+            row['rating'] = int(row.get('rating') or 0)
+        except (TypeError, ValueError):
+            row['rating'] = 0
+        total_rating += row['rating']
+
+    count = len(rows)
+    avg = (total_rating / count) if count else 0.0
+    return rows, count, avg
+
+
+def _buyer_can_review_product(user_id, product_id):
+    if not user_id or not product_id:
+        return False
+
+    # Buyer can review if they have at least one completed (status 6) order item for this product
+    query = """
+        SELECT COUNT(*) AS cnt
+        FROM order_items oi
+        WHERE oi.user_id = %s
+          AND oi.product_id = %s
+          AND oi.status = 6
+    """
+    rows = executeGet(query, (user_id, product_id)) or []
+    if isinstance(rows, tuple) or not rows:
+        return False
+    return int(rows[0].get('cnt') or 0) > 0
+
+
+def submitProductReview():
+    user_id, auth_error = _ensure_buyer_authenticated()
+    if auth_error:
+        return auth_error
+
+    product_id = request.form.get('product_id', type=int)
+    rating = request.form.get('rating', type=int)
+    comment = (request.form.get('comment') or '').strip()
+
+    if not product_id or not rating or rating < 1 or rating > 5:
+        return responseData("error", "Invalid review data.", "", 400)
+
+    if not comment:
+        return responseData("error", "Please enter a review comment.", "", 400)
+
+    # Ensure product exists
+    product_rows = executeGet("SELECT product_id FROM products WHERE product_id = %s AND status = 1", (product_id,))
+    if isinstance(product_rows, tuple):
+        return product_rows
+    if not product_rows:
+        return responseData("error", "Product not found.", "", 404)
+
+    if not _buyer_can_review_product(user_id, product_id):
+        return responseData("error", "You can only review products you have completed an order for.", "", 403)
+
+    # Optional: find a completed order item to link
+    order_item_row = executeGet(
+        """
+        SELECT oi.order_items_id, oi.reference
+        FROM order_items oi
+        WHERE oi.user_id = %s
+          AND oi.product_id = %s
+          AND oi.status = 6
+        ORDER BY oi.order_items_id DESC
+        LIMIT 1
+        """,
+        (user_id, product_id)
+    ) or []
+
+    order_items_id = order_item_row[0].get('order_items_id') if order_item_row else None
+    reference = order_item_row[0].get('reference') if order_item_row else None
+
+    # Upsert: one review per buyer+product
+    existing = executeGet(
+        """
+        SELECT review_id
+        FROM product_reviews
+        WHERE product_id = %s AND user_id = %s
+        LIMIT 1
+        """,
+        (product_id, user_id)
+    ) or []
+
+    if existing:
+        update_query = """
+            UPDATE product_reviews
+            SET rating = %s,
+                comment = %s,
+                order_items_id = %s,
+                reference = %s,
+                created_at = NOW()
+            WHERE review_id = %s
+        """
+        executePost(update_query, (rating, comment, order_items_id, reference, existing[0].get('review_id')))
+    else:
+        insert_query = """
+            INSERT INTO product_reviews (product_id, user_id, order_items_id, reference, rating, comment)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        executePost(insert_query, (product_id, user_id, order_items_id, reference, rating, comment))
+
+    reviews, review_count, average_rating = _get_product_reviews(product_id)
+    payload = {
+        "product_id": product_id,
+        "review_count": review_count,
+        "average_rating": average_rating,
+        "reviews": reviews,
+    }
+    return responseData("success", "Review submitted.", payload, 200)
+
 
 def checkout():
     user_id = g.authenticated.get('user_id')  # Get the logged-in user's ID

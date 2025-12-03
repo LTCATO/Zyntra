@@ -9,7 +9,7 @@ from helpers.Session import sessionRemove
 from helpers.HelperFunction import responseData
 
 # Controllers
-from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead, wishlistPage
+from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead, wishlistPage, confirmOrder
 
 from controller.LoginController import (
     login,
@@ -27,7 +27,7 @@ from controller.LoginController import (
     resendEmailCode,
 )
 from controller.DashboardController import dashboardIndex
-from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts, toggleWishlist, wishlistMoveToCart
+from controller.ProductController import productCategories, addCategories, changeCategoryStatus, updateCategories, products, addProduct, changeProductStatus, updateProducts, viewProduct, addToCart, removeFromCart, updateCart, details, checkout, detailsSubmit, storeProducts, toggleWishlist, wishlistMoveToCart, submitProductReview
 
 from controller.ManageProfileController import sellerRequestSubmit, sellerRequest, manageProfile, profileOverview, updateProfileInfo
 
@@ -358,12 +358,17 @@ def setup_routes(app: Flask):
     @login_required
     def wishlist_add_to_cart():
         return wishlistMoveToCart()
+
+    @app.route('/api/products/reviews', methods=['POST'])
+    @login_required
+    def api_submit_review():
+        return submitProductReview()
     
     # API endpoint for fetching delivery partner documents
     @app.route('/api/delivery-partners/<int:user_id>/documents', methods=['GET'])
     def get_delivery_partner_documents(user_id):
         return getDeliveryPartnerDocuments(user_id)
-    
+
     # API endpoint for fetching seller documents
     @app.route('/api/sellers/<int:user_id>/documents', methods=['GET'])
     def get_seller_documents(user_id):
@@ -443,6 +448,11 @@ def setup_routes(app: Flask):
     @login_required
     def order_tracking_cancel(reference):
         return cancelOrder(reference)
+
+    @app.route('/order-tracking/<reference>/confirm', methods=['POST'])
+    @login_required
+    def order_tracking_confirm(reference):
+        return confirmOrder(reference)
 
     @app.route('/order-list')
     @login_required

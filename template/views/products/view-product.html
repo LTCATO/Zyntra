@@ -141,7 +141,79 @@
                     <p class="mb-0">Product specifications will be displayed here.</p>
                 </div>
                 <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                    <p class="mb-0">Customer reviews will be displayed here.</p>
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            {% if review_count and reviews %}
+                            <div class="vstack gap-3">
+                                {% for review in reviews %}
+                                <div class="border rounded-3 p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <strong>{{ review.reviewer_name }}</strong>
+                                        <small class="text-muted">{{ review.created_at }}</small>
+                                    </div>
+                                    <div class="mb-2 text-warning small">
+                                        {% for i in range(1,6) %}
+                                            {% if i <= review.rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="mb-0 text-muted">No reviews yet. Be the first to review this product.</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <h6 class="mb-2">Ratings &amp; Reviews</h6>
+                                <div class="d-flex align-items-baseline gap-2 mb-3">
+                                    <span class="display-6 fw-bold">{{ '%.1f'|format(average_rating or 0) }}</span>
+                                    <div>
+                                        <div class="text-warning small">
+                                            {% for i in range(1,6) %}
+                                                {% if i <= (average_rating or 0)|round(0, 'floor') %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <small class="text-muted">{{ review_count }} review{{ '' if (review_count or 0) == 1 else 's' }}</small>
+                                    </div>
+                                </div>
+
+                                {% if auth_user and can_review %}
+                                <form id="productReviewForm" class="vstack gap-2">
+                                    <input type="hidden" name="product_id" value="{{ product_id }}">
+                                    <div>
+                                        <label class="form-label small mb-1">Your rating</label>
+                                        <select name="rating" class="form-select form-select-sm" required>
+                                            <option value="">Select rating</option>
+                                            {% for i in range(5,0,-1) %}
+                                            <option value="{{ i }}">{{ i }} star{{ '' if i == 1 else 's' }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label small mb-1">Your review</label>
+                                        <textarea name="comment" class="form-control form-control-sm" rows="3" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-1">Submit Review</button>
+                                    <small class="text-muted d-block mt-1">You can review this product because you completed an order for it.</small>
+                                </form>
+                                {% elif auth_user %}
+                                <p class="small text-muted mb-0">Only buyers who have completed an order for this product can leave a review.</p>
+                                {% else %}
+                                <p class="small text-muted mb-0">Please <a href="{{ url_for('login_page') }}">log in</a> to leave a review.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -262,6 +334,47 @@
         }
       }).fail(function() {
         showToast('error', 'Something went wrong.');
+      });
+    });
+
+    // Product review submission
+    $(document).on('submit', '#productReviewForm', function (e) {
+      e.preventDefault();
+      const form = this;
+      const formData = new FormData(form);
+
+      $.ajax({
+        url: '/api/products/reviews',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+      }).done(function (response) {
+        if (response && response.status === 'success') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Thank you!',
+            text: response.message || 'Your review has been submitted.',
+          }).then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops',
+            text: (response && response.message) || 'Unable to submit review.',
+          });
+        }
+      }).fail(function (jqXHR) {
+        let message = 'Unable to submit review. Please try again.';
+        if (jqXHR && jqXHR.responseJSON && jqXHR.responseJSON.message) {
+          message = jqXHR.responseJSON.message;
+        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops',
+          text: message,
+        });
       });
     });
   });

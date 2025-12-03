@@ -213,7 +213,8 @@ def get_order_items_by_reference(reference):
         1: 'Order Placed',
         2: 'Shipped',
         3: 'Out for Delivery',
-        4: 'Delivered'
+        4: 'Delivered',
+        6: 'Completed',
     }
 
     for item in order_items:
@@ -248,7 +249,8 @@ def build_order_summary(order_row):
     total_value = float(order_row.get('total_amount', 0) or 0)
     status = order_row.get('status_override') or order_row.get('status', 1) or 1
 
-    status_labels = ['', 'Order Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled']
+    status_labels = ['', 'Order Placed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Completed']
+
     status_text = status_labels[status] if status < len(status_labels) else 'Processing'
 
     created_at = order_row.get('created_at')
@@ -946,13 +948,15 @@ def orderTrackingHub():
     placed_orders = []
     shipped_orders = []
     out_for_delivery_orders = []
+    delivered_orders = []
     completed_orders = []
 
     status_buckets = {
         1: placed_orders,
         2: shipped_orders,
         3: out_for_delivery_orders,
-        4: completed_orders,
+        4: delivered_orders,
+        6: completed_orders,
     }
 
     for order in orders_result:
@@ -969,10 +973,16 @@ def orderTrackingHub():
         items = get_order_items_by_reference(summary['reference'])
 
         if not items:
-            fallback_status = summary.get('status', 1) or 1
-            if fallback_status >= 5:
+            fallback_status = int(summary.get('status', 1) or 1)
+            # Skip cancelled
+            if fallback_status == 5:
                 continue
-            fallback_status = 4 if fallback_status >= 4 else max(1, fallback_status)
+            # Clamp into known buckets
+            if fallback_status >= 6:
+                fallback_status = 6
+            elif fallback_status < 1:
+                fallback_status = 1
+
             shipping_fee_raw = float(order.get('shipping_fee', 0) or 0)
             fallback_shipping = 'Free' if shipping_fee_raw == 0 else f"₱{locale.format_string('%0.2f', shipping_fee_raw, grouping=True)}"
             fallback_entry = {
@@ -995,14 +1005,21 @@ def orderTrackingHub():
 
         for item in items:
             entry_status = int(item.get('status') or 1)
+            # Skip cancelled
             if entry_status == 5:
                 continue
-            entry_status = 4 if entry_status >= 4 else max(1, entry_status)
+            # Clamp into known buckets (1,2,3,4,6)
+            if entry_status >= 6:
+                entry_status = 6
+            elif entry_status < 1:
+                entry_status = 1
+
             shipping_fee = float(item.get('shipping_fee_raw', 0) or 0)
             shipping_label = 'Free' if shipping_fee == 0 else f"₱{locale.format_string('%0.2f', shipping_fee, grouping=True)}"
 
             entry = {
                 'reference': summary['reference'],
+                'product_id': item.get('product_id'),
                 'product_name': item.get('product_name', 'Product'),
                 'quantity': item.get('quantity', 1),
                 'formatted_total': item.get('formatted_total', '0.00'),
@@ -1025,11 +1042,81 @@ def orderTrackingHub():
         placed_orders=placed_orders,
         shipped_orders=shipped_orders,
         out_for_delivery_orders=out_for_delivery_orders,
+        delivered_orders=delivered_orders,
         completed_orders=completed_orders,
         shipping_address=formatted_address,
         user_address=user_address,
         address_texts=address_texts
     )
+
+
+def confirmOrder(reference):
+    """Buyer confirms a delivered order.
+
+    Transitions item-level status 4 (Delivered) to 6 (Completed) for the given
+    order reference, but only for the authenticated buyer.
+    """
+    user_id = g.authenticated.get('user_id') if g.authenticated else None
+    if not user_id:
+        return responseData("error", "User not authenticated.", "", 401)
+
+    # Ensure the order belongs to this buyer
+    order_query = """
+        SELECT order_id
+        FROM orders
+        WHERE reference = %s AND user_id = %s
+        LIMIT 1
+    """
+    order_rows = executeGet(order_query, (reference, user_id))
+    if not order_rows:
+        return responseData("error", "Order not found.", "", 404)
+
+    order_id = order_rows[0].get('order_id')
+
+    # Only update items that are currently Delivered (4)
+    items_query = """
+        SELECT oi.order_items_id, oi.suborder_id
+        FROM order_items oi
+        WHERE oi.reference = %s AND oi.status = 4
+    """
+    items = executeGet(items_query, (reference,)) or []
+    if not items:
+        return responseData("error", "No delivered items to confirm for this order.", "", 400)
+
+    # Mark these items as Completed (6)
+    update_items_query = """
+        UPDATE order_items
+        SET status = 6
+        WHERE reference = %s AND status = 4
+    """
+    executePost(update_items_query, (reference,))
+
+    # Optionally bump suborders and order status to 6 when all items are completed or cancelled
+    # Update suborders whose items are all in (5=Cancelled, 6=Completed)
+    update_suborders_query = """
+        UPDATE order_suborders os
+        SET status = 6
+        WHERE os.order_id = %s
+          AND NOT EXISTS (
+            SELECT 1
+            FROM order_items oi
+            WHERE oi.suborder_id = os.suborder_id
+              AND oi.status NOT IN (5, 6)
+          )
+    """
+    executePost(update_suborders_query, (order_id,))
+
+    # If all items under this order reference are now in (5,6), mark the order as 6
+    remaining_items_query = """
+        SELECT COUNT(*) AS remaining
+        FROM order_items
+        WHERE reference = %s AND status NOT IN (5, 6)
+    """
+    remaining = executeGet(remaining_items_query, (reference,)) or []
+    if remaining and int(remaining[0].get('remaining') or 0) == 0:
+        executePost("UPDATE orders SET status = 6 WHERE order_id = %s", (order_id,))
+
+    return responseData("success", "Order confirmed.", {"reference": reference}, 200)
 
 
 def orderList():
@@ -1072,7 +1159,8 @@ def orderList():
         2: 'Shipped',
         3: 'Out for Delivery',
         4: 'Delivered',
-        5: 'Cancelled'
+        5: 'Cancelled',
+        6: 'Completed',
     }
 
     formatted_orders = []

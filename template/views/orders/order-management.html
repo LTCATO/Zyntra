@@ -117,7 +117,9 @@
     const formEl = document.getElementById('manageShippingForm');
     const suborderInput = document.getElementById('modalSuborderId');
     const referenceLabel = document.getElementById('modalReference');
-    const optionRows = document.querySelectorAll('.shipping-option');
+    const optionRows = modalEl?.querySelectorAll('.shipping-option') || [];
+    const optionsFallback = document.getElementById('shippingOptionsFallback');
+    const submitBtn = formEl?.querySelector('button[type="submit"]');
 
     document.querySelectorAll('.manage-shipping').forEach(button => {
       button.addEventListener('click', function () {
@@ -132,39 +134,41 @@
         suborderInput.value = suborderId;
         referenceLabel.textContent = reference || 'N/A';
 
+        const allowedMap = {
+          1: ['7', '8'],
+          7: ['2']
+        };
+
+        const allowedValues = allowedMap[currentStatus] || [];
+        const showFallback = allowedValues.length === 0;
+
         optionRows.forEach(row => {
           const value = row.getAttribute('data-value');
           if (!value) return;
-          let shouldShow = false;
-
-          if (currentStatus === 1) {
-            // Order Placed -> allow Accept (7) or Reject (8)
-            shouldShow = ['7', '8'].includes(value);
-          } else if (currentStatus === 7) {
-            // Accepted -> allow Shipped (2) only
-            shouldShow = value === '2';
-          } else {
-            shouldShow = false;
-          }
-
-          row.style.display = shouldShow ? '' : 'none';
-          if (!shouldShow) {
-            const input = row.querySelector('input[type="radio"][name="shippingStatus"]');
-            if (input) input.checked = false;
+          const shouldShow = allowedValues.includes(value);
+          row.classList.toggle('d-none', !shouldShow);
+          const input = row.querySelector('input[type="radio"][name="shippingStatus"]');
+          if (!shouldShow && input) {
+            input.checked = false;
           }
         });
 
-        // Auto-select first visible option
-        let firstVisibleSelected = false;
-        optionRows.forEach(row => {
-          if (row.style.display === '' && !firstVisibleSelected) {
-            const input = row.querySelector('input[type="radio"][name="shippingStatus"]');
-            if (input) {
-              input.checked = true;
-              firstVisibleSelected = true;
+        optionsFallback?.classList.toggle('d-none', !showFallback);
+        submitBtn?.toggleAttribute('disabled', showFallback);
+
+        if (!showFallback) {
+          // Auto-select first visible option
+          let firstVisibleSelected = false;
+          optionRows.forEach(row => {
+            if (!row.classList.contains('d-none') && !firstVisibleSelected) {
+              const input = row.querySelector('input[type="radio"][name="shippingStatus"]');
+              if (input) {
+                input.checked = true;
+                firstVisibleSelected = true;
+              }
             }
-          }
-        });
+          });
+        }
 
         modal.show();
       });
@@ -241,6 +245,9 @@
                 <small class="text-muted">Seller confirms item left the store.</small>
               </div>
             </label>
+          </div>
+          <div id="shippingOptionsFallback" class="alert alert-warning d-none mt-3 mb-0">
+            No available actions for the current item status.
           </div>
         </div>
         <div class="modal-footer px-0">

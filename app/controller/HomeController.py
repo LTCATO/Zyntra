@@ -303,7 +303,9 @@ def get_cart_items_for_user(user_id):
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN seller_details sd ON sd.user_id = p.user_id
-        WHERE oi.user_id = %s AND oi.status = 1
+        WHERE oi.user_id = %s
+          AND oi.status = 1
+          AND (oi.reference = '' OR oi.reference IS NULL)
     """
     return executeGet(query, (user_id,)) or []
 

@@ -63,7 +63,13 @@ def _get_wishlist_count(user_id):
 
 
 def _get_cart_count(user_id):
-    query = "SELECT COUNT(*) AS total FROM order_items WHERE user_id = %s AND status = 1"
+    query = """
+        SELECT COUNT(*) AS total
+        FROM order_items
+        WHERE user_id = %s
+          AND status = 1
+          AND (reference = '' OR reference IS NULL)
+    """
     result = executeGet(query, (user_id,))
     if isinstance(result, tuple):
         return 0
@@ -644,7 +650,10 @@ def addToCart():
     check_query = """
         SELECT order_items_id, quantity
         FROM order_items
-        WHERE product_id = %s AND user_id = %s AND status = 1
+        WHERE product_id = %s
+          AND user_id = %s
+          AND status = 1
+          AND (reference = '' OR reference IS NULL)
     """
     existing_item = executeGet(check_query, (product_id, user_id))
     if isinstance(existing_item, tuple):
@@ -655,7 +664,10 @@ def addToCart():
         update_query = """
             UPDATE order_items
             SET quantity = %s
-            WHERE order_items_id = %s AND user_id = %s
+            WHERE order_items_id = %s
+              AND user_id = %s
+              AND status = 1
+              AND (reference = '' OR reference IS NULL)
         """
         update_result = executePost(update_query, (new_quantity, existing_item[0]['order_items_id'], user_id))
         if isinstance(update_result, tuple):
@@ -678,7 +690,13 @@ def addToCart():
 def removeFromCart():
     product_id = request.form.get('product_id')
     user_id = g.authenticated.get('user_id')
-    query = "DELETE FROM order_items WHERE product_id = %s AND user_id = %s"
+    query = """
+        DELETE FROM order_items
+        WHERE product_id = %s
+          AND user_id = %s
+          AND status = 1
+          AND (reference = '' OR reference IS NULL)
+    """
     executePost(query, (product_id, user_id))
     return redirect(url_for('cart_page'))
 def updateCart():
@@ -689,11 +707,25 @@ def updateCart():
 
     if user_id and product_id and quantity is not None:
         # Update the quantity in the order_items table
-        update_query = "UPDATE order_items SET quantity = %s WHERE product_id = %s AND user_id = %s"
+        update_query = """
+            UPDATE order_items
+            SET quantity = %s
+            WHERE product_id = %s
+              AND user_id = %s
+              AND status = 1
+              AND (reference = '' OR reference IS NULL)
+        """
         executePost(update_query, (quantity, product_id, user_id))
 
         # Get the updated price for the cart item
-        total_price_query = "SELECT SUM(o.quantity * p.price) AS total_price FROM order_items o JOIN products p ON o.product_id = p.product_id WHERE o.user_id = %s"
+        total_price_query = """
+            SELECT SUM(o.quantity * p.price) AS total_price
+            FROM order_items o
+            JOIN products p ON o.product_id = p.product_id
+            WHERE o.user_id = %s
+              AND o.status = 1
+              AND (o.reference = '' OR o.reference IS NULL)
+        """
         result = executeGet(total_price_query, (user_id,))
         total_price = result[0]['total_price'] if result else 0
 
@@ -703,9 +735,16 @@ def updateCart():
     return responseData("error", "Invalid request", "", 400)
 
 def calculateTotalSum(user_id):
-    query = "SELECT SUM(quantity * price) FROM order_items WHERE user_id = %s"
+    query = """
+        SELECT SUM(o.quantity * p.price) AS total
+        FROM order_items o
+        JOIN products p ON o.product_id = p.product_id
+        WHERE o.user_id = %s
+          AND o.status = 1
+          AND (o.reference = '' OR o.reference IS NULL)
+    """
     result = executeGet(query, (user_id,))
-    return result[0]['SUM(quantity * price)'] if result else 0
+    return result[0]['total'] if result else 0
 
 
 def toggleWishlist():

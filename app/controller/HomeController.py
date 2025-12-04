@@ -1143,7 +1143,7 @@ def orderList():
         SELECT o.order_id,
                o.reference,
                o.created_at,
-               o.status,
+               MAX(os.status) AS status,
                o.subtotal,
                o.shipping_fee,
                o.tax_amount,
@@ -1154,11 +1154,12 @@ def orderList():
                buyer.phone AS buyer_phone,
                COUNT(oi.order_items_id) AS item_count
         FROM orders o
-        INNER JOIN order_items oi ON oi.reference = o.reference
+        INNER JOIN order_suborders os ON os.order_id = o.order_id
+        INNER JOIN order_items oi ON oi.suborder_id = os.suborder_id
         INNER JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN users buyer ON o.user_id = buyer.user_id
-        WHERE p.user_id = %s
-        GROUP BY o.order_id, o.reference, o.created_at, o.status,
+        WHERE os.seller_id = %s
+        GROUP BY o.order_id, o.reference, o.created_at,
                  o.subtotal, o.shipping_fee, o.tax_amount, o.total_amount,
                  buyer.firstname, buyer.lastname, buyer.email, buyer.phone
         ORDER BY o.created_at DESC
@@ -1173,6 +1174,8 @@ def orderList():
         4: 'Delivered',
         5: 'Cancelled',
         6: 'Completed',
+        7: 'Accepted',
+        8: 'Rejected',
     }
 
     formatted_orders = []

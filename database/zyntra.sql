@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 03, 2025 at 06:19 PM
+-- Generation Time: Dec 04, 2025 at 11:21 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -214,7 +214,25 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (31, 24, 19, 'New order placed', 'User User placed order TdAv2oG6Ti (Sub-order TdAv2oG6Ti-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-03 17:06:17'),
 (32, 25, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41'),
 (33, 27, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41'),
-(34, 31, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41');
+(34, 31, 19, 'Pickup Available', 'Sub-order TdAv2oG6Ti-01 is ready for pickup.', 'system', 0, NULL, '2025-12-03 17:06:41'),
+(35, 24, 20, 'New order placed', 'User User placed order LCksiIWXmI (Sub-order LCksiIWXmI-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-04 09:09:12'),
+(36, 24, 21, 'New order placed', 'User User placed order 0kTYfLTXdC (Sub-order 0kTYfLTXdC-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-04 09:09:51'),
+(37, 24, 22, 'New order placed', 'User User placed order ckiWlWxN3M (Sub-order ckiWlWxN3M-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-04 09:12:56'),
+(38, 24, 23, 'New order placed', 'User User placed order Jpq8pMNmwk (Sub-order Jpq8pMNmwk-01) containing 1 item(s): Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', 'order', 0, NULL, '2025-12-04 09:16:46'),
+(39, 24, 24, 'New order placed', 'User User placed order 6W2rDbou0Y (Sub-order 6W2rDbou0Y-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-04 09:19:44'),
+(40, 25, 24, 'Pickup Available', 'Sub-order 6W2rDbou0Y-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 09:20:52'),
+(41, 27, 24, 'Pickup Available', 'Sub-order 6W2rDbou0Y-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 09:20:52'),
+(42, 31, 24, 'Pickup Available', 'Sub-order 6W2rDbou0Y-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 09:20:52'),
+(43, 24, 25, 'New order placed', 'User User placed order 4AlrqsJ06I (Sub-order 4AlrqsJ06I-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-04 09:52:15'),
+(44, 24, 26, 'New order placed', 'User User placed order frTzPxfrIB (Sub-order frTzPxfrIB-01) containing 1 item(s): Apple iPhone 17 Pro Max', 'order', 0, NULL, '2025-12-04 09:57:06'),
+(45, 24, 27, 'New order placed', 'User User placed order 7ooHQEYgRi (Sub-order 7ooHQEYgRi-01) containing 1 item(s): SanDisk SSD PLUS 1TB Internal SSD - SATA III 6 Gb/s', 'order', 0, NULL, '2025-12-04 09:57:20'),
+(46, 24, 28, 'New order placed', 'User User placed order QcRw0u1WyT (Sub-order QcRw0u1WyT-01) containing 1 item(s): iPhone 13 Pro', 'order', 0, NULL, '2025-12-04 10:04:15'),
+(47, 24, 29, 'New order placed', 'User User placed order LeSRJv30Tx (Sub-order LeSRJv30Tx-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-04 10:08:26'),
+(48, 24, 30, 'New order placed', 'User User placed order 0xrs5rl78S (Sub-order 0xrs5rl78S-01) containing 1 item(s): Airpods', 'order', 0, NULL, '2025-12-04 10:08:57'),
+(49, 25, 30, 'Pickup Available', 'Sub-order 0xrs5rl78S-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 10:14:58'),
+(50, 27, 30, 'Pickup Available', 'Sub-order 0xrs5rl78S-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 10:14:58'),
+(51, 31, 30, 'Pickup Available', 'Sub-order 0xrs5rl78S-01 is ready for pickup.', 'system', 0, NULL, '2025-12-04 10:14:58'),
+(52, 24, 31, 'New order placed', 'User User placed order Jfc8brVEBE (Sub-order Jfc8brVEBE-01) containing 1 item(s): Selfie Stick Monopod', 'order', 0, NULL, '2025-12-04 10:16:19');
 
 -- --------------------------------------------------------
 
@@ -248,7 +266,19 @@ INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_
 (16, 26, 'jKDMiUpgTQ', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-02 18:40:18', '2025-12-03 02:40:18', 1),
 (17, 26, 'fev6q6mbg5', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-03 15:41:07', '2025-12-03 23:41:07', 1),
 (18, 26, 'mk8HMqpFFU', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-03 16:25:38', '2025-12-04 00:30:35', 6),
-(19, 26, 'TdAv2oG6Ti', 3998.00, 0.00, 0.00, '3998.00', 'cod', '2025-12-03 17:06:17', '2025-12-04 01:08:53', 6);
+(19, 26, 'TdAv2oG6Ti', 3998.00, 0.00, 0.00, '3998.00', 'cod', '2025-12-03 17:06:17', '2025-12-04 01:08:53', 6),
+(20, 26, 'LCksiIWXmI', 80990.00, 0.00, 0.00, '80990.00', 'cod', '2025-12-04 09:09:12', '2025-12-04 17:09:16', 5),
+(21, 26, '0kTYfLTXdC', 80990.00, 0.00, 0.00, '80990.00', 'cod', '2025-12-04 09:09:51', '2025-12-04 17:09:51', 1),
+(22, 26, 'ckiWlWxN3M', 80990.00, 0.00, 0.00, '80990.00', 'cod', '2025-12-04 09:12:56', '2025-12-04 17:12:56', 1),
+(23, 26, 'Jpq8pMNmwk', 599.00, 79.00, 0.00, '678.00', 'cod', '2025-12-04 09:16:46', '2025-12-04 17:16:46', 1),
+(24, 26, '6W2rDbou0Y', 80990.00, 0.00, 0.00, '80990.00', 'cod', '2025-12-04 09:19:44', '2025-12-04 17:22:05', 6),
+(25, 26, '4AlrqsJ06I', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-04 09:52:15', '2025-12-04 17:52:15', 1),
+(26, 26, 'frTzPxfrIB', 80990.00, 0.00, 0.00, '80990.00', 'cod', '2025-12-04 09:57:06', '2025-12-04 17:57:06', 1),
+(27, 26, '7ooHQEYgRi', 109.00, 79.00, 0.00, '188.00', 'cod', '2025-12-04 09:57:20', '2025-12-04 17:57:20', 1),
+(28, 26, 'QcRw0u1WyT', 1099.99, 79.00, 0.00, '1178.99', 'cod', '2025-12-04 10:04:15', '2025-12-04 18:04:15', 1),
+(29, 26, 'LeSRJv30Tx', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-04 10:08:26', '2025-12-04 18:08:26', 1),
+(30, 26, '0xrs5rl78S', 1999.00, 79.00, 0.00, '2078.00', 'cod', '2025-12-04 10:08:57', '2025-12-04 18:08:57', 1),
+(31, 26, 'Jfc8brVEBE', 12.99, 79.00, 0.00, '91.99', 'cod', '2025-12-04 10:16:19', '2025-12-04 18:16:19', 1);
 
 -- --------------------------------------------------------
 
@@ -277,7 +307,16 @@ INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_
 (33, 31, 26, 15, 1, 'jKDMiUpgTQ', 2),
 (34, 31, 26, 16, 1, 'fev6q6mbg5', 2),
 (35, 31, 26, 17, 1, 'mk8HMqpFFU', 6),
-(36, 31, 26, 18, 2, 'TdAv2oG6Ti', 6);
+(36, 31, 26, 18, 2, 'TdAv2oG6Ti', 6),
+(40, 34, 26, 22, 1, 'Jpq8pMNmwk', 8),
+(41, 32, 26, 23, 1, '6W2rDbou0Y', 6),
+(44, 31, 26, 24, 1, '4AlrqsJ06I', 1),
+(45, 32, 26, 25, 1, 'frTzPxfrIB', 1),
+(46, 36, 26, 26, 1, '7ooHQEYgRi', 1),
+(48, 47, 26, 27, 1, 'QcRw0u1WyT', 1),
+(49, 31, 26, 28, 1, 'LeSRJv30Tx', 7),
+(50, 31, 26, 29, 1, '0xrs5rl78S', 2),
+(51, 41, 26, 30, 1, 'Jfc8brVEBE', 7);
 
 -- --------------------------------------------------------
 
@@ -319,7 +358,19 @@ INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `referenc
 (15, 16, 24, 'jKDMiUpgTQ-01', 4, 1999.00, 79.00, 0.00, 2078.00, '2025-12-02 18:40:18', '2025-12-02 18:41:41', 4, 25, '2025-12-03 02:41:14', '2025-12-03 02:41:41'),
 (16, 17, 24, 'fev6q6mbg5-01', 3, 1999.00, 79.00, 0.00, 2078.00, '2025-12-03 15:41:07', '2025-12-03 15:42:08', 3, 25, '2025-12-03 23:42:03', NULL),
 (17, 18, 24, 'mk8HMqpFFU-01', 6, 1999.00, 79.00, 0.00, 2078.00, '2025-12-03 16:25:38', '2025-12-03 16:48:50', 4, 25, '2025-12-04 00:47:42', '2025-12-04 00:48:21'),
-(18, 19, 24, 'TdAv2oG6Ti-01', 6, 3998.00, 0.00, 0.00, 3998.00, '2025-12-03 17:06:17', '2025-12-03 17:08:53', 4, 25, '2025-12-04 01:07:11', '2025-12-04 01:08:23');
+(18, 19, 24, 'TdAv2oG6Ti-01', 6, 3998.00, 0.00, 0.00, 3998.00, '2025-12-03 17:06:17', '2025-12-03 17:08:53', 4, 25, '2025-12-04 01:07:11', '2025-12-04 01:08:23'),
+(19, 20, 24, 'LCksiIWXmI-01', 5, 80990.00, 0.00, 0.00, 80990.00, '2025-12-04 09:09:12', '2025-12-04 09:09:16', 0, NULL, NULL, NULL),
+(20, 21, 24, '0kTYfLTXdC-01', 8, 80990.00, 0.00, 0.00, 80990.00, '2025-12-04 09:09:51', '2025-12-04 09:12:41', 0, NULL, NULL, NULL),
+(21, 22, 24, 'ckiWlWxN3M-01', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-04 09:12:56', '2025-12-04 09:12:56', 0, NULL, NULL, NULL),
+(22, 23, 24, 'Jpq8pMNmwk-01', 8, 599.00, 79.00, 0.00, 678.00, '2025-12-04 09:16:46', '2025-12-04 09:18:59', 0, NULL, NULL, NULL),
+(23, 24, 24, '6W2rDbou0Y-01', 6, 80990.00, 0.00, 0.00, 80990.00, '2025-12-04 09:19:44', '2025-12-04 09:22:05', 4, 25, '2025-12-04 17:21:31', '2025-12-04 17:21:39'),
+(24, 25, 24, '4AlrqsJ06I-01', 1, 1999.00, 79.00, 0.00, 2078.00, '2025-12-04 09:52:15', '2025-12-04 09:52:15', 0, NULL, NULL, NULL),
+(25, 26, 24, 'frTzPxfrIB-01', 1, 80990.00, 0.00, 0.00, 80990.00, '2025-12-04 09:57:06', '2025-12-04 09:57:06', 0, NULL, NULL, NULL),
+(26, 27, 24, '7ooHQEYgRi-01', 1, 109.00, 79.00, 0.00, 188.00, '2025-12-04 09:57:20', '2025-12-04 09:57:20', 0, NULL, NULL, NULL),
+(27, 28, 24, 'QcRw0u1WyT-01', 1, 1099.99, 79.00, 0.00, 1178.99, '2025-12-04 10:04:15', '2025-12-04 10:04:15', 0, NULL, NULL, NULL),
+(28, 29, 24, 'LeSRJv30Tx-01', 7, 1999.00, 79.00, 0.00, 2078.00, '2025-12-04 10:08:26', '2025-12-04 10:08:33', 0, NULL, NULL, NULL),
+(29, 30, 24, '0xrs5rl78S-01', 2, 1999.00, 79.00, 0.00, 2078.00, '2025-12-04 10:08:57', '2025-12-04 10:14:58', 1, NULL, NULL, NULL),
+(30, 31, 24, 'Jfc8brVEBE-01', 7, 12.99, 79.00, 0.00, 91.99, '2025-12-04 10:16:19', '2025-12-04 10:16:29', 0, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -359,7 +410,7 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`product_id`, `user_id`, `category_id`, `product_name`, `description`, `price`, `qty`, `created_at`, `updated_at`, `status`) VALUES
-(31, 24, 3, 'Airpods', '<p>White Airpods</p>', 1999.00, 2, '2025-11-16 18:30:13', '2025-11-17 02:30:54', 1),
+(31, 24, 3, 'Airpods', '<p>White Airpods</p>', 1999.00, 0, '2025-11-16 18:30:13', '2025-12-04 18:09:04', 1),
 (32, 24, 1, 'Apple iPhone 17 Pro Max', '<h2><span style=\"color: rgb(46, 51, 70);\">Product Details</span></h2><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/80cd44831a19253c14f6eb830a1b26e4.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/1dbc9b2ef7c52352408e3c0beae31df1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/8c42cef9c30446124509669d948b90af.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/64a001478f5cd9065fb5a6c4a71fd15e.png_2200x2200q80.png_.webp\"></span></p><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c0b4efd0f3ce1da650422899ffbe0b1b.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/76de24d2ff93f12e9f941e846fada57c.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/73a7f1256278c34439951a3c54e0edd4.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/50e473eb89cca70d6ec3e4df0e27af3e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/87e7620216c15f9f32b55d5731435d9f.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c204fbe19fbbb63b1b8021103e49887d.png_2200x2200q80.png_.webp\"></span></p><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/e97527268995294d6daa6f8770901767.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/7cfba9a4754b3f581af287915427652b.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/3e24b76cee8aaed81f5c2d58e96b099e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/b1c8997c6cfc747aa954aa432911b435.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/b050366f1a96f33b5f65c0fc9d4c35e1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c7f89cc62c4dbb91a9b939c21713290e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/880aadadf89019cca70000e57f130950.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/24d2aefe15e95a43ea2d149e1beb0887.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/8ea36614a94011741a1fb958711b793e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/da9b8f3be3ef0b12cbbb07550ae5f4d8.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/ccfb20cadbf5da035ea5d7b2fb9866af.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/21f559c2569f3eddb9b346669f16a18e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c4bf697f0edfb379181a997496265fcf.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/979035c76489749bef93199110f652ad.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/93c9f5bf387d6953cca1f1a08b868291.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/81feb19f29430f960f40b2e3e9b5bcec.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/a9a4f5faa4bfb4ea30bd09b4dac3bbbb.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/f127c2aa195bd036efb8fe7a8111581a.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/e8c5ecca99f756b72e7854c9e4d38bb1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/0deaadf6fa752bec2c9fcc64756482ed.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/0c4f25ca7628b53233a9f6e781330f21.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/870d578f10702ee762ff522810eb496e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/a520fa4c12c5be0881e52bdd6858b447.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/866fa2c461a654a3db922b009e61ee9d.png_2200x2200q80.png_.webp\"></span></p><p><br></p><h2><span style=\"background-color: rgb(255, 255, 255); color: rgb(46, 51, 70);\">Specifications of Apple iPhone 17 Pro Max</span></h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Brand</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Apple</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">SKU</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">5260093111_PH-31227369038</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Model</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Apple iPhone 17 Pro Max</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Warranty Type</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">International Manufacturer Warranty</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Warranty</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">1 Year</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Delivery Option Instant</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Yes</span></li></ol><p><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">What’s in the box</span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">iPhone with iOS&nbsp;26,USB-C Charge Cable (1m),Documentation</span></p><p class=\"ql-align-center\"><br></p><p><br></p>', 80990.00, 31, '2025-11-18 15:09:27', '2025-11-18 23:09:27', 1),
 (33, 5, 6, 'HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis', '<h2><span style=\"background-color: rgb(255, 255, 255); color: rgb(46, 51, 70);\">Product Details</span></h2><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/180d07baab061e3a618fa3ae56589e2a.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/59b44a898dbb3b0af01d49f560a3ca0d.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/0e8a018f295e1fd70595ade134f895e2.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/77dc90c4a06aca4096cecf94f0e869ee.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/7f9858b7418b0276a916faf7da109f20.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/9bdb2cac2a6a5d6a65fdf8d34dc1981f.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/54e821b1a2ee073fa3973d759e6b5074.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/d8e3d1b14ed28fd074b7c29be11a8c7c.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/ee8cac57021f87448f2f9a136e4d36ec.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/56b04e4fccf192c4d0ad8feae5fe7dd8.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/07238d8ff4d6429b2df00cb90cf5188e.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/17de151539a588c4de3fa9a189f99b22.jpg_2200x2200q80.jpg_.webp\"></span></p><p><br></p><h2><span style=\"background-color: rgb(255, 255, 255); color: rgb(46, 51, 70);\">Specifications of HUAWEI Band 10 | Smartwatch | Ultra light and Slim | Enriching workouts | Pro-Level Sleep Analysis</span></h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Brand</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">HUAWEI</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">SKU</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">4933455199_PH-28749283909</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Activity Type</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">health</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Function</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Heart Rate Tracking</span></li></ol><p><br></p>', 1799.00, 45, '2025-11-19 11:10:09', '2025-11-19 19:10:09', 1),
 (34, 24, 1, 'Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', '<p>21. 5 inches Full HD (1920 x 1080) widescreen IPS display And Radeon free Sync technology. No compatibility for VESA Mount Refresh Rate: 75Hz - Using HDMI port Zero-frame design | ultra-thin | 4ms response time | IPS panel Aspect ratio - 16: 9. Color Supported - 16. 7 million colors. Brightness - 250 nit Tilt angle -5 degree to 15 degree. Horizontal viewing angle-178 degree. Vertical viewing angle-178 degree 75 hertz</p>', 599.00, 29, '2025-11-24 13:31:26', '2025-11-24 21:31:26', 1),
@@ -369,7 +420,7 @@ INSERT INTO `products` (`product_id`, `user_id`, `category_id`, `product_name`, 
 (38, 24, 2, 'WD 4TB Gaming Drive Works with Playstation 4 Portable External Hard Drive', '<p>Expand your PS4 gaming experience, Play anywhere Fast and easy, setup Sleek design with high capacity, 3-year manufacturer\'s limited warranty</p>', 114.00, 44, '2025-11-24 13:31:39', '2025-11-24 21:31:39', 1),
 (39, 24, 2, 'Silicon Power 256GB SSD 3D NAND A55 SLC Cache Performance Boost SATA III 2.5', '<p>3D NAND flash are applied to deliver high transfer speeds Remarkable transfer speeds that enable faster bootup and improved overall system performance. The advanced SLC Cache Technology allows performance boost and longer lifespan 7mm slim design suitable for Ultrabooks and Ultra-slim notebooks. Supports TRIM command, Garbage Collection technology, RAID, and ECC (Error Checking & Correction) to provide the optimized performance and enhanced reliability.</p>', 109.00, 6, '2025-11-24 13:31:42', '2025-11-24 21:31:42', 1),
 (40, 24, 3, 'Oppo K1', '<p>The Oppo K1 series offers a range of smartphones with various features and specifications. Known for their stylish design and reliable performance, the Oppo K1 series caters to diverse user preferences.</p>', 299.99, 31, '2025-11-24 13:37:46', '2025-11-24 21:37:46', 1),
-(41, 24, 5, 'Selfie Stick Monopod', '<p>The Selfie Stick Monopod is a extendable and foldable device for capturing the perfect selfie or group photo. Compatible with smartphones and cameras.</p>', 12.99, 21, '2025-11-24 13:37:48', '2025-11-24 21:37:48', 1),
+(41, 24, 5, 'Selfie Stick Monopod', '<p>The Selfie Stick Monopod is a extendable and foldable device for capturing the perfect selfie or group photo. Compatible with smartphones and cameras.</p>', 12.99, 20, '2025-11-24 13:37:48', '2025-12-04 18:16:29', 1),
 (42, 24, 2, 'SanDisk SSD PLUS 1TB Internal SSD - SATA III 6 Gb/s', '<p>Easy upgrade for faster boot up, shutdown, application load and response (As compared to 5400 RPM SATA 2.5” hard drive; Based on published specifications and internal benchmarking tests using PCMark vantage scores) Boosts burst write performance, making it ideal for typical PC workloads The perfect balance of performance and reliability Read/write speeds of up to 535MB/s/450MB/s (Based on internal testing; Performance may vary depending upon drive capacity, host device, OS and application.)</p>', 109.00, 26, '2025-11-24 13:37:50', '2025-11-24 21:37:50', 1),
 (43, 24, 6, 'Lenovo Yoga 920', '<p>The Lenovo Yoga 920 is a 2-in-1 convertible laptop with a flexible hinge, allowing you to use it as a laptop or tablet, offering versatility and portability.</p>', 1099.99, 38, '2025-11-24 13:37:52', '2025-11-24 21:37:52', 1),
 (44, 24, 2, 'Asus Zenbook Pro Dual Screen Laptop', '<p>The Asus Zenbook Pro Dual Screen Laptop is a high-performance device with dual screens, providing productivity and versatility for creative professionals.</p>', 1799.99, 12, '2025-11-24 13:37:53', '2025-11-24 21:37:53', 1),
@@ -510,7 +561,8 @@ CREATE TABLE `product_reviews` (
 --
 
 INSERT INTO `product_reviews` (`review_id`, `product_id`, `user_id`, `order_items_id`, `reference`, `rating`, `comment`, `created_at`) VALUES
-(1, 31, 26, 35, 'mk8HMqpFFU', 4, 'Goods', '2025-12-03 17:05:23');
+(1, 31, 26, 35, 'mk8HMqpFFU', 4, 'Goods', '2025-12-03 17:05:23'),
+(2, 32, 26, 41, '6W2rDbou0Y', 4, 'qwe', '2025-12-04 09:22:37');
 
 -- --------------------------------------------------------
 
@@ -643,6 +695,13 @@ CREATE TABLE `wishlists` (
   `product_id` int(11) NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `wishlists`
+--
+
+INSERT INTO `wishlists` (`wishlist_id`, `user_id`, `product_id`, `created_at`) VALUES
+(3, 26, 55, '2025-12-04 17:52:43');
 
 --
 -- Indexes for dumped tables
@@ -828,25 +887,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -870,7 +929,7 @@ ALTER TABLE `product_attachments`
 -- AUTO_INCREMENT for table `product_reviews`
 --
 ALTER TABLE `product_reviews`
-  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `review_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `reviews`
@@ -900,7 +959,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `wishlists`
 --
 ALTER TABLE `wishlists`
-  MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `wishlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

@@ -497,7 +497,8 @@ def home():
     if query:  # Check if there is a search query
         products = getProductsBySearch(query)  # Call the search function
     else:
-        products = getProductsInHome("WHERE p.status = 1", page=page)  # Default products
+        # Default featured products: only active items that are still in stock
+        products = getProductsInHome("WHERE p.status = 1 AND p.qty > 0", page=page)  # Default products
 
     cart_items = session.get('cart', {})
     wishlist_ids = set()
@@ -635,7 +636,8 @@ def getProductsInHome(condition="", page=1, per_page=10, params=None):
 
 def loadMoreProducts():
     page = request.args.get('page', 1, type=int)
-    products = getProductsInHome("WHERE p.status = 1", page=page)
+    products = getProductsInHome("WHERE p.status = 1 AND p.qty > 0", page=page)
+    
     wishlist_ids = set()
     if g.authenticated and g.authenticated.get('user_id'):
         wishlist_ids = get_user_wishlist_ids(g.authenticated.get('user_id'))
@@ -1412,6 +1414,7 @@ def updateSuborderStatus():
         pickup_params.append(4)  # delivered
 
     set_clauses = ["status = %s", "updated_at = NOW()"] + pickup_clauses
+
     update_suborder_query = f"""
         UPDATE order_suborders
         SET {', '.join(set_clauses)}
@@ -1429,6 +1432,16 @@ def updateSuborderStatus():
         WHERE suborder_id = %s
     """
     executePost(update_items_query, (status, suborder_id))
+
+    # When seller accepts the suborder, deduct stock for all items in this suborder.
+    if status == 7:
+        stock_update_query = """
+            UPDATE products p
+            JOIN order_items oi ON oi.product_id = p.product_id
+            SET p.qty = GREATEST(p.qty - oi.quantity, 0)
+            WHERE oi.suborder_id = %s
+        """
+        executePost(stock_update_query, (suborder_id,))
 
     if status == 2:
         notify_riders_pickup_available(suborder_id)

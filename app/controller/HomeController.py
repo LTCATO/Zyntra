@@ -950,12 +950,14 @@ def orderTrackingHub():
     out_for_delivery_orders = []
     delivered_orders = []
     completed_orders = []
+    cancelled_orders = []
 
     status_buckets = {
         1: placed_orders,
         2: shipped_orders,
         3: out_for_delivery_orders,
         4: delivered_orders,
+        5: cancelled_orders,
         6: completed_orders,
     }
 
@@ -974,9 +976,7 @@ def orderTrackingHub():
 
         if not items:
             fallback_status = int(summary.get('status', 1) or 1)
-            # Skip cancelled
-            if fallback_status == 5:
-                continue
+
             # Clamp into known buckets
             if fallback_status >= 6:
                 fallback_status = 6
@@ -1005,9 +1005,7 @@ def orderTrackingHub():
 
         for item in items:
             entry_status = int(item.get('status') or 1)
-            # Skip cancelled
-            if entry_status == 5:
-                continue
+
             # Clamp into known buckets (1,2,3,4,6)
             if entry_status >= 6:
                 entry_status = 6
@@ -1044,6 +1042,7 @@ def orderTrackingHub():
         out_for_delivery_orders=out_for_delivery_orders,
         delivered_orders=delivered_orders,
         completed_orders=completed_orders,
+        cancelled_orders=cancelled_orders,
         shipping_address=formatted_address,
         user_address=user_address,
         address_texts=address_texts

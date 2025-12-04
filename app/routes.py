@@ -9,7 +9,7 @@ from helpers.Session import sessionRemove
 from helpers.HelperFunction import responseData
 
 # Controllers
-from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead, wishlistPage, confirmOrder
+from controller.HomeController import home, loadMoreProducts, categoryPage, getCategoriesInHome, cart, checkout, submitCheckout, shop, orderTracking, orderTrackingLatest, cancelOrder, orderTrackingHub, orderList, orderManagement, updateSuborderStatus, getNotifications, markNotificationRead, markAllNotificationsRead, wishlistPage, confirmOrder, cancelOrderItem
 
 from controller.LoginController import (
     login,
@@ -453,6 +453,11 @@ def setup_routes(app: Flask):
     @login_required
     def order_tracking_confirm(reference):
         return confirmOrder(reference)
+
+    @app.route('/order-items/<int:order_item_id>/cancel', methods=['POST'])
+    @login_required
+    def order_item_cancel(order_item_id):
+        return cancelOrderItem(order_item_id)
 
     @app.route('/order-list')
     @login_required

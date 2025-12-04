@@ -5,7 +5,9 @@
     1: ('badge rounded-pill bg-soft-primary text-primary', 'Order Placed'),
     2: ('badge rounded-pill bg-soft-info text-info', 'Shipped'),
     3: ('badge rounded-pill bg-soft-warning text-warning', 'Out for Delivery'),
-    4: ('badge rounded-pill bg-soft-success text-success', 'Delivered')
+    4: ('badge rounded-pill bg-soft-success text-success', 'Delivered'),
+    5: ('badge rounded-pill bg-soft-danger text-danger', 'Cancelled'),
+    6: ('badge rounded-pill bg-soft-success text-success', 'Completed')
 } %}
 
 {% set timeline_template = [
@@ -255,6 +257,46 @@
                         }
                     }).catch(() => {
                         Swal.fire('Oops!', 'Unable to cancel order right now.', 'error');
+                    });
+                });
+            });
+        });
+
+        document.querySelectorAll('[data-cancel-item]').forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                if (!itemId) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Cancel this item?',
+                    text: 'This action cannot be undone. You can reorder anytime.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, cancel it',
+                    cancelButtonText: 'Keep item'
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    fetch(`/order-items/${itemId}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    }).then(async (response) => {
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            Swal.fire('Canceled', 'This item has been canceled.', 'success').then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Oops!', data.message || 'Unable to cancel this item.', 'error');
+                        }
+                    }).catch(() => {
+                        Swal.fire('Oops!', 'Unable to cancel this item right now.', 'error');
                     });
                 });
             });

@@ -87,9 +87,11 @@ def setup_routes(app: Flask):
         if g.authenticated and g.authenticated.get('user_id'):
             from helpers.QueryHelpers import executeGet
             query = """
-                SELECT COUNT(oi.order_items_id) as item_count 
-                FROM order_items oi 
-                WHERE oi.user_id = %s AND oi.status = 1
+                SELECT COUNT(oi.order_items_id) AS item_count
+                FROM order_items oi
+                WHERE oi.user_id = %s
+                  AND oi.status = 1
+                  AND (oi.reference = '' OR oi.reference IS NULL)
             """
             result = executeGet(query, (g.authenticated['user_id'],))
             g.cart_item_count = result[0]['item_count'] if result else 0

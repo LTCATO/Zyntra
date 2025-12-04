@@ -951,6 +951,8 @@ def orderTrackingHub():
     delivered_orders = []
     completed_orders = []
     cancelled_orders = []
+    accepted_orders = []
+    rejected_orders = []
 
     status_buckets = {
         1: placed_orders,
@@ -959,6 +961,8 @@ def orderTrackingHub():
         4: delivered_orders,
         5: cancelled_orders,
         6: completed_orders,
+        7: accepted_orders,
+        8: rejected_orders,
     }
 
     for order in orders_result:
@@ -977,11 +981,13 @@ def orderTrackingHub():
         if not items:
             fallback_status = int(summary.get('status', 1) or 1)
 
-            # Clamp into known buckets
-            if fallback_status >= 6:
-                fallback_status = 6
-            elif fallback_status < 1:
+            # Clamp into known buckets while respecting explicit Accepted/Rejected
+            if fallback_status < 1:
                 fallback_status = 1
+            if fallback_status not in status_buckets:
+                # Any unknown high status should fall back to Completed bucket
+                if fallback_status > 8:
+                    fallback_status = 6
 
             shipping_fee_raw = float(order.get('shipping_fee', 0) or 0)
             fallback_shipping = 'Free' if shipping_fee_raw == 0 else f"₱{locale.format_string('%0.2f', shipping_fee_raw, grouping=True)}"
@@ -1006,11 +1012,12 @@ def orderTrackingHub():
         for item in items:
             entry_status = int(item.get('status') or 1)
 
-            # Clamp into known buckets (1,2,3,4,6)
-            if entry_status >= 6:
-                entry_status = 6
-            elif entry_status < 1:
+            # Clamp into known buckets while respecting explicit Accepted/Rejected
+            if entry_status < 1:
                 entry_status = 1
+            if entry_status not in status_buckets:
+                if entry_status > 8:
+                    entry_status = 6
 
             shipping_fee = float(item.get('shipping_fee_raw', 0) or 0)
             shipping_label = 'Free' if shipping_fee == 0 else f"₱{locale.format_string('%0.2f', shipping_fee, grouping=True)}"
@@ -1043,6 +1050,8 @@ def orderTrackingHub():
         delivered_orders=delivered_orders,
         completed_orders=completed_orders,
         cancelled_orders=cancelled_orders,
+        accepted_orders=accepted_orders,
+        rejected_orders=rejected_orders,
         shipping_address=formatted_address,
         user_address=user_address,
         address_texts=address_texts
@@ -1366,7 +1375,9 @@ def updateSuborderStatus():
     suborder_id = request.form.get('suborder_id', type=int)
     status = request.form.get('status', type=int)
 
-    if not suborder_id or status not in (2, 3, 4):
+    # Allow seller to mark suborders as Shipped, Out for Delivery, Delivered,
+    # Accepted, or Rejected. Accepted/Rejected do not affect rider pickup state.
+    if not suborder_id or status not in (2, 3, 4, 7, 8):
         return responseData("error", "Invalid request payload", "", 400)
 
     ownership_query = """
@@ -1423,7 +1434,9 @@ def updateSuborderStatus():
     status_labels = {
         2: 'Shipped',
         3: 'Out for Delivery',
-        4: 'Delivered'
+        4: 'Delivered',
+        7: 'Accepted',
+        8: 'Rejected'
     }
 
     return responseData("success", f"Sub-order marked as {status_labels.get(status, 'updated')}.", "", 200)

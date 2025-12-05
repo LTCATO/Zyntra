@@ -1,0 +1,95 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Payments{% endblock %}
+
+{% block style %}{% endblock %}
+
+{% block content %}
+<div class="container-xxl flex-grow-1 container-p-y">
+  <div class="payout-hero p-4 p-lg-5 mb-4 shadow-sm">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="text-uppercase opacity-75 fw-semibold">{{ hero.eyebrow }}</span>
+        <h2 class="mt-2 mb-3 fw-bold">{{ hero.title }}</h2>
+        <p class="mb-0 text-white-75">{{ hero.subtitle }}</p>
+      </div>
+      <div class="col-lg-5 text-lg-end">
+        <span class="d-block text-uppercase small opacity-75">{{ hero.meta_label }}</span>
+        <div class="stat-value mt-1">{{ hero.meta_value }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    {% for card in summary_cards %}
+    <div class="col-md-3 col-sm-6">
+      <div class="summary-card bg-white px-3 py-4 h-100 shadow-sm">
+        <h6 class="text-muted text-uppercase mb-2">{{ card.label }}</h6>
+        <div class="value">{{ card.value }}</div>
+        <small class="text-muted">{{ card.helper }}</small>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="row g-4 mb-4">
+    {% for block in payout_breakdown %}
+    <div class="col-lg-4">
+      <div class="breakdown-card bg-white p-4 h-100 shadow-sm">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h5 class="mb-0">{{ block.label }}</h5>
+          <span class="badge {{ block.badge_class }} text-uppercase">{{ block.caption }}</span>
+        </div>
+        <div class="display-6 fw-semibold">{{ block.amount }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Recent Activity</h5>
+        <small class="text-muted">Latest 10 {{ 'deliveries' if is_rider else 'sub-orders' }} impacting your payout</small>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Reference</th>
+            <th scope="col">Type</th>
+            <th scope="col" class="text-end">Amount</th>
+            <th scope="col">Status</th>
+            <th scope="col">Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if transactions %}
+            {% for txn in transactions %}
+            <tr>
+              <td>{{ txn.reference }}</td>
+              <td>{{ txn.label }}</td>
+              <td class="text-end fw-semibold">{{ txn.amount }}</td>
+              <td>
+                <span class="transaction-status">
+                  <span class="indicator {{ txn.badge_class }}"></span>
+                  <span class="badge {{ txn.badge_class }}">{{ txn.status_text }}</span>
+                </span>
+              </td>
+              <td>{{ txn.timestamp }}</td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                No payout activity yet. Orders and deliveries that you complete will appear here.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -13,17 +13,85 @@
   7: ('bg-label-success', 'Accepted'),
   8: ('bg-label-danger', 'Rejected')
 } %}
+{% set total_orders = orders|length %}
+{% set awaiting_fulfillment = orders|selectattr('status', 'in', [1,7])|list|length %}
+{% set in_transit = orders|selectattr('status', 'in', [2,3])|list|length %}
+{% set completed_orders = orders|selectattr('status', 'in', [4,6])|list|length %}
 <div class="container-xxl flex-grow-1 container-p-y">
-  <div class="card">
-    <div class="card-header">
-      <h5 class="mb-0">Store Orders</h5>
-      <small class="text-muted">All orders placed for your products.</small>
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <div class="card hero-card h-100">
+        <div class="card-body d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4">
+          <div>
+            <span class="badge bg-white text-dark text-uppercase mb-3">Orders pulse</span>
+            <h4 class="text-white mb-2">Track every order from placement to doorstep.</h4>
+            <p class="text-white-50 mb-0">Use quick filters to jump into active fulfillment, follow-ups, or completed drops.</p>
+          </div>
+          <div class="text-end">
+            <small class="text-white-50 text-uppercase">Total Revenue (est.)</small>
+            {% set total_revenue = orders|sum(attribute='total_amount') if orders else 0 %}
+            <h3 class="text-white mb-0">₱{{ '{:,.2f}'.format((total_revenue or 0)|float) }}</h3>
+            <small class="text-white-50">Across {{ total_orders }} order(s)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted text-uppercase small">Awaiting fulfillment</span>
+            <i class="bx bx-package text-primary fs-4"></i>
+          </div>
+          <h3 class="mb-0">{{ awaiting_fulfillment }}</h3>
+          <small class="text-muted">New or accepted orders you can act on.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted text-uppercase small">In transit</span>
+            <i class="bx bx-navigation text-info fs-4"></i>
+          </div>
+          <h3 class="mb-0">{{ in_transit }}</h3>
+          <small class="text-muted">Orders currently on the road with riders.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted text-uppercase small">Completed</span>
+            <i class="bx bx-check-circle text-success fs-4"></i>
+          </div>
+          <h3 class="mb-0">{{ completed_orders }}</h3>
+          <small class="text-muted">Delivered or released orders.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header border-0 pb-0">
+      <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+        <div>
+          <h5 class="mb-1">Store Orders</h5>
+          <small class="text-muted">Filtered view updates both table and mobile cards.</small>
+        </div>
+        <div class="input-group input-group-sm search-orders-group w-auto">
+          <span class="input-group-text bg-transparent border-end-0"><i class="bx bx-search"></i></span>
+          <input type="search" id="orderSearchInput" class="form-control border-start-0" placeholder="Search reference or buyer">
+        </div>
+      </div>
     </div>
 
     <!-- Desktop table -->
-    <div class="table-responsive d-none d-md-block p-4">
-      <table class="table table-striped align-middle" id="sellerOrdersTable">
-        <thead class="table-dark">
+    <div class="table-responsive d-none d-md-block p-4 pt-3">
+      <table class="table align-middle mb-0" id="sellerOrdersTable">
+        <thead>
           <tr>
             <th>Reference</th>
             <th>Buyer</th>
@@ -34,32 +102,34 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody class="table-border-bottom-0">
+        <tbody>
           {% for order in orders %}
-          <tr>
-            <td data-label="Reference"><span class="fw-semibold">{{ order.reference }}</span></td>
-            <td data-label="Buyer">{{ order.buyer_name or 'N/A' }}</td>
-            <td data-label="Items">{{ order.item_count or 0 }}</td>
-            <td data-label="Total">₱{{ '{:,.2f}'.format(order.total_amount|float) if order.total_amount is not none else '0.00' }}</td>
-            <td data-label="Status">
-              {% set status = order.status or 1 %}
-              {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
+            {% set status = order.status or 1 %}
+            {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
+          <tr data-text="{{ (order.reference ~ ' ' ~ (order.buyer_name or '') ) | lower }}">
+            <td>
+              <div class="fw-semibold d-flex align-items-center gap-2">
+                <i class="bx bx-hash text-muted"></i>{{ order.reference }}
+              </div>
+            </td>
+            <td>
+              <span class="fw-medium">{{ order.buyer_name or 'N/A' }}</span>
+              <small class="text-muted d-block">{{ order.buyer_email or '' }}</small>
+            </td>
+            <td>{{ order.item_count or 0 }}</td>
+            <td class="fw-semibold">₱{{ '{:,.2f}'.format(order.total_amount|float) if order.total_amount is not none else '0.00' }}</td>
+            <td>
               <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
             </td>
-            <td data-label="Placed On" class="createdAt">{{ order.created_at }}</td>
+            <td class="createdAt text-muted">{{ order.created_at }}</td>
             <td>
-              <div class="dropdown">
-                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                  <i class="bx bx-dots-vertical-rounded"></i>
+              <div class="btn-group">
+                <a class="btn btn-sm btn-outline-primary" href="/order-management">
+                  <i class='bx bx-edit me-1'></i>Manage
+                </a>
+                <button class="btn btn-sm btn-outline-secondary view-order-details" data-order='{{ order | tojson | safe }}'>
+                  <i class='bx bx-show'></i>
                 </button>
-                <div class="dropdown-menu">
-                  <a class="dropdown-item" href="/order-management">
-                    <i class='bx bx-edit me-1'></i>Manage Order
-                  </a>
-                  <a class="dropdown-item view-order-details" href="javascript:void(0);" data-order='{{ order | tojson | safe }}'>
-                    <i class='bx bx-show me-1'></i>View Summary
-                  </a>
-                </div>
               </div>
             </td>
           </tr>
@@ -73,34 +143,34 @@
     </div>
 
     <!-- Mobile cards -->
-    <div class="d-md-none p-3">
+    <div class="d-md-none p-3 pt-0" id="mobileOrderList">
       {% for order in orders %}
-      <div class="card mb-3 border">
+        {% set status = order.status or 1 %}
+        {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
+      <div class="card order-mobile-card mb-3" data-text="{{ (order.reference ~ ' ' ~ (order.buyer_name or '') ) | lower }}">
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
-              <small class="text-muted">Reference</small>
+              <small class="text-muted d-block">Reference</small>
               <h6 class="mb-0">{{ order.reference }}</h6>
             </div>
-            {% set status = order.status or 1 %}
-            {% set pill = status_map.get(status, ('bg-label-secondary', 'Processing')) %}
             <span class="badge {{ pill[0] }}">{{ pill[1] }}</span>
           </div>
           <div class="mb-2">
             <small class="text-muted">Buyer</small>
-            <p class="mb-1">{{ order.buyer_name or 'N/A' }}</p>
+            <p class="mb-0">{{ order.buyer_name or 'N/A' }}</p>
           </div>
-          <div class="d-flex justify-content-between text-muted small">
+          <div class="d-flex justify-content-between text-muted small mb-2">
             <span>{{ order.item_count or 0 }} item(s)</span>
             <span>₱{{ '{:,.2f}'.format(order.total_amount|float) if order.total_amount is not none else '0.00' }}</span>
           </div>
-          <p class="text-muted mb-2 small">Placed {{ order.created_at }}</p>
+          <p class="text-muted small mb-3">Placed {{ order.created_at }}</p>
           <div class="d-grid gap-2">
-            <a class="btn btn-sm btn-outline-primary" href="/order-management">
-              <i class='bx bx-edit me-1'></i>Manage Order
+            <a class="btn btn-outline-primary btn-sm" href="/order-management">
+              Manage order
             </a>
-            <button class="btn btn-sm btn-outline-secondary view-order-details" data-order='{{ order | tojson | safe }}'>
-              <i class='bx bx-info-circle me-1'></i>View Summary
+            <button class="btn btn-outline-secondary btn-sm view-order-details" data-order='{{ order | tojson | safe }}'>
+              View summary
             </button>
           </div>
         </div>
@@ -116,7 +186,10 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Order Summary</h5>
+          <div>
+            <small class="text-muted d-block">Order summary</small>
+            <h5 class="modal-title mb-0">Reference <span id="modalReferenceLabel">—</span></h5>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -133,17 +206,32 @@
 {% block script %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    const tableEl = document.getElementById('sellerOrdersTable');
-    let dataTable = null;
-    if (tableEl) {
-      const hasjQueryInstance = window.jQuery && jQuery.fn?.dataTable?.isDataTable && jQuery.fn.dataTable.isDataTable(tableEl);
+    const searchInput = document.getElementById('orderSearchInput');
+    const desktopRows = Array.from(document.querySelectorAll('#sellerOrdersTable tbody tr'));
+    const mobileCards = Array.from(document.querySelectorAll('#mobileOrderList .order-mobile-card'));
 
-      if (hasjQueryInstance) {
-        dataTable = jQuery(tableEl).DataTable();
-      } else if (window.innerWidth >= 768 && typeof DataTable !== 'undefined') {
-        dataTable = new DataTable(tableEl, { responsive: true });
-      }
+    function rowMatchesSearch(text) {
+      const query = (searchInput?.value || '').trim().toLowerCase();
+      if (!query) return true;
+      return text.includes(query);
     }
+
+    function applyFilters() {
+      const activeRows = [];
+
+      desktopRows.forEach(row => {
+        const matches = rowMatchesSearch(row.dataset.text || '');
+        row.classList.toggle('d-none', !matches);
+        if (matches) activeRows.push(row);
+      });
+
+      mobileCards.forEach(card => {
+        const matches = rowMatchesSearch(card.dataset.text || '');
+        card.classList.toggle('d-none', !matches);
+      });
+    }
+
+    searchInput?.addEventListener('input', applyFilters);
 
     // Format createdAt cells
     document.querySelectorAll('.createdAt').forEach(function (cell) {
@@ -161,6 +249,7 @@
     const modalEl = document.getElementById('orderSummaryModal');
     const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
     const modalBody = document.getElementById('orderSummaryContent');
+    const modalRefLabel = document.getElementById('modalReferenceLabel');
 
     document.querySelectorAll('.view-order-details').forEach(btn => {
       btn.addEventListener('click', function () {
@@ -168,6 +257,7 @@
         const orderData = this.getAttribute('data-order');
         try {
           const order = JSON.parse(orderData);
+          modalRefLabel.textContent = order.reference || '—';
           renderOrderSummary(order);
           modal.show();
         } catch (error) {
@@ -183,41 +273,57 @@
         modalBody.textContent = 'Order data unavailable.';
         return;
       }
+      const subtotal = Number(order.subtotal || order.total_amount || 0);
+      const shipping = Number(order.shipping_fee || 0);
+      const tax = Number(order.tax_amount || 0);
+      const total = Number(order.total_amount || subtotal + shipping + tax);
+
       modalBody.innerHTML = `
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-5">
             <div class="border rounded p-3 h-100">
-              <h6 class="text-muted">Order Information</h6>
-              <p class="mb-1"><strong>Reference:</strong> ${order.reference || 'N/A'}</p>
+              <h6 class="text-muted">Order details</h6>
               <p class="mb-1"><strong>Status:</strong> ${order.status_label || 'Order Placed'}</p>
               <p class="mb-1"><strong>Placed:</strong> ${order.created_at || 'N/A'}</p>
               <p class="mb-0"><strong>Items:</strong> ${order.item_count || 0}</p>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-7">
             <div class="border rounded p-3 h-100">
               <h6 class="text-muted">Buyer</h6>
-              <p class="mb-1"><strong>Name:</strong> ${order.buyer_name || 'N/A'}</p>
-              <p class="mb-1"><strong>Email:</strong> ${order.buyer_email || 'N/A'}</p>
-              <p class="mb-0"><strong>Phone:</strong> ${order.buyer_phone || 'N/A'}</p>
+              <div class="mb-1"><strong>${order.buyer_name || 'N/A'}</strong></div>
+              <div class="text-muted small">${order.buyer_email || ''}</div>
+              <div class="text-muted small">${order.buyer_phone || ''}</div>
             </div>
           </div>
           <div class="col-12">
             <div class="border rounded p-3">
-              <h6 class="text-muted">Totals</h6>
+              <h6 class="text-muted mb-3">Totals</h6>
               <div class="row">
-                <div class="col-sm-4"><p class="mb-1"><strong>Subtotal:</strong> ₱${Number(order.subtotal || 0).toFixed(2)}</p></div>
-                <div class="col-sm-4"><p class="mb-1"><strong>Shipping:</strong> ₱${Number(order.shipping_fee || 0).toFixed(2)}</p></div>
-                <div class="col-sm-4"><p class="mb-1"><strong>Tax:</strong> ₱${Number(order.tax_amount || 0).toFixed(2)}</p></div>
+                <div class="col-sm-4">
+                  <p class="mb-1 text-muted small">Subtotal</p>
+                  <p class="fw-semibold mb-0">₱${subtotal.toFixed(2)}</p>
+                </div>
+                <div class="col-sm-4">
+                  <p class="mb-1 text-muted small">Shipping</p>
+                  <p class="fw-semibold mb-0">₱${shipping.toFixed(2)}</p>
+                </div>
+                <div class="col-sm-4">
+                  <p class="mb-1 text-muted small">Tax</p>
+                  <p class="fw-semibold mb-0">₱${tax.toFixed(2)}</p>
+                </div>
               </div>
-              <p class="mb-0">
-                <strong>Total:</strong> ₱${Number(order.total_amount || 0).toFixed(2)}
-              </p>
+              <div class="d-flex justify-content-between pt-3 border-top mt-3">
+                <span class="fw-semibold">Total</span>
+                <span class="fw-bold fs-5">₱${total.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </div>
       `;
     }
+
+    applyFilters();
   });
 </script>
 {% endblock %}

@@ -7,8 +7,31 @@ import uuid
 from controller.HomeController import getCategoriesInHome, get_user_wishlist_ids
 from controller.UserController import getSellers
 import locale
+from flask import has_request_context
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
+ALLOWED_VARIANT_TYPES = {'none', 'sizes', 'colors'}
+
+def _normalize_variant_values(raw_values):
+    if not raw_values:
+        return None
+    values = [value.strip() for value in raw_values.split(',')]
+    cleaned = [value for value in values if value]
+    return ', '.join(cleaned) if cleaned else None
+
+def _variant_columns_available():
+    """
+    Check if variant_type and variant_values columns exist in products table.
+    We query every time to avoid stale cache when migrations run while the app stays alive.
+    """
+    variant_type_col = executeGet("SHOW COLUMNS FROM products LIKE 'variant_type'")
+    if isinstance(variant_type_col, tuple) or not variant_type_col:
+        return False
+    variant_values_col = executeGet("SHOW COLUMNS FROM products LIKE 'variant_values'")
+    if isinstance(variant_values_col, tuple) or not variant_values_col:
+        return False
+    return True
 
 # Get the base directory of the project
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -34,12 +57,13 @@ def _get_product_id_from_request():
         product_id = payload.get('product_id')
     elif 'product_id' in request.form:
         product_id = request.form.get('product_id')
+    variant_type = (request.form.get('variant_type') or 'none').lower()
+    variant_values_input = request.form.get('variant_values')
 
     try:
         return int(product_id)
     except (TypeError, ValueError):
         return None
-
 
 def _ensure_buyer_authenticated():
     if not g.authenticated:
@@ -53,14 +77,12 @@ def _ensure_buyer_authenticated():
 
     return user_id, None
 
-
 def _get_wishlist_count(user_id):
     query = "SELECT COUNT(*) AS total FROM wishlists WHERE user_id = %s"
     result = executeGet(query, (user_id,))
     if isinstance(result, tuple):
         return 0
     return (result[0].get('total') if result else 0) or 0
-
 
 def _get_cart_count(user_id):
     query = """
@@ -95,7 +117,6 @@ def build_product_image_url(attachment):
 
     return f"/static/uploads/products/{clean_path}"
 
-
 def products():
     active_menu = ['product', 'products']
     categories = getCategories("")
@@ -120,12 +141,33 @@ def products():
                          current_user_id=g.authenticated.get('user_id'))
 
 def getProducts(condition):
-    # query = f"SELECT p.product_id, p.category_id, p.product_name, c.category_name, p.description, p.price, p.qty, p.created_at, p.status FROM products p LEFT JOIN categories c ON p.category_id = c.category_id  {prod}"
-    query = f"SELECT p.product_id, p.category_id, p.product_name, c.category_name, p.description, p.price, p.qty, p.created_at, p.status, u.user_id, u.firstname, u.lastname FROM products p LEFT JOIN categories c ON p.category_id = c.category_id LEFT JOIN users u ON p.user_id = u.user_id WHERE p.status = 1 AND c.status != 2 {condition}"
+    variant_columns = _variant_columns_available()
+    variant_select = "p.variant_type, p.variant_values," if variant_columns else "'none' AS variant_type, NULL AS variant_values,"
+    query = f"""SELECT p.product_id,
+                       p.category_id,
+                       p.product_name,
+                       c.category_name,
+                       p.description,
+                       p.price,
+                       p.qty,
+                       {variant_select}
+                       p.created_at,
+                       p.status,
+                       u.user_id,
+                       u.firstname,
+                       u.lastname
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.category_id
+                LEFT JOIN users u ON p.user_id = u.user_id
+                WHERE p.status = 1 AND c.status != 2 {condition}"""
     if condition:
         results = executeGet(query, (g.authenticated.get('user_id'),))
     else:
         results = executeGet(query)
+    
+    if isinstance(results, tuple):
+        # Underlying DB error; return empty list to avoid crashes while surfacing message elsewhere.
+        return []
     
     # Convert and format price and quantity for each product
     for product in results:
@@ -159,8 +201,6 @@ def getProducts(condition):
 
     return results
 
-
-
 def addProduct():
     try:
         product_name = request.form.get('productName')
@@ -170,7 +210,8 @@ def addProduct():
         price = request.form.get('price')
         quantity = request.form.get('quantity')
         images = request.files.getlist('productImages[]')
-        image_names = []
+        variant_type = (request.form.get('variant_type') or 'none').lower()
+        variant_values_input = request.form.get('variant_values')
 
         # Input validation
         if not all([product_name, category_id, description, price, quantity]):
@@ -182,6 +223,21 @@ def addProduct():
         if not images or not images[0].filename:
             return responseData("error", "Please select at least one image", "", 200)
 
+        variant_columns = _variant_columns_available()
+        if not variant_columns:
+            # Database not yet migrated; silently drop variant metadata to keep flow working.
+            variant_type = 'none'
+            normalized_variant_values = None
+        else:
+            if variant_type not in ALLOWED_VARIANT_TYPES:
+                variant_type = 'none'
+
+            normalized_variant_values = None
+            if variant_type != 'none':
+                normalized_variant_values = _normalize_variant_values(variant_values_input or "")
+                if not normalized_variant_values:
+                    return responseData("error", "Please provide at least one variant option.", "", 200)
+
         # Ensure upload directory exists
         try:
             os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -191,6 +247,7 @@ def addProduct():
             return responseData("error", "Error setting up file storage", "", 500)
 
         # Process each image
+        image_names = []
         for image in images:
             if not image or not allowed_image_file(image.filename):
                 continue  # Skip invalid files instead of failing the entire upload
@@ -215,13 +272,22 @@ def addProduct():
             return responseData("error", "No valid images were uploaded", "", 200)
         
         # Insert product
-        insert_query = """
-            INSERT INTO products 
-            (category_id, user_id, product_name, description, price, qty) 
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        result = executePost(insert_query, 
-                           (category_id, user_id, product_name, description, price, quantity))
+        if not variant_columns:
+            insert_query = """
+                INSERT INTO products 
+                (category_id, user_id, product_name, description, price, qty) 
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            insert_params = (category_id, user_id, product_name, description, price, quantity)
+        else:
+            insert_query = """
+                INSERT INTO products 
+                (category_id, user_id, product_name, description, price, qty, variant_type, variant_values) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            insert_params = (category_id, user_id, product_name, description, price, quantity, variant_type, normalized_variant_values)
+
+        result = executePost(insert_query, insert_params)
         
         if not result or 'last_inserted_id' not in result:
             # Clean up uploaded files if product insertion failed
@@ -273,8 +339,6 @@ def addProduct():
                 except Exception as file_error:
                     print(f"Error cleaning up file {img_path}: {str(file_error)}")
         return responseData("error", "An unexpected error occurred: " + str(e), "", 500)
-    
-
 
 def productCategories():
     active_menu = ['product', 'categories']
@@ -307,18 +371,21 @@ def viewProduct(product_id):
                 p.description, 
                 p.price, 
                 p.qty, 
+                p.variant_type,
+                p.variant_values,
                 COALESCE(pa.attachment, 'no-image.jpg') as attachment,
                 sd.store_name,
                 sd.description AS store_description
             FROM 
                 products p 
             LEFT JOIN 
-                product_attachments pa ON p.product_id = pa.product_id 
+                product_attachments pa ON p.product_id = pa.product_id AND pa.status = 1
             LEFT JOIN
                 seller_details sd ON p.user_id = sd.user_id
             WHERE 
                 p.product_id = %s 
                 AND p.status = 1
+            LIMIT 1
         """
         
         product = executeGet(query, (product_id,))
@@ -333,11 +400,23 @@ def viewProduct(product_id):
         product_image_url = build_product_image_url(product['attachment'])
 
         # Fetch and prepare product images for the slider
-        images_query = "SELECT pa.attachment FROM product_attachments pa WHERE pa.product_id = %s AND pa.status = 1 ORDER BY pa.created_at ASC"
+        images_query = """
+            SELECT pa.attachment
+            FROM product_attachments pa
+            WHERE pa.product_id = %s AND pa.status = 1
+            GROUP BY pa.attachment
+            ORDER BY MIN(pa.created_at) ASC
+        """
         product_images = executeGet(images_query, (product_id,))
 
-        # If no additional images, use the main product image
-        clean_images = [build_product_image_url(img.get('attachment')) for img in product_images if img.get('attachment')]
+        clean_images = []
+        seen_images = set()
+        for img in product_images or []:
+            attachment = img.get('attachment')
+            if not attachment or attachment in seen_images:
+                continue
+            seen_images.add(attachment)
+            clean_images.append(build_product_image_url(attachment))
 
         if not clean_images:
             clean_images = [product_image_url]
@@ -349,6 +428,10 @@ def viewProduct(product_id):
             wishlist_ids = get_user_wishlist_ids(user_id)
 
         is_in_wishlist = product_id in wishlist_ids
+
+        variant_type = product.get('variant_type') or 'none'
+        raw_variant_values = product.get('variant_values') or ''
+        variant_values = [value.strip() for value in raw_variant_values.split(',') if value.strip()]
 
         reviews, review_count, average_rating = _get_product_reviews(product_id)
         can_review = _buyer_can_review_product(user_id, product_id) if user_id else False
@@ -371,11 +454,12 @@ def viewProduct(product_id):
                              reviews=reviews,
                              review_count=review_count,
                              average_rating=average_rating,
-                             can_review=can_review)
+                             can_review=can_review,
+                             variant_type=variant_type,
+                             variant_values=variant_values)
     except Exception as e:
         print(f"Error in viewProduct: {str(e)}")
         return render_template('views/404.html'), 404
-
 
 def storeProducts(seller_id):
     categories = getCategoriesInHome("WHERE status = 1")
@@ -493,7 +577,6 @@ def storeProducts(seller_id):
         wishlist_ids=list(wishlist_ids)
     )
 
-
 def getCategories(condition):
     # query = f"SELECT c.user_id, c.category_id, c.category_name, c.created_at, c.updated_at, c.status, u.firstname, u.lastname FROM categories c LEFT JOIN users u ON c.user_id = u.user_id {condition} ORDER BY created_at DESC"
     query = f"SELECT * FROM categories WHERE status = 1"
@@ -502,7 +585,6 @@ def getCategories(condition):
     else:
         results = executeGet(query)
     return results
-
 
 def getCategoriesByField(field, condition):
     query = f"SELECT {field} FROM categories {condition}"
@@ -513,7 +595,6 @@ def getProductsByField(field, condition):
     query = f"SELECT {field} FROM products {condition}"
     results = executeGet(query)
     return results
-
 
 def addCategories():
     # user_id = g.authenticated.get('user_id')
@@ -532,17 +613,12 @@ def addCategories():
         executePost(insert_query, (category_name,))
         return responseData("success", "New category has been added.", "", 200)
 
-
-
 def changeCategoryStatus():
     category_id = request.args.get('cat_id')
     status_to = request.args.get('status_to')
     res = changeStatus("categories","category_id", category_id, status_to)
     if res:
         return responseData("success", "Category has been deleted.", category_id, 200)
-
-
-
 
 def updateCategories():
     category_name = request.form.get('catname')
@@ -560,7 +636,6 @@ def updateCategories():
         query = "UPDATE categories SET category_name = %s WHERE category_id = %s"
         executePost(query, (category_name, category_id))
         return responseData("success", "Category has been updated.", "", 200)
-    
 
 def updateProducts():
     product_name = request.form.get('prodname')
@@ -569,6 +644,8 @@ def updateProducts():
     price = request.form.get('price')
     quantity = request.form.get('quantity')
     product_id = request.form.get('product_id')
+    variant_type = (request.form.get('variant_type') or 'none').lower()
+    variant_values_input = request.form.get('variant_values')
 
     # Consolidate validation checks into a single loop
     required_fields = {
@@ -583,6 +660,17 @@ def updateProducts():
     for field_name, value in required_fields.items():
         if not value:
             return responseData("error", f"{field_name} is required", "", 200)
+
+    variant_columns = _variant_columns_available()
+
+    if variant_type not in ALLOWED_VARIANT_TYPES or not variant_columns:
+        variant_type = 'none'
+
+    normalized_variant_values = None
+    if variant_type != 'none':
+        normalized_variant_values = _normalize_variant_values(variant_values_input or "")
+        if not normalized_variant_values:
+            return responseData("error", "Please provide at least one variant option.", "", 200)
 
     # Get the current product to check if the name is being changed
     current_product = getProductsByField("product_name, category_id", f"WHERE product_id = {product_id}")
@@ -603,16 +691,32 @@ def updateProducts():
 
     try:
         # Perform the update query
-        query = """
-            UPDATE products 
-            SET product_name = %s, 
-                category_id = %s, 
-                description = %s, 
-                price = %s, 
-                qty = %s 
-            WHERE product_id = %s
-        """
-        executePost(query, (product_name, category_id, description, price, quantity, product_id))
+        if variant_columns:
+            query = """
+                UPDATE products 
+                SET product_name = %s, 
+                    category_id = %s, 
+                    description = %s, 
+                    price = %s, 
+                    qty = %s,
+                    variant_type = %s,
+                    variant_values = %s
+                WHERE product_id = %s
+            """
+            params = (product_name, category_id, description, price, quantity, variant_type, normalized_variant_values, product_id)
+        else:
+            query = """
+                UPDATE products 
+                SET product_name = %s, 
+                    category_id = %s, 
+                    description = %s, 
+                    price = %s, 
+                    qty = %s
+                WHERE product_id = %s
+            """
+            params = (product_name, category_id, description, price, quantity, product_id)
+
+        executePost(query, params)
         return responseData("success", "Product has been updated successfully.", "", 200)
     except Exception as e:
         print(f"Error updating product: {str(e)}")
@@ -917,17 +1021,35 @@ def _buyer_can_review_product(user_id, product_id):
         return False
 
     # Buyer can review if they have at least one completed (status 6) order item for this product
-    query = """
+    purchase_query = """
         SELECT COUNT(*) AS cnt
         FROM order_items oi
         WHERE oi.user_id = %s
           AND oi.product_id = %s
           AND oi.status = 6
     """
-    rows = executeGet(query, (user_id, product_id)) or []
+    rows = executeGet(purchase_query, (user_id, product_id)) or []
     if isinstance(rows, tuple) or not rows:
         return False
-    return int(rows[0].get('cnt') or 0) > 0
+
+    if int(rows[0].get('cnt') or 0) <= 0:
+        return False
+
+    # Prevent additional reviews when one already exists for this buyer/product pair
+    existing_review = executeGet(
+        """
+        SELECT review_id
+        FROM product_reviews
+        WHERE user_id = %s AND product_id = %s
+        LIMIT 1
+        """,
+        (user_id, product_id)
+    ) or []
+
+    if isinstance(existing_review, tuple):
+        return False
+
+    return len(existing_review) == 0
 
 
 def submitProductReview():
@@ -972,7 +1094,6 @@ def submitProductReview():
     order_items_id = order_item_row[0].get('order_items_id') if order_item_row else None
     reference = order_item_row[0].get('reference') if order_item_row else None
 
-    # Upsert: one review per buyer+product
     existing = executeGet(
         """
         SELECT review_id
@@ -983,23 +1104,17 @@ def submitProductReview():
         (product_id, user_id)
     ) or []
 
+    if isinstance(existing, tuple):
+        return existing
+
     if existing:
-        update_query = """
-            UPDATE product_reviews
-            SET rating = %s,
-                comment = %s,
-                order_items_id = %s,
-                reference = %s,
-                created_at = NOW()
-            WHERE review_id = %s
-        """
-        executePost(update_query, (rating, comment, order_items_id, reference, existing[0].get('review_id')))
-    else:
-        insert_query = """
-            INSERT INTO product_reviews (product_id, user_id, order_items_id, reference, rating, comment)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        executePost(insert_query, (product_id, user_id, order_items_id, reference, rating, comment))
+        return responseData("error", "You have already submitted a review for this product.", "", 409)
+
+    insert_query = """
+        INSERT INTO product_reviews (product_id, user_id, order_items_id, reference, rating, comment)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    executePost(insert_query, (product_id, user_id, order_items_id, reference, rating, comment))
 
     reviews, review_count, average_rating = _get_product_reviews(product_id)
     payload = {

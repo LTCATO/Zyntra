@@ -8,6 +8,66 @@
   --layout-navbar-height: 64px;
 }
 
+/* Dashboard table responsive */
+@media (max-width: 991.98px) {
+  .dashboard-table thead {
+    display: none;
+  }
+
+  .dashboard-table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background-color: var(--color-surface);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
+  .dashboard-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0;
+    border: none;
+  }
+
+  .dashboard-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-right: 1rem;
+    flex: 0 0 130px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    font-size: 0.75rem;
+  }
+
+  .dashboard-table td > * {
+    text-align: right;
+  }
+
+  .hero-illustration-img {
+    max-height: 140px;
+  }
+
+  .hero-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .hero-illustration-img {
+    max-height: 120px;
+  }
+
+  .hero-card .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Body & Layout */
 body {
   font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -347,6 +407,26 @@ body {
   min-width: 200px;
 }
 
+.navbar-search {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 0.35rem 0.75rem;
+}
+
+.navbar-search input {
+  background: transparent;
+}
+
+.nav-search-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-search .form-control {
+  box-shadow: none;
+}
+
 /* ==========================================================================
    Content Area
    -------------------------------------------------------------------------- */
@@ -449,6 +529,10 @@ body {
   
   .content-wrapper {
     padding: var(--space-4);
+  }
+
+  .navbar-search {
+    width: 100%;
   }
 }
 
@@ -630,4 +714,105 @@ body {
 
 .hide-arrow::after {
   display: none !important;
+}
+
+/* ==========================================================================
+   Dashboard hero + spotlight
+   -------------------------------------------------------------------------- */
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at top right, #5d47ff 0%, #1f2029 35%, #0f1117 100%);
+  color: #f4f5fb;
+  border: none;
+  border-radius: 1rem;
+}
+
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/static/images/noise.png") repeat;
+  opacity: .15;
+  pointer-events: none;
+}
+
+.hero-card .badge {
+  letter-spacing: .05em;
+}
+
+.stat-card .icon-badge {
+  width: 3rem;
+  height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background-color: rgba(99, 102, 241, .12);
+  color: #4f46e5;
+  font-size: 1.35rem;
+}
+
+.spotlight-list li + li {
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.spotlight-list small {
+  display: block;
+}
+
+.hero-illustration-img {
+  max-height: 180px;
+  width: auto;
+}
+
+.hero-meta .btn {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Payments dashboard components
+   -------------------------------------------------------------------------- */
+.payout-hero {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 1rem;
+  color: #fff;
+}
+
+.payout-hero .stat-value {
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.summary-card {
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 0.85rem;
+}
+
+.summary-card h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.summary-card .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.breakdown-card {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.transaction-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.transaction-status .indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }

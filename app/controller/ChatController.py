@@ -163,6 +163,15 @@ def getConversationMessages(conversation_id):
     if isinstance(messages, tuple):
         return messages
 
+    executePost(
+        """
+        UPDATE conversation_messages
+        SET is_read = 1, read_at = IF(read_at IS NULL, NOW(), read_at)
+        WHERE conversation_id = %s AND sender_id != %s AND is_read = 0
+        """,
+        (conversation_id, current_user.get('user_id'))
+    )
+
     messages.reverse()
 
     return responseData("success", "Messages fetched.", messages, 200)

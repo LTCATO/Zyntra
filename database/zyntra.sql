@@ -292,6 +292,8 @@ CREATE TABLE `order_items` (
   `user_id` int(11) NOT NULL,
   `suborder_id` int(11) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
+  `variant_type` enum('none','sizes','colors') NOT NULL DEFAULT 'none',
+  `variant_value` varchar(255) DEFAULT NULL,
   `reference` varchar(255) NOT NULL,
   `status` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -300,23 +302,37 @@ CREATE TABLE `order_items` (
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `reference`, `status`) VALUES
-(27, 32, 52, 9, 1, '5p9rgSYrk6', 2),
-(31, 31, 26, 13, 1, 'K7OWGTjpIT', 2),
-(32, 31, 26, 14, 1, '9imjSpbITY', 2),
-(33, 31, 26, 15, 1, 'jKDMiUpgTQ', 2),
-(34, 31, 26, 16, 1, 'fev6q6mbg5', 2),
-(35, 31, 26, 17, 1, 'mk8HMqpFFU', 6),
-(36, 31, 26, 18, 2, 'TdAv2oG6Ti', 6),
-(40, 34, 26, 22, 1, 'Jpq8pMNmwk', 8),
-(41, 32, 26, 23, 1, '6W2rDbou0Y', 6),
-(44, 31, 26, 24, 1, '4AlrqsJ06I', 1),
-(45, 32, 26, 25, 1, 'frTzPxfrIB', 1),
-(46, 36, 26, 26, 1, '7ooHQEYgRi', 1),
-(48, 47, 26, 27, 1, 'QcRw0u1WyT', 1),
-(49, 31, 26, 28, 1, 'LeSRJv30Tx', 7),
-(50, 31, 26, 29, 1, '0xrs5rl78S', 2),
-(51, 41, 26, 30, 1, 'Jfc8brVEBE', 7);
+INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_id`, `quantity`, `variant_type`, `variant_value`, `reference`, `status`) VALUES
+(27, 32, 52, 9, 1, 'none', NULL, '5p9rgSYrk6', 2),
+(31, 31, 26, 13, 1, 'none', NULL, 'K7OWGTjpIT', 2),
+(32, 31, 26, 14, 1, 'none', NULL, '9imjSpbITY', 2),
+(33, 31, 26, 15, 1, 'none', NULL, 'jKDMiUpgTQ', 2),
+(34, 31, 26, 16, 1, 'none', NULL, 'fev6q6mbg5', 2),
+(35, 31, 26, 17, 1, 'none', NULL, 'mk8HMqpFFU', 6),
+(36, 31, 26, 18, 2, 'none', NULL, 'TdAv2oG6Ti', 6),
+(37, 31, 26, 19, 2, 'none', NULL, 'Df9em1u0Yy', 6),
+(38, 31, 26, 20, 2, 'none', NULL, '0GvlvqwOIB', 6),
+(39, 31, 26, 21, 1, 'none', NULL, '6fM3ST2n6h', 6),
+(40, 31, 26, 22, 1, 'none', NULL, 'sYM4FT6hX7', 6),
+(41, 31, 26, 23, 1, 'none', NULL, 'IXVkvBbJxV', 6),
+(42, 31, 26, 24, 1, 'none', NULL, 'oag6HE6gkW', 6),
+(43, 31, 26, 25, 1, 'none', NULL, 'nFoGRUnALR', 6),
+(44, 31, 26, 26, 2, 'none', NULL, 'b9PrPX8PaW', 6),
+(45, 31, 26, 27, 2, 'none', NULL, 'nXF5hJa21j', 6),
+(46, 31, 26, 28, 4, 'none', NULL, 'no301YELte', 6),
+(47, 31, 26, 29, 2, 'none', NULL, 'Ueoutin8wp', 6),
+(48, 31, 26, 30, 2, 'none', NULL, 'sagef7hta7', 6),
+(49, 31, 26, 31, 4, 'none', NULL, 'QW2flxapHi', 6),
+(50, 31, 26, 32, 2, 'none', NULL, 'Mdb6J6Rx1U', 6),
+(51, 31, 26, 33, 2, 'none', NULL, 'JoHVfMGsHp', 6),
+(52, 31, 26, 34, 2, 'none', NULL, 'HAl5Tcd6Nl', 6),
+(53, 31, 26, 35, 4, 'none', NULL, 'Z9keQNSvZc', 6),
+(54, 31, 26, 36, 2, 'none', NULL, '4I6bls1hbN', 6),
+(55, 31, 26, 37, 1, 'none', NULL, 'cZ86b82w5A', 6),
+(56, 31, 26, 38, 1, 'none', NULL, 'HmfDirectU', 6),
+(57, 32, 52, 39, 1, 'none', NULL, 'eF20zWxb2J', 6),
+(58, 32, 52, 40, 1, 'none', NULL, 'Li6Yq802UL', 6),
+(59, 32, 52, 41, 1, 'none', NULL, 'iWdNaQj8Un', 6);
 
 -- --------------------------------------------------------
 
@@ -400,6 +416,8 @@ CREATE TABLE `products` (
   `description` longtext DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
   `qty` int(10) DEFAULT NULL,
+  `variant_type` enum('none','sizes','colors') NOT NULL DEFAULT 'none',
+  `variant_values` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `status` int(1) DEFAULT 1

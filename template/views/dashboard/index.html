@@ -5,440 +5,208 @@
 {% block style %}{% endblock %}
 
 {% block content %}
+{% set hero = hero or {} %}
+{% set stat_cards = stat_cards or [] %}
+{% set progress_cards = progress_cards or [] %}
+{% set table = table or {} %}
+{% set spotlight_cards = spotlight_cards or [] %}
+{% set feed_items = feed_items or [] %}
+
 <div class="container-xxl flex-grow-1 container-p-y">
-  <!-- Header -->
-  <div class="row mb-4">
-    <div class="col-lg-8 mb-4 order-0">
-      <div class="card">
-        <div class="d-flex align-items-end row">
-          <div class="col-sm-7">
-            <div class="card-body">
-              <h5 class="card-title text-primary">Welcome back, John! 🎉</h5>
-              <p class="mb-4">
-                You have <span class="fw-medium">72%</span> more sales today. Check your new badge in your profile.
-              </p>
-              <a href="javascript:;" class="btn btn-sm btn-primary">View Profile</a>
+  <!-- Hero -->
+  <div class="row g-4 align-items-stretch mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="card hero-card h-100">
+        <div class="card-body position-relative">
+          <div class="d-flex flex-column flex-lg-row justify-content-between align-items-stretch gap-3">
+            <div class="order-2 order-lg-1 text-center text-lg-start">
+              <span class="badge bg-white text-dark text-uppercase mb-3">{{ hero.eyebrow or 'Live snapshot' }}</span>
+              <h4 class="text-white mb-2">Hi {{ user_name|default('there') }}, {{ hero.title or 'here is your latest performance' }}</h4>
+              <p class="text-white-50 mb-4">{{ hero.subtitle or 'Keep fulfilling orders to keep the marketplace moving.' }}</p>
+              <div class="d-flex flex-wrap gap-3 align-items-center justify-content-center justify-content-lg-start hero-meta">
+                <div>
+                  <small class="text-white-50 text-uppercase fw-semibold">{{ hero.meta_label or 'Key figure' }}</small>
+                  <h3 class="text-white mb-0">{{ hero.meta_value or '—' }}</h3>
+                </div>
+                {% if hero.cta_href %}
+                  <a href="{{ hero.cta_href }}" class="btn btn-light btn-sm">{{ hero.cta_label or 'View details' }}</a>
+                {% endif %}
+              </div>
             </div>
-          </div>
-          <div class="col-sm-5 text-center text-sm-left">
-            <div class="card-body pb-0 px-0 px-md-4">
-              <img
-                src="https://demos.themeselection.com/sneat-bootstrap-html-admin-template/assets/img/illustrations/man-with-laptop-light.png"
-                height="140"
-                alt="View Badge User"
-                data-app-dark-img="illustrations/man-with-laptop-dark.png"
-                data-app-light-img="illustrations/man-with-laptop-light.png" />
+            <div class="order-1 order-lg-2 text-center text-lg-end hero-illustration">
+              {% if role_id == 1 %}
+                <img src="{{ url_for('static', filename='images/admin-hero.svg') }}" class="img-fluid hero-illustration-img" alt="Admin hub">
+              {% elif role_id == 4 %}
+                <img src="{{ url_for('static', filename='images/rider-hero.svg') }}" class="img-fluid hero-illustration-img" alt="Rider hub">
+              {% else %}
+                <img src="{{ url_for('static', filename='images/seller-hero.svg') }}" class="img-fluid hero-illustration-img" alt="Seller hub">
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Statistics Card -->
-    <div class="col-lg-4 col-md-4 order-1">
-      <div class="row">
-        <div class="col-lg-6 col-md-12 col-6 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <div class="card-title d-flex align-items-start justify-content-between">
-                <div class="avatar flex-shrink-0">
-                  <i class="bx bx-trending-up text-success" style="font-size: 2rem;"></i>
-                </div>
-              </div>
-              <span class="fw-medium d-block mb-1">Sales</span>
-              <h3 class="card-title mb-2">$12,628</h3>
-              <small class="text-success fw-medium"><i class="bx bx-up-arrow-alt"></i> +72.80%</small>
+    <div class="col-12 col-lg-4">
+      <div class="card h-100 pipeline-card">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="avatar-initial bg-label-primary rounded-circle" style="width:3.5rem;height:3.5rem;">
+              <i class="bx bx-target-lock fs-4"></i>
+            </span>
+            <div>
+              <p class="text-uppercase text-muted mb-1 small fw-semibold">Role</p>
+              <h5 class="mb-0">{{ 'Administrator' if role_id == 1 else 'Rider' if role_id == 4 else 'Seller' }}</h5>
             </div>
           </div>
-        </div>
-        <div class="col-lg-6 col-md-12 col-6 mb-4">
-          <div class="card">
-            <div class="card-body">
-              <div class="card-title d-flex align-items-start justify-content-between">
-                <div class="avatar flex-shrink-0">
-                  <i class="bx bx-dollar text-primary" style="font-size: 2rem;"></i>
-                </div>
-              </div>
-              <span class="fw-medium d-block mb-1">Revenue</span>
-              <h3 class="card-title mb-2">$4,679</h3>
-              <small class="text-success fw-medium"><i class="bx bx-up-arrow-alt"></i> +28.42%</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stats Cards Row -->
-  <div class="row mb-4">
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="avatar">
-              <div class="avatar-initial bg-primary rounded">
-                <i class="bx bx-user text-white" style="font-size: 1.5rem;"></i>
-              </div>
-            </div>
-            <div class="dropdown">
-              <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt1">
-                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-              </div>
-            </div>
-          </div>
-          <span class="d-block mb-1">Total Users</span>
-          <h3 class="card-title text-nowrap mb-1">2,856</h3>
-          <small class="text-success fw-medium"><i class="bx bx-up-arrow-alt"></i> +18.2%</small>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="avatar">
-              <div class="avatar-initial bg-success rounded">
-                <i class="bx bx-check-circle text-white" style="font-size: 1.5rem;"></i>
-              </div>
-            </div>
-            <div class="dropdown">
-              <button class="btn p-0" type="button" id="cardOpt2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt2">
-                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-              </div>
-            </div>
-          </div>
-          <span class="d-block mb-1">Completed Orders</span>
-          <h3 class="card-title text-nowrap mb-1">1,423</h3>
-          <small class="text-success fw-medium"><i class="bx bx-up-arrow-alt"></i> +24.5%</small>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="avatar">
-              <div class="avatar-initial bg-warning rounded">
-                <i class="bx bx-time text-white" style="font-size: 1.5rem;"></i>
-              </div>
-            </div>
-            <div class="dropdown">
-              <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-              </div>
-            </div>
-          </div>
-          <span class="d-block mb-1">Pending Orders</span>
-          <h3 class="card-title text-nowrap mb-1">284</h3>
-          <small class="text-danger fw-medium"><i class="bx bx-down-arrow-alt"></i> -8.3%</small>
-        </div>
-      </div>
-    </div>
-    
-    <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6 mb-4">
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="avatar">
-              <div class="avatar-initial bg-info rounded">
-                <i class="bx bx-cart text-white" style="font-size: 1.5rem;"></i>
-              </div>
-            </div>
-            <div class="dropdown">
-              <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bx bx-dots-vertical-rounded"></i>
-              </button>
-              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
-                <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-              </div>
-            </div>
-          </div>
-          <span class="d-block mb-1">Total Products</span>
-          <h3 class="card-title text-nowrap mb-1">1,567</h3>
-          <small class="text-success fw-medium"><i class="bx bx-up-arrow-alt"></i> +12.7%</small>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts and Tables Row -->
-  <div class="row">
-    <!-- Order Statistics -->
-    <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
-      <div class="card h-100">
-        <div class="card-header d-flex align-items-center justify-content-between pb-0">
-          <div class="card-title mb-0">
-            <h5 class="m-0 me-2">Order Statistics</h5>
-            <small class="text-muted">42.82k Total Sales</small>
-          </div>
-          <div class="dropdown">
-            <button
-              class="btn p-0"
-              type="button"
-              id="orederStatistics"
-              data-bs-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false">
-              <i class="bx bx-dots-vertical-rounded"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orederStatistics">
-              <a class="dropdown-item" href="javascript:void(0);">Select All</a>
-              <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
-              <a class="dropdown-item" href="javascript:void(0);">Share</a>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="d-flex flex-column align-items-center gap-1">
-              <h2 class="mb-2">8,258</h2>
-              <span>Total Orders</span>
-            </div>
-            <div id="orderStatisticsChart"></div>
-          </div>
-          <ul class="p-0 m-0">
-            <li class="d-flex mb-4 pb-1">
-              <div class="avatar flex-shrink-0 me-3">
-                <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-mobile-alt"></i></span>
-              </div>
-              <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                <div class="me-2">
-                  <h6 class="mb-0">Electronic</h6>
-                  <small class="text-muted">Mobile, Earbuds, TV</small>
-                </div>
-                <div class="user-progress">
-                  <small class="fw-medium">82.5k</small>
-                </div>
-              </div>
-            </li>
-            <li class="d-flex mb-4 pb-1">
-              <div class="avatar flex-shrink-0 me-3">
-                <span class="avatar-initial rounded bg-label-success"><i class="bx bx-closet"></i></span>
-              </div>
-              <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                <div class="me-2">
-                  <h6 class="mb-0">Fashion</h6>
-                  <small class="text-muted">T-shirt, Jeans, Shoes</small>
-                </div>
-                <div class="user-progress">
-                  <small class="fw-medium">23.8k</small>
-                </div>
-              </div>
-            </li>
-            <li class="d-flex mb-4 pb-1">
-              <div class="avatar flex-shrink-0 me-3">
-                <span class="avatar-initial rounded bg-label-info"><i class="bx bx-home-alt"></i></span>
-              </div>
-              <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                <div class="me-2">
-                  <h6 class="mb-0">Decor</h6>
-                  <small class="text-muted">Fine Art, Dining</small>
-                </div>
-                <div class="user-progress">
-                  <small class="fw-medium">849k</small>
-                </div>
-              </div>
-            </li>
-            <li class="d-flex">
-              <div class="avatar flex-shrink-0 me-3">
-                <span class="avatar-initial rounded bg-label-secondary"><i class="bx bx-football"></i></span>
-              </div>
-              <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                <div class="me-2">
-                  <h6 class="mb-0">Sports</h6>
-                  <small class="text-muted">Football, Cricket Kit</small>
-                </div>
-                <div class="user-progress">
-                  <small class="fw-medium">99</small>
-                </div>
-              </div>
-            </li>
+          <ul class="list-unstyled mb-0 small text-muted">
+            <li class="mb-2"><i class="bx bx-check-circle text-success me-2"></i>Authenticated session</li>
+            <li class="mb-2"><i class="bx bx-check-circle text-success me-2"></i>Live figures pulled from database</li>
+            <li><i class="bx bx-check-circle text-success me-2"></i>Context-aware dashboard content</li>
           </ul>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Revenue Chart -->
-    <div class="col-md-6 col-lg-8 order-1 mb-4">
-      <div class="card h-100">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <h5 class="card-title m-0 me-2">Revenue Report</h5>
-          <div class="dropdown">
-            <button
-              class="btn p-0"
-              type="button"
-              id="revenueChart"
-              data-bs-toggle="dropdown"
-              aria-haspopup="true"
-              aria-expanded="false">
-              <i class="bx bx-dots-vertical-rounded"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="revenueChart">
-              <a class="dropdown-item" href="javascript:void(0);">Last 7 Days</a>
-              <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
-              <a class="dropdown-item" href="javascript:void(0);">Last Year</a>
-            </div>
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-12 col-md-8 d-flex flex-column justify-content-center">
-              <div class="ps-2">
-                <h4 class="text-primary mb-1">$25,825</h4>
-                <p class="mb-4">Budget for this month</p>
-                <div class="d-flex align-items-center gap-3">
-                  <span class="badge bg-label-primary">Year 2024</span>
-                  <span class="text-muted">$25k Earnings</span>
-                </div>
+  <!-- Stat cards -->
+  <div class="row g-4 mb-4 stat-cards-row">
+    {% for card in stat_cards %}
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card h-100 stat-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="icon-badge">
+                <i class="{{ card.icon or 'bx bx-line-chart' }}"></i>
               </div>
+              {% if card.trend %}
+                <small class="{{ card.trend_class or 'text-muted' }}">{{ card.trend }}</small>
+              {% endif %}
             </div>
-            <div class="col-12 col-md-4">
-              <div id="revenueChartEl"></div>
-            </div>
+            <p class="text-muted text-uppercase small mb-1">{{ card.label }}</p>
+            <h4 class="mb-2">{{ card.value or '—' }}</h4>
+            <p class="text-muted small mb-0">{{ card.helper }}</p>
           </div>
         </div>
       </div>
-    </div>
+    {% endfor %}
+    {% if not stat_cards %}
+      <div class="col-12">
+        <div class="alert alert-warning mb-0">No metrics available yet. Add orders to see live stats.</div>
+      </div>
+    {% endif %}
   </div>
 
-  <!-- Recent Transactions -->
-  <div class="row">
-    <div class="col-12 mb-4">
-      <div class="card">
-        <h5 class="card-header">Recent Transactions</h5>
-        <div class="table-responsive text-nowrap">
-          <table class="table">
-            <thead>
+  <!-- Progress + table -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-4">
+      <div class="card h-100 pipeline-outlook-card">
+        <div class="card-header">
+          <h5 class="mb-1">Pipeline outlook</h5>
+          <p class="text-muted mb-0 small">Share of orders / trips by lifecycle state.</p>
+        </div>
+        <div class="card-body">
+          {% for card in progress_cards %}
+            <div class="mb-4">
+              <div class="d-flex justify-content-between mb-1">
+                <span class="fw-semibold">{{ card.label }}</span>
+                <span class="badge {{ card.badge_class or 'bg-label-info' }}">{{ card.caption }}</span>
+              </div>
+              <h5 class="mb-0">{{ card.amount }}</h5>
+            </div>
+          {% endfor %}
+          {% if not progress_cards %}
+            <p class="text-muted small mb-0">No progress data yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">{{ table.title or 'Recent records' }}</h5>
+            <p class="text-muted small mb-0">Latest six rows tied to your role.</p>
+          </div>
+          {% if hero.cta_href %}
+            <a href="{{ hero.cta_href }}" class="btn btn-sm btn-outline-primary">Open view</a>
+          {% endif %}
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 dashboard-table">
+            <thead class="table-light">
               <tr>
-                <th>ID</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th class="createdAt">Date</th>
-                <th>Actions</th>
+                {% for column in table.columns or [] %}
+                  <th>{{ column.label }}</th>
+                {% endfor %}
               </tr>
             </thead>
-            <tbody class="table-border-bottom-0">
-              <tr>
-                <td><strong>#5089</strong></td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="avatar avatar-sm me-3">
-                      <span class="avatar-initial rounded-circle bg-label-primary">JD</span>
-                    </div>
-                    <div>
-                      <h6 class="mb-0">John Doe</h6>
-                      <small class="text-muted">john@example.com</small>
-                    </div>
-                  </div>
-                </td>
-                <td>iPhone 15 Pro</td>
-                <td>$1,299.00</td>
-                <td><span class="badge bg-label-success">Completed</span></td>
-                <td class="createdAt">2024-10-12 14:30:00</td>
-                <td>
-                  <div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                      <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>#5088</strong></td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="avatar avatar-sm me-3">
-                      <span class="avatar-initial rounded-circle bg-label-warning">AS</span>
-                    </div>
-                    <div>
-                      <h6 class="mb-0">Alice Smith</h6>
-                      <small class="text-muted">alice@example.com</small>
-                    </div>
-                  </div>
-                </td>
-                <td>MacBook Pro 16"</td>
-                <td>$2,499.00</td>
-                <td><span class="badge bg-label-warning">Pending</span></td>
-                <td class="createdAt">2024-10-12 13:15:00</td>
-                <td>
-                  <div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                      <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>#5087</strong></td>
-                <td>
-                  <div class="d-flex align-items-center">
-                    <div class="avatar avatar-sm me-3">
-                      <span class="avatar-initial rounded-circle bg-label-info">BJ</span>
-                    </div>
-                    <div>
-                      <h6 class="mb-0">Bob Johnson</h6>
-                      <small class="text-muted">bob@example.com</small>
-                    </div>
-                  </div>
-                </td>
-                <td>AirPods Pro</td>
-                <td>$249.00</td>
-                <td><span class="badge bg-label-success">Completed</span></td>
-                <td class="createdAt">2024-10-12 11:45:00</td>
-                <td>
-                  <div class="dropdown">
-                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                      <i class="bx bx-dots-vertical-rounded"></i>
-                    </button>
-                    <div class="dropdown-menu">
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                      <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
-                    </div>
-                  </div>
-                </td>
-              </tr>
+            <tbody>
+              {% for row in table.rows or [] %}
+                <tr>
+                  {% for column in table.columns or [] %}
+                    {% set value = row[column.key] %}
+                    <td data-label="{{ column.label }}">
+                      {% if column.key == 'status' and value %}
+                        <span class="badge {{ value.class }}">{{ value.label }}</span>
+                      {% else %}
+                        {{ value }}
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
+        {% if not table.rows %}
+          <div class="card-body text-center text-muted">
+            {{ table.empty_text or 'No records yet.' }}
+          </div>
+        {% endif %}
       </div>
     </div>
   </div>
 
+  <!-- Spotlight panels -->
+  <div class="row g-4 mt-1">
+    {% for card in spotlight_cards %}
+      <div class="col-12 col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between">
+            <h5 class="mb-0">{{ card.title }}</h5>
+            {% if card.badge %}
+              <span class="badge bg-label-info">{{ card.badge }}</span>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            {% set card_items = card.get('items', []) %}
+            {% if card_items %}
+              <ul class="list-unstyled mb-0 spotlight-list">
+                {% for item in card_items %}
+                  <li class="py-3 d-flex justify-content-between align-items-start">
+                    <div>
+                      <p class="fw-semibold mb-0">{{ item.primary }}</p>
+                      <small class="text-muted">{{ item.meta }}</small>
+                    </div>
+                    <span class="fw-semibold text-primary">{{ item.secondary }}</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted small mb-0">Nothing to highlight yet.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    {% if not spotlight_cards %}
+      <div class="col-12">
+        <div class="alert alert-secondary mb-0">Add products or complete trips to unlock spotlight insights.</div>
+      </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
 
-{% block script %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Placeholder for future chart initialization
-    if (document.querySelector('#revenueChartEl')) {
-      // Chart code hook
-    }
-  });
-</script>
-{% endblock %}
+{% block script %}{% endblock %}

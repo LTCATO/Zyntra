@@ -572,17 +572,40 @@ def shop():
 
 def getProductsBySearch(query):
     query = f"%{query}%"
-    sql_query = "SELECT p.product_id, p.category_id, p.product_name, c.category_name, pa.attachment, p.description, p.price, p.qty, p.created_at, p.status FROM products p LEFT JOIN categories c ON p.category_id = c.category_id LEFT JOIN product_attachments pa ON p.product_id = pa.product_id WHERE p.product_name LIKE %s AND p.status = 1"
+    sql_query = """
+        SELECT 
+            p.product_id,
+            p.category_id,
+            p.product_name,
+            c.category_name,
+            p.description,
+            p.price,
+            p.qty,
+            p.created_at,
+            p.status,
+            (
+                SELECT GROUP_CONCAT(pa.attachment ORDER BY pa.created_at ASC)
+                FROM product_attachments pa
+                WHERE pa.product_id = p.product_id
+                  AND pa.status = 1
+            ) AS attachments
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.category_id
+        WHERE p.product_name LIKE %s
+          AND p.status = 1
+          AND c.status != 2
+    """
     results = executeGet(sql_query, (query,))
-    if not results:
+    if not results or isinstance(results, tuple):
         return []
 
     for product in results:
         product_price = float(product.get('price', 0) or 0)
         product['formatted_price'] = locale.format_string("%0.2f", product_price, grouping=True)
 
-        attachment = product.get('attachment')
-        product['attachment'] = build_product_image_url(attachment)
+        attachments = product.get('attachments') or ''
+        first_attachment = attachments.split(',')[0] if attachments else None
+        product['attachment'] = build_product_image_url(first_attachment)
 
     return results
 

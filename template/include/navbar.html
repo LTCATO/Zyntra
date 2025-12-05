@@ -44,7 +44,7 @@
         <!-- User Actions -->
         <div class="d-flex align-items-center gap-2">
           {% if g.authenticated %}
-            <div class="dropdown">
+            <div class="dropdown d-none d-lg-block">
               <button class="btn zyn-account-btn" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="fw-semibold">{{ g.authenticated.firstname }} {{ g.authenticated.lastname }}</span>
               </button>
@@ -73,14 +73,14 @@
           {% endif %}
 
           {% if g.authenticated %}
-            <a class="zyn-cart-btn position-relative" href="javascript:void(0)" title="Notifications">
+            <a class="zyn-cart-btn position-relative d-none d-lg-block" href="javascript:void(0)" title="Notifications">
               <i class="bi bi-bell fs-5"></i>
             </a>
-            <a class="zyn-cart-btn position-relative" href="{{ url_for('wishlist_page') }}" title="Wishlist">
+            <a class="zyn-cart-btn position-relative d-none d-lg-block" href="{{ url_for('wishlist_page') }}" title="Wishlist">
               <i class="bi bi-heart fs-5"></i>
               <span class="zyn-cart-badge{% if not g.wishlist_count %} d-none{% endif %}" data-wishlist-count>{{ g.wishlist_count or '' }}</span>
             </a>
-            <a class="zyn-cart-btn position-relative" href="{{ url_for('cart_page') }}" title="Cart">
+            <a class="zyn-cart-btn position-relative d-none d-lg-block" href="{{ url_for('cart_page') }}" title="Cart">
               <i class="bi bi-cart3 fs-5"></i>
               <span class="zyn-cart-badge{% if not g.cart_item_count %} d-none{% endif %}" data-cart-count>{{ g.cart_item_count or '' }}</span>
             </a>
@@ -159,18 +159,41 @@
 
         <!-- Mobile Links -->
         <div class="zyn-mobile-links">
+          {% if g.authenticated %}
+          <div class="mb-3">
+            <h6 class="zyn-mobile-title mb-2">Account</h6>
+            <a class="zyn-mobile-link" href="{{ url_for('profile_page') }}">
+              <i class="bi bi-person me-2"></i>Profile
+            </a>
+            <a class="zyn-mobile-link" href="{{ url_for('order_tracking_hub') }}">
+              <i class="bi bi-truck me-2"></i>Track Orders
+            </a>
+            <a class="zyn-mobile-link" href="{{ url_for('wishlist_page') }}">
+              <i class="bi bi-heart me-2"></i>Wishlist
+            </a>
+            <a class="zyn-mobile-link" href="{{ url_for('cart_page') }}">
+              <i class="bi bi-cart3 me-2"></i>Cart
+            </a>
+          </div>
+          {% endif %}
           <a class="zyn-mobile-link" href="{{ url_for('home_page') }}#featured-products" data-scroll-target="#featured-products">
             <i class="bi bi-star me-2"></i>Featured Products
           </a>
           <a class="zyn-mobile-link" href="{{ url_for('about_page') }}">
             <i class="bi bi-headset me-2"></i>Customer Support
           </a>
+          {% if not g.authenticated %}
           <a class="zyn-mobile-link" href="{{ url_for('sell_page') }}">
             <i class="bi bi-shop-window me-2"></i>Sell on Zyntra
           </a>
           <a class="zyn-mobile-link" href="{{ url_for('deliver_page') }}">
             <i class="bi bi-truck me-2"></i>Deliver with Zyntra
           </a>
+          {% else %}
+          <a class="zyn-mobile-link text-danger" href="{{ url_for('logout') }}">
+            <i class="bi bi-box-arrow-right me-2"></i>Logout
+          </a>
+          {% endif %}
         </div>
       </div>
     </div>

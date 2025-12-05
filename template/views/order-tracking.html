@@ -17,7 +17,6 @@
     {'title': 'Delivered', 'description': 'Package has been delivered to the destination.'}
 ] %}
 
-{% block style %}{% endblock %}
 
 {% block content %}
 <div class="tracking-page container py-5">
@@ -127,7 +126,6 @@
                                 <h5 class="mb-0">Order #{{ order_summary.reference }}</h5>
                                 <small class="text-muted">Seller · {{ item.store_name }}</small>
                             </div>
-                            <span class="badge rounded-pill px-3 py-2 {{ 'bg-soft-warning text-warning' if order_summary.status < 4 else 'bg-soft-success text-success' }}">{{ order_summary.status_text }}</span>
                         </div>
 
                         <div class="d-flex align-items-center gap-3 mb-3">
@@ -140,15 +138,10 @@
                             </div>
                             <div class="text-end">
                                 <p class="mb-0 fw-semibold">₱{{ item.formatted_total }}</p>
-                                <small class="text-muted">₱{{ item.formatted_price }} each</small>
                             </div>
                         </div>
 
                         <div class="vstack gap-2 small text-muted">
-                            <div class="d-flex justify-content-between">
-                                <span>Unit Price</span>
-                                <span>₱{{ item.formatted_price }}</span>
-                            </div>
                             <div class="d-flex justify-content-between">
                                 <span>Quantity</span>
                                 <span>{{ item.quantity }}</span>
@@ -156,10 +149,6 @@
                             <div class="d-flex justify-content-between">
                                 <span>Item Subtotal</span>
                                 <span>₱{{ item.formatted_total }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Shipping</span>
-                                <span class="fw-semibold">{{ shipping_label }}</span>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <span>Convenience Fee</span>

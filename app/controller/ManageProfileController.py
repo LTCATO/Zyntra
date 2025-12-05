@@ -59,6 +59,16 @@ def _build_address_context(user_id):
         'address_texts': address_texts
     }
 
+def _get_basic_profile(user_id):
+    profile_query = """
+        SELECT user_id, firstname, lastname, email, phone, created_at
+        FROM users
+        WHERE user_id = %s
+        LIMIT 1
+    """
+    result = executeGet(profile_query, (user_id,))
+    return result[0] if isinstance(result, list) and result else {}
+
 def profileOverview():
     user_id = g.authenticated.get('user_id') if g.authenticated else None
     profile_data = {}
@@ -90,8 +100,56 @@ def profileOverview():
     )
 
 def manageProfile():
+    if not g.authenticated:
+        return render_template('views/manage-profile/manageProfile.html', menu=['manage'])
+
+    user_id = g.authenticated.get('user_id')
+    role_id = g.authenticated.get('role_id')
+
+    profile_data = _get_basic_profile(user_id) if user_id else {}
+    join_date = _format_join_date(profile_data.get('created_at')) if profile_data else None
+    address_context = _build_address_context(user_id) if user_id else {
+        'user_address': None,
+        'formatted_address': None,
+        'address_texts': {}
+    }
+
+    seller_details = None
+    rider_details = None
+
+    if role_id == 3 and user_id:
+        seller_query = """
+            SELECT store_name, description, region, province, city, barangay, street,
+                   gov_id_path, business_permit_path, status, updated_at
+            FROM seller_details
+            WHERE user_id = %s
+            ORDER BY updated_at DESC
+            LIMIT 1
+        """
+        seller_rows = executeGet(seller_query, (user_id,))
+        seller_details = seller_rows[0] if isinstance(seller_rows, list) and seller_rows else None
+    elif role_id == 4 and user_id:
+        rider_query = """
+            SELECT vehicle_type, plate_number, region, province, city, barangay, street,
+                   drivers_license_path, gov_id_path, status, updated_at
+            FROM delivery_partners
+            WHERE user_id = %s
+            ORDER BY updated_at DESC
+            LIMIT 1
+        """
+        rider_rows = executeGet(rider_query, (user_id,))
+        rider_details = rider_rows[0] if isinstance(rider_rows, list) and rider_rows else None
+
     active_menu = ['manage']
-    return render_template('views/manage-profile/manageProfile.html', menu=active_menu)
+    return render_template(
+        'views/manage-profile/manageProfile.html',
+        menu=active_menu,
+        profile=profile_data,
+        join_date=join_date,
+        seller_details=seller_details,
+        rider_details=rider_details,
+        **address_context
+    )
 
 def sellerRequest():
     user_id = g.authenticated['user_id']

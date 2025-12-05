@@ -38,6 +38,7 @@ from controller.RiderController import (
     claimPickupAssignment,
     updatePickupStatus,
 )
+from controller.PaymentController import paymentDashboard
 
 from controller.ChatController import (
     ensureConversation,
@@ -86,26 +87,42 @@ def setup_routes(app: Flask):
         # Load cart items for the current user
         if g.authenticated and g.authenticated.get('user_id'):
             from helpers.QueryHelpers import executeGet
-            query = """
+            user_id = g.authenticated['user_id']
+
+            cart_query = """
                 SELECT COUNT(oi.order_items_id) AS item_count
                 FROM order_items oi
                 WHERE oi.user_id = %s
                   AND oi.status = 1
                   AND (oi.reference = '' OR oi.reference IS NULL)
             """
-            result = executeGet(query, (g.authenticated['user_id'],))
-            g.cart_item_count = result[0]['item_count'] if result else 0
+            cart_result = executeGet(cart_query, (user_id,))
+            g.cart_item_count = cart_result[0]['item_count'] if cart_result else 0
 
             wishlist_query = """
                 SELECT COUNT(w.wishlist_id) as wishlist_count
                 FROM wishlists w
                 WHERE w.user_id = %s
             """
-            wishlist_result = executeGet(wishlist_query, (g.authenticated['user_id'],))
+            wishlist_result = executeGet(wishlist_query, (user_id,))
             g.wishlist_count = wishlist_result[0]['wishlist_count'] if wishlist_result else 0
+
+            unread_messages_query = """
+                SELECT COUNT(*) AS unread_count
+                FROM conversation_messages cm
+                JOIN conversations c ON cm.conversation_id = c.conversation_id
+                WHERE cm.is_read = 0
+                  AND (
+                        (c.buyer_id = %s AND cm.sender_id != %s)
+                     OR (c.seller_id = %s AND cm.sender_id != %s)
+                  )
+            """
+            unread_result = executeGet(unread_messages_query, (user_id, user_id, user_id, user_id))
+            g.messages_unread_count = unread_result[0]['unread_count'] if unread_result else 0
         else:
             g.cart_item_count = 0
             g.wishlist_count = 0
+            g.messages_unread_count = 0
 
 
     #HomeController
@@ -288,6 +305,16 @@ def setup_routes(app: Flask):
     def messages_page():
         return render_template('views/dashboard/messages.html', menu='messages')
         
+    @app.route('/payment')
+    @login_required
+    def payment_page():
+        return paymentDashboard()
+
+    @app.route('/rider-earnings')
+    @login_required
+    def rider_earnings_page():
+        return paymentDashboard()
+
     # Rider routes
     @app.route('/rider')
     @login_required

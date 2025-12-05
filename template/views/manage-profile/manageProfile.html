@@ -1,0 +1,417 @@
+{% extends 'dashboard-base.html' %}
+
+{% block title %}Manage Profile{% endblock %}
+
+{% block content %}
+{% set profile_data = profile or {} %}
+{% set role_id = auth_user['role_id'] %}
+{% set primary_firstname = profile_data.get('firstname') or auth_user.get('firstname') %}
+{% set primary_lastname = profile_data.get('lastname') or auth_user.get('lastname') %}
+{% set full_name = ((primary_firstname ~ ' ' ~ (primary_lastname or '')) | trim) %}
+{% set primary_email = profile_data.get('email') or auth_user.get('email') %}
+{% set primary_phone = profile_data.get('phone') or auth_user.get('phone') %}
+{% set role_label = 'Rider' if role_id == 4 else 'Seller' %}
+{% set seller_status_map = {0:'Pending review', 1:'Approved', 2:'Rejected'} %}
+{% set rider_status_map = {0:'Pending review', 1:'Approved', 2:'Rejected', 3:'Active', 4:'Inactive'} %}
+{% set seller_status_value = seller_details.status if seller_details else None %}
+{% set rider_status_value = rider_details.status if rider_details else None %}
+{% set seller_status_badge = 'bg-label-success' if seller_status_value == 1 else ('bg-label-danger' if seller_status_value == 2 else 'bg-label-warning') %}
+{% set rider_status_badge = 'bg-label-success' if rider_status_value in [1, 3] else ('bg-label-danger' if rider_status_value == 2 else 'bg-label-warning') %}
+<div class="container-xxl flex-grow-1 container-p-y">
+  <div class="row g-4 align-items-stretch mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="card hero-card h-100">
+        <div class="card-body position-relative">
+          <div class="d-flex flex-column flex-lg-row justify-content-between gap-4">
+            <div>
+              <span class="badge bg-white text-dark text-uppercase mb-3">Account profile</span>
+              <h4 class="text-white mb-2">Hi <span data-profile-field="full-name">{{ full_name or 'there' }}</span>, keep your {{ 'delivery' if role_id == 4 else 'store' }} details up to date.</h4>
+              <p class="text-white-50 mb-4">Verified contact info speeds up payouts and helps support reach you when there are delivery or order issues.</p>
+              <div class="d-flex flex-wrap gap-3">
+                <div>
+                  <small class="text-white-50 text-uppercase fw-semibold">Role</small>
+                  <h5 class="text-white mb-0">{{ 'Rider' if role_id == 4 else 'Seller' }}</h5>
+                </div>
+                <div>
+                  <small class="text-white-50 text-uppercase fw-semibold">Email</small>
+                  <h5 class="text-white mb-0 text-break" data-profile-field="email">{{ primary_email if primary_email else 'Set your email' }}</h5>
+                </div>
+              </div>
+            </div>
+            <div class="text-end">
+              {% if role_id == 4 %}
+                <img src="{{ url_for('static', filename='images/rider-hero.svg') }}" class="img-fluid" alt="Rider profile" style="max-height:150px;">
+              {% else %}
+                <img src="{{ url_for('static', filename='images/seller-hero.svg') }}" class="img-fluid" alt="Seller profile" style="max-height:150px;">
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-muted text-uppercase small mb-3">Quick actions</h6>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-3">
+              <span class="fw-semibold d-block">Update contact info</span>
+              <span class="text-muted">Submit a ticket or contact support to change your phone or email.</span>
+            </li>
+            <li class="mb-3">
+              <span class="fw-semibold d-block">Upload documents</span>
+              <span class="text-muted">Email compliance@zyntra.test for document revalidation.</span>
+            </li>
+            <li>
+              <span class="fw-semibold d-block">Security</span>
+              <span class="text-muted">Reset your password from the login page if needed.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">Personal information</h5>
+            <small class="text-muted">Keep names and contact details current.</small>
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPersonalInfoModal">
+            Edit
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="row gy-3">
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">First name</small>
+              <p class="fw-semibold mb-0" data-profile-field="firstname">{{ primary_firstname or '—' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Last name</small>
+              <p class="fw-semibold mb-0" data-profile-field="lastname">{{ primary_lastname or '—' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Display name</small>
+              <p class="fw-semibold mb-0" data-profile-field="full-name">{{ full_name or '—' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Account ID</small>
+              <p class="fw-semibold mb-0">#{{ profile_data.get('user_id') or auth_user.get('user_id') }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Email</small>
+              <p class="fw-semibold mb-0 text-break" data-profile-field="email">{{ primary_email or '—' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Phone</small>
+              <p class="fw-semibold mb-0" data-profile-field="phone">{{ primary_phone or 'Link a phone number with support' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Join date</small>
+              <p class="fw-semibold mb-0">{{ join_date or '—' }}</p>
+            </div>
+            <div class="col-12 col-md-6">
+              <small class="text-muted text-uppercase d-block">Role</small>
+              <p class="fw-semibold mb-0">{{ role_label }}</p>
+            </div>
+            {% if role_id == 3 %}
+              <div class="col-12">
+                <small class="text-muted text-uppercase d-block">Seller status</small>
+                <span class="badge {{ seller_status_badge }} px-3 py-2">
+                  {{ seller_status_map.get(seller_status_value) if seller_details else 'Not submitted' }}
+                </span>
+              </div>
+            {% elif role_id == 4 %}
+              <div class="col-12">
+                <small class="text-muted text-uppercase d-block">Rider status</small>
+                <span class="badge {{ rider_status_badge }} px-3 py-2">
+                  {{ rider_status_map.get(rider_status_value) if rider_details else 'Not submitted' }}
+                </span>
+              </div>
+            {% endif %}
+          </div>
+
+          {% if role_id == 3 %}
+            <hr class="my-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="mb-1">Store details</h6>
+                <small class="text-muted">Submission status & documents</small>
+              </div>
+            </div>
+            {% if seller_details %}
+              <div class="row gy-3">
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Store name</small>
+                  <p class="fw-semibold mb-0">{{ seller_details.store_name or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Last updated</small>
+                  <p class="fw-semibold mb-0">{{ seller_details.updated_at or '—' }}</p>
+                </div>
+                <div class="col-12">
+                  <small class="text-muted text-uppercase d-block">Description</small>
+                  <p class="mb-0">{{ seller_details.description or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Store region</small>
+                  <p class="fw-semibold mb-0">{{ seller_details.region or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Store city</small>
+                  <p class="fw-semibold mb-0">{{ seller_details.city or '—' }}</p>
+                </div>
+                <div class="col-12">
+                  <small class="text-muted text-uppercase d-block">Documents</small>
+                  <ul class="mb-0 ps-3">
+                    <li>Government ID: {{ 'On file' if seller_details.gov_id_path else 'Missing' }}</li>
+                    <li>Business permit: {{ 'On file' if seller_details.business_permit_path else 'Missing' }}</li>
+                  </ul>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-warning mb-0" role="alert">
+                No seller profile submitted yet. Contact support to upload your documents.
+              </div>
+            {% endif %}
+          {% elif role_id == 4 %}
+            <hr class="my-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h6 class="mb-1">Rider credentials</h6>
+                <small class="text-muted">Vehicle & compliance data</small>
+              </div>
+            </div>
+            {% if rider_details %}
+              <div class="row gy-3">
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Vehicle type</small>
+                  <p class="fw-semibold mb-0">{{ rider_details.vehicle_type or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Plate number</small>
+                  <p class="fw-semibold mb-0">{{ rider_details.plate_number or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Service province</small>
+                  <p class="fw-semibold mb-0">{{ rider_details.province or '—' }}</p>
+                </div>
+                <div class="col-12 col-md-6">
+                  <small class="text-muted text-uppercase d-block">Service city</small>
+                  <p class="fw-semibold mb-0">{{ rider_details.city or '—' }}</p>
+                </div>
+                <div class="col-12">
+                  <small class="text-muted text-uppercase d-block">Documents</small>
+                  <ul class="mb-0 ps-3">
+                    <li>Driver's license: {{ 'On file' if rider_details.drivers_license_path else 'Missing' }}</li>
+                    <li>Government ID: {{ 'On file' if rider_details.gov_id_path else 'Missing' }}</li>
+                  </ul>
+                </div>
+                <div class="col-12">
+                  <small class="text-muted text-uppercase d-block">Last updated</small>
+                  <p class="fw-semibold mb-0">{{ rider_details.updated_at or '—' }}</p>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-warning mb-0" role="alert">
+                No rider details detected. Reach out to rider support to complete onboarding.
+              </div>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-1">Payout preferences</h5>
+            <small class="text-muted">Ensure payout details are accurate.</small>
+          </div>
+          <a href="/payment" class="btn btn-sm btn-outline-primary">View payouts</a>
+        </div>
+        <div class="card-body">
+          {% if role_id == 4 %}
+            <p class="mb-2">Provide your latest bank details to finance so we can release shipping fees as soon as drops are cleared.</p>
+            <ul class="mb-0">
+              <li>Bank name and account number on file must match your government ID.</li>
+              <li>Submit cash card or e-wallet updates through rider support.</li>
+            </ul>
+          {% else %}
+            <p class="mb-2">Configure where completed order balances are deposited.</p>
+            <ul class="mb-0">
+              <li>Upload a valid government ID and business permit for store verification.</li>
+              <li>Provide an active bank account or e-wallet under the store owner.</li>
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-1">Compliance checklist</h5>
+          <small class="text-muted">Track onboarding tasks.</small>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            {% if role_id == 4 %}
+              <li class="mb-3">
+                <span class="badge bg-label-success me-2"><i class="bx bx-check"></i></span>
+                Driver's license uploaded
+              </li>
+              <li class="mb-3">
+                <span class="badge bg-label-warning me-2"><i class="bx bx-time-five"></i></span>
+                Vehicle inspection schedule
+              </li>
+              <li>
+                <span class="badge bg-label-info me-2"><i class="bx bx-info-circle"></i></span>
+                Update proof of address yearly
+              </li>
+            {% else %}
+              <li class="mb-3">
+                <span class="badge bg-label-success me-2"><i class="bx bx-check"></i></span>
+                Business permit uploaded
+              </li>
+              <li class="mb-3">
+                <span class="badge bg-label-warning me-2"><i class="bx bx-time-five"></i></span>
+                Product catalog review pending
+              </li>
+              <li>
+                <span class="badge bg-label-info me-2"><i class="bx bx-info-circle"></i></span>
+                Update store banner quarterly
+              </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-1">Need changes?</h5>
+          <small class="text-muted">How to request profile updates.</small>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info mb-4" role="alert">
+            Profile edits are currently processed by the support team. Submit a request with the details you want to change and any supporting documents.
+          </div>
+          <ul class="list-unstyled mb-0 small">
+            <li class="mb-2"><strong>Email:</strong> support@zyntra.test</li>
+            <li class="mb-2"><strong>Subject:</strong> {{ 'Rider' if role_id == 4 else 'Seller' }} profile update</li>
+            <li><strong>Include:</strong> government ID, phone number, address, and the change you want to make.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Personal info modal -->
+<div class="modal fade" id="editPersonalInfoModal" tabindex="-1" aria-labelledby="editPersonalInfoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editPersonalInfoLabel">Edit personal information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="personalInfoForm">
+        <div class="modal-body">
+          <div id="personalInfoFeedback" class="alert d-none" role="alert"></div>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">First name</label>
+              <input type="text" name="firstname" class="form-control" value="{{ primary_firstname or '' }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Last name</label>
+              <input type="text" name="lastname" class="form-control" value="{{ primary_lastname or '' }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Phone number</label>
+              <input type="text" name="phone" class="form-control" value="{{ primary_phone or '' }}" placeholder="+63 xxx xxx xxxx">
+            </div>
+            <div class="col-12">
+              <p class="text-muted small mb-0">Need to update your email? Submit a support ticket so we can verify the new address.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-text" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const personalInfoForm = document.getElementById('personalInfoForm');
+      if (!personalInfoForm) return;
+
+      const feedbackEl = document.getElementById('personalInfoFeedback');
+      const submitBtn = personalInfoForm.querySelector('button[type="submit"]');
+
+      personalInfoForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+        feedbackEl.classList.add('d-none');
+        feedbackEl.classList.remove('alert-success', 'alert-danger');
+
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+
+        try {
+          const response = await fetch('/profile/update', {
+            method: 'POST',
+            body: new FormData(personalInfoForm)
+          });
+          const payload = await response.json();
+          const isSuccess = (payload.status || '').toLowerCase() === 'success';
+
+          feedbackEl.textContent = payload.message || (isSuccess ? 'Profile updated successfully.' : 'Something went wrong.');
+          feedbackEl.classList.add('alert', isSuccess ? 'alert-success' : 'alert-danger');
+          feedbackEl.classList.remove('d-none');
+
+          if (isSuccess) {
+            const firstname = personalInfoForm.firstname.value.trim();
+            const lastname = personalInfoForm.lastname.value.trim();
+            const phone = personalInfoForm.phone.value.trim();
+            const fullName = `${firstname} ${lastname}`.trim();
+
+            document.querySelectorAll('[data-profile-field="firstname"]').forEach(el => el.textContent = firstname || '—');
+            document.querySelectorAll('[data-profile-field="lastname"]').forEach(el => el.textContent = lastname || '—');
+            document.querySelectorAll('[data-profile-field="full-name"]').forEach(el => el.textContent = fullName || '—');
+            document.querySelectorAll('[data-profile-field="phone"]').forEach(el => el.textContent = phone || 'Link a phone number with support');
+
+            setTimeout(() => {
+              const modalEl = document.getElementById('editPersonalInfoModal');
+              const modalInstance = bootstrap.Modal.getInstance(modalEl);
+              modalInstance && modalInstance.hide();
+            }, 1200);
+          }
+        } catch (error) {
+          feedbackEl.textContent = 'Unable to update profile. Please try again.';
+          feedbackEl.classList.add('alert', 'alert-danger');
+          feedbackEl.classList.remove('d-none');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      });
+    });
+  </script>
+{% endblock %}

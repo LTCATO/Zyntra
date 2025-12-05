@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 05, 2025 at 09:11 PM
+-- Generation Time: Dec 05, 2025 at 09:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -46,10 +46,9 @@ CREATE TABLE `addresses` (
 --
 
 INSERT INTO `addresses` (`address_id`, `user_id`, `floor_unit_number`, `region`, `province`, `city_municipality`, `barangay`, `street`, `other_notes`, `created_at`, `updated_at`) VALUES
-(1, 26, 'N/A', '07', '0712', '071209', '071209011', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:40:30', '2025-12-02 11:03:18'),
-(2, 26, 'N/A', '07', '0712', '071209', '071209011', 'lilian st.', 'paglagpas ng tulay', '2025-11-19 13:57:01', '2025-12-02 11:03:18'),
 (3, 29, '2F C', '07', '0761', '076104', '076104012', 'N/A', '', '2025-11-24 02:50:39', '2025-11-24 02:50:39'),
-(4, 52, 'N/A', '17', '1751', '175110', '175110011', 'N/A', 'sa likod ng sementeryo', '2025-11-29 03:38:39', '2025-11-29 03:38:39');
+(4, 52, 'N/A', '17', '1751', '175110', '175110011', 'N/A', 'sa likod ng sementeryo', '2025-11-29 03:38:39', '2025-11-29 03:38:39'),
+(5, 26, 'N/A', '03', '0349', '034916', '034916021', 'er', 'We', '2025-12-05 20:32:14', '2025-12-05 20:32:14');
 
 -- --------------------------------------------------------
 
@@ -215,7 +214,14 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `order_id`, `title`, 
 (69, 24, 41, 'New order placed', 'User User placed order 9Rp2qwCB97 (Sub-order 9Rp2qwCB97-01) containing 1 item(s): Apple HomePod Mini Cosmic Grey', 'order', 0, NULL, '2025-12-05 19:53:40'),
 (70, 25, 41, 'Pickup Available', 'Sub-order 9Rp2qwCB97-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 19:53:58'),
 (71, 24, 42, 'New order placed', 'User User placed order kHjTdbSKBC (Sub-order kHjTdbSKBC-01) containing 1 item(s): Apple Watch Series 4 Gold', 'order', 0, NULL, '2025-12-05 20:00:34'),
-(72, 25, 42, 'Pickup Available', 'Sub-order kHjTdbSKBC-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 20:00:50');
+(72, 25, 42, 'Pickup Available', 'Sub-order kHjTdbSKBC-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 20:00:50'),
+(73, 24, 43, 'New order placed', 'User User placed order 6oFm1oeKZU (Sub-order 6oFm1oeKZU-01) containing 1 item(s): Huawei Matebook X Pro', 'order', 0, NULL, '2025-12-05 20:13:24'),
+(74, 25, 43, 'Pickup Available', 'Sub-order 6oFm1oeKZU-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 20:13:45'),
+(75, 24, 44, 'New order placed', 'User User placed order c0R1SOUDgR (Sub-order c0R1SOUDgR-01) containing 1 item(s): Apple Watch Series 4 Gold', 'order', 0, NULL, '2025-12-05 20:21:47'),
+(76, 25, 44, 'Pickup Available', 'Sub-order c0R1SOUDgR-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 20:22:03'),
+(77, 24, 45, 'New order placed', 'User User placed order CFafmJaE5p (Sub-order CFafmJaE5p-01) containing 1 item(s): Oppo A57', 'order', 0, NULL, '2025-12-05 20:28:41'),
+(78, 24, 46, 'New order placed', 'User User placed order Bey8jBImWS (Sub-order Bey8jBImWS-01) containing 1 item(s): Oppo A57', 'order', 0, NULL, '2025-12-05 20:32:28'),
+(79, 25, 46, 'Pickup Available', 'Sub-order Bey8jBImWS-01 is ready for pickup.', 'system', 0, NULL, '2025-12-05 20:34:00');
 
 -- --------------------------------------------------------
 
@@ -252,7 +258,11 @@ INSERT INTO `orders` (`order_id`, `user_id`, `reference`, `subtotal`, `shipping_
 (39, 26, 'afkmOOW8KL', 1999.99, 79.00, 0.00, '2078.99', 'cod', '2025-12-05 19:00:32', '2025-12-06 03:00:32', 1),
 (40, 26, 'eGtomOla2c', 1999.99, 79.00, 0.00, '2078.99', 'cod', '2025-12-05 19:46:15', '2025-12-06 03:46:15', 1),
 (41, 26, '9Rp2qwCB97', 99.99, 79.00, 0.00, '178.99', 'cod', '2025-12-05 19:53:40', '2025-12-06 03:53:40', 1),
-(42, 26, 'kHjTdbSKBC', 349.99, 79.00, 0.00, '428.99', 'cod', '2025-12-05 20:00:34', '2025-12-06 04:00:34', 1);
+(42, 26, 'kHjTdbSKBC', 349.99, 79.00, 0.00, '428.99', 'cod', '2025-12-05 20:00:34', '2025-12-06 04:00:34', 1),
+(43, 26, '6oFm1oeKZU', 1399.99, 79.00, 0.00, '1478.99', 'cod', '2025-12-05 20:13:24', '2025-12-06 04:13:24', 1),
+(44, 26, 'c0R1SOUDgR', 349.99, 79.00, 0.00, '428.99', 'cod', '2025-12-05 20:21:47', '2025-12-06 04:21:47', 1),
+(45, 26, 'CFafmJaE5p', 249.99, 79.00, 0.00, '328.99', 'cod', '2025-12-05 20:28:41', '2025-12-06 04:28:41', 1),
+(46, 26, 'Bey8jBImWS', 249.99, 79.00, 0.00, '328.99', 'cod', '2025-12-05 20:32:28', '2025-12-06 04:34:49', 6);
 
 -- --------------------------------------------------------
 
@@ -288,7 +298,11 @@ INSERT INTO `order_items` (`order_items_id`, `product_id`, `user_id`, `suborder_
 (69, 57, 26, 38, 1, 'none', NULL, 'afkmOOW8KL', 3),
 (70, 57, 26, 39, 1, 'none', NULL, 'eGtomOla2c', 3),
 (71, 60, 26, 40, 1, 'none', NULL, '9Rp2qwCB97', 4),
-(72, 65, 26, 41, 1, 'none', NULL, 'kHjTdbSKBC', 4);
+(72, 65, 26, 41, 1, 'none', NULL, 'kHjTdbSKBC', 4),
+(73, 50, 26, 42, 1, 'none', NULL, '6oFm1oeKZU', 3),
+(74, 65, 26, 43, 1, 'none', NULL, 'c0R1SOUDgR', 4),
+(75, 58, 26, 44, 1, 'none', NULL, 'CFafmJaE5p', 1),
+(76, 58, 26, 45, 1, 'none', NULL, 'Bey8jBImWS', 6);
 
 -- --------------------------------------------------------
 
@@ -320,16 +334,20 @@ CREATE TABLE `order_suborders` (
 
 INSERT INTO `order_suborders` (`suborder_id`, `order_id`, `seller_id`, `reference`, `status`, `subtotal`, `shipping_fee`, `tax_amount`, `total_amount`, `created_at`, `updated_at`, `pickup_status`, `pickup_rider_id`, `pickup_claimed_at`, `pickup_completed_at`) VALUES
 (31, 32, 24, 'CWUecIDN3O-01', 5, 4292470.00, 0.00, 0.00, 4292470.00, '2025-12-05 16:13:18', '2025-12-05 16:14:00', 0, NULL, NULL, NULL),
-(32, 33, 24, 'Im0yvcEhGW-01', 6, 80990.00, 0.00, 0.00, 80990.00, '2025-12-05 16:15:04', '2025-12-05 19:50:19', 4, 8, '2025-12-06 00:31:21', '2025-12-06 00:33:59'),
-(33, 34, 24, 'ajnm3ma4JB-01', 6, 238.99, 79.00, 0.00, 317.99, '2025-12-05 16:23:44', '2025-12-05 19:50:19', 4, 8, '2025-12-06 00:31:19', '2025-12-06 00:33:58'),
+(32, 33, 24, 'Im0yvcEhGW-01', 6, 80990.00, 0.00, 0.00, 80990.00, '2025-12-05 16:15:04', '2025-12-05 20:19:54', 4, 25, '2025-12-06 00:31:21', '2025-12-06 00:33:59'),
+(33, 34, 24, 'ajnm3ma4JB-01', 6, 238.99, 79.00, 0.00, 317.99, '2025-12-05 16:23:44', '2025-12-05 20:19:54', 4, 25, '2025-12-06 00:31:19', '2025-12-06 00:33:58'),
 (34, 35, 24, 'GhNaPNzpbS-01', 8, 109.00, 79.00, 0.00, 188.00, '2025-12-05 16:25:01', '2025-12-05 16:25:36', 0, NULL, NULL, NULL),
-(35, 36, 24, 'LEZXebH2ig-01', 4, 3999.98, 0.00, 0.00, 3999.98, '2025-12-05 17:15:19', '2025-12-05 19:50:19', 4, 8, '2025-12-06 01:38:17', '2025-12-06 01:50:02'),
-(36, 37, 24, 'bIoOKJaxa6-01', 4, 99.99, 79.00, 0.00, 178.99, '2025-12-05 17:50:51', '2025-12-05 19:50:19', 4, 8, '2025-12-06 01:53:35', '2025-12-06 01:58:41'),
-(37, 38, 24, 'zmTWVjHMvs-01', 4, 1399.99, 79.00, 0.00, 1478.99, '2025-12-05 18:31:24', '2025-12-05 19:50:19', 4, 8, '2025-12-06 02:32:23', '2025-12-06 02:41:46'),
-(38, 39, 24, 'afkmOOW8KL-01', 3, 1999.99, 79.00, 0.00, 2078.99, '2025-12-05 19:00:32', '2025-12-05 19:45:27', 3, 8, '2025-12-06 03:06:34', NULL),
-(39, 40, 24, 'eGtomOla2c-01', 3, 1999.99, 79.00, 0.00, 2078.99, '2025-12-05 19:46:15', '2025-12-05 19:50:19', 3, 8, '2025-12-06 03:46:58', NULL),
-(40, 41, 24, '9Rp2qwCB97-01', 4, 99.99, 79.00, 0.00, 178.99, '2025-12-05 19:53:40', '2025-12-05 20:00:07', 4, 8, '2025-12-06 03:54:42', '2025-12-06 03:57:11'),
-(41, 42, 24, 'kHjTdbSKBC-01', 4, 349.99, 79.00, 0.00, 428.99, '2025-12-05 20:00:34', '2025-12-05 20:01:13', 4, 25, '2025-12-06 04:01:06', '2025-12-06 04:01:13');
+(35, 36, 24, 'LEZXebH2ig-01', 4, 3999.98, 0.00, 0.00, 3999.98, '2025-12-05 17:15:19', '2025-12-05 20:19:54', 4, 25, '2025-12-06 01:38:17', '2025-12-06 01:50:02'),
+(36, 37, 24, 'bIoOKJaxa6-01', 4, 99.99, 79.00, 0.00, 178.99, '2025-12-05 17:50:51', '2025-12-05 20:19:54', 4, 25, '2025-12-06 01:53:35', '2025-12-06 01:58:41'),
+(37, 38, 24, 'zmTWVjHMvs-01', 4, 1399.99, 79.00, 0.00, 1478.99, '2025-12-05 18:31:24', '2025-12-05 20:19:54', 4, 25, '2025-12-06 02:32:23', '2025-12-06 02:41:46'),
+(38, 39, 24, 'afkmOOW8KL-01', 3, 1999.99, 79.00, 0.00, 2078.99, '2025-12-05 19:00:32', '2025-12-05 20:19:54', 3, 25, '2025-12-06 03:06:34', NULL),
+(39, 40, 24, 'eGtomOla2c-01', 3, 1999.99, 79.00, 0.00, 2078.99, '2025-12-05 19:46:15', '2025-12-05 20:19:54', 3, 25, '2025-12-06 03:46:58', NULL),
+(40, 41, 24, '9Rp2qwCB97-01', 4, 99.99, 79.00, 0.00, 178.99, '2025-12-05 19:53:40', '2025-12-05 20:19:54', 4, 25, '2025-12-06 03:54:42', '2025-12-06 03:57:11'),
+(41, 42, 24, 'kHjTdbSKBC-01', 4, 349.99, 79.00, 0.00, 428.99, '2025-12-05 20:00:34', '2025-12-05 20:01:13', 4, 25, '2025-12-06 04:01:06', '2025-12-06 04:01:13'),
+(42, 43, 24, '6oFm1oeKZU-01', 3, 1399.99, 79.00, 0.00, 1478.99, '2025-12-05 20:13:24', '2025-12-05 20:14:07', 3, 25, '2025-12-06 04:13:57', NULL),
+(43, 44, 24, 'c0R1SOUDgR-01', 4, 349.99, 79.00, 0.00, 428.99, '2025-12-05 20:21:47', '2025-12-05 20:22:44', 4, 25, '2025-12-06 04:22:23', '2025-12-06 04:22:44'),
+(44, 45, 24, 'CFafmJaE5p-01', 1, 249.99, 79.00, 0.00, 328.99, '2025-12-05 20:28:41', '2025-12-05 20:28:41', 0, NULL, NULL, NULL),
+(45, 46, 24, 'Bey8jBImWS-01', 6, 249.99, 79.00, 0.00, 328.99, '2025-12-05 20:32:28', '2025-12-05 20:34:49', 4, 25, '2025-12-06 04:34:19', '2025-12-06 04:34:38');
 
 -- --------------------------------------------------------
 
@@ -372,16 +390,16 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`product_id`, `user_id`, `category_id`, `product_name`, `description`, `price`, `qty`, `variant_type`, `variant_values`, `created_at`, `updated_at`, `status`) VALUES
 (32, 24, 1, 'Apple iPhone 17 Pro Max', '<h2><span style=\"color: rgb(46, 51, 70);\">Product Details</span></h2><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/80cd44831a19253c14f6eb830a1b26e4.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/1dbc9b2ef7c52352408e3c0beae31df1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/8c42cef9c30446124509669d948b90af.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/64a001478f5cd9065fb5a6c4a71fd15e.png_2200x2200q80.png_.webp\"></span></p><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c0b4efd0f3ce1da650422899ffbe0b1b.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/76de24d2ff93f12e9f941e846fada57c.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/73a7f1256278c34439951a3c54e0edd4.jpg_2200x2200q80.jpg_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/50e473eb89cca70d6ec3e4df0e27af3e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/87e7620216c15f9f32b55d5731435d9f.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c204fbe19fbbb63b1b8021103e49887d.png_2200x2200q80.png_.webp\"></span></p><p><br></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/e97527268995294d6daa6f8770901767.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/7cfba9a4754b3f581af287915427652b.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/3e24b76cee8aaed81f5c2d58e96b099e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/b1c8997c6cfc747aa954aa432911b435.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/b050366f1a96f33b5f65c0fc9d4c35e1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c7f89cc62c4dbb91a9b939c21713290e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/880aadadf89019cca70000e57f130950.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/24d2aefe15e95a43ea2d149e1beb0887.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/8ea36614a94011741a1fb958711b793e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/da9b8f3be3ef0b12cbbb07550ae5f4d8.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/ccfb20cadbf5da035ea5d7b2fb9866af.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/21f559c2569f3eddb9b346669f16a18e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/c4bf697f0edfb379181a997496265fcf.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/979035c76489749bef93199110f652ad.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/93c9f5bf387d6953cca1f1a08b868291.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/81feb19f29430f960f40b2e3e9b5bcec.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/a9a4f5faa4bfb4ea30bd09b4dac3bbbb.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/f127c2aa195bd036efb8fe7a8111581a.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/e8c5ecca99f756b72e7854c9e4d38bb1.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/0deaadf6fa752bec2c9fcc64756482ed.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/0c4f25ca7628b53233a9f6e781330f21.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/870d578f10702ee762ff522810eb496e.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/a520fa4c12c5be0881e52bdd6858b447.png_2200x2200q80.png_.webp\"></span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\"><img src=\"https://img.lazcdn.com/g/p/866fa2c461a654a3db922b009e61ee9d.png_2200x2200q80.png_.webp\"></span></p><p><br></p><h2><span style=\"background-color: rgb(255, 255, 255); color: rgb(46, 51, 70);\">Specifications of Apple iPhone 17 Pro Max</span></h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Brand</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Apple</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">SKU</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">5260093111_PH-31227369038</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Model</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Apple iPhone 17 Pro Max</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Warranty Type</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">International Manufacturer Warranty</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Warranty</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">1 Year</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">Delivery Option Instant</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">Yes</span></li></ol><p><span style=\"background-color: rgb(255, 255, 255); color: rgb(117, 117, 117);\">What’s in the box</span></p><p><span style=\"color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);\">iPhone with iOS&nbsp;26,USB-C Charge Cable (1m),Documentation</span></p><p class=\"ql-align-center\"><br></p><p><br></p>', 80990.00, 30, 'none', NULL, '2025-11-18 15:09:27', '2025-12-06 00:47:09', 2),
-(50, 24, 1, 'Huawei Matebook X Pro', '<p>The Huawei Matebook X Pro is a slim and stylish laptop with a high-resolution touchscreen display, offering a premium experience for users on the go.</p>', 1399.99, 487, 'none', NULL, '2025-11-24 13:38:03', '2025-12-06 02:31:51', 1),
+(50, 24, 1, 'Huawei Matebook X Pro', '<p>The Huawei Matebook X Pro is a slim and stylish laptop with a high-resolution touchscreen display, offering a premium experience for users on the go.</p>', 1399.99, 486, 'none', NULL, '2025-11-24 13:38:03', '2025-12-06 04:13:43', 1),
 (57, 24, 2, 'Apple MacBook Pro 14 Inch Space Grey', '<p>The MacBook Pro 14 Inch in Space Grey is a powerful and sleek laptop, featuring Apple\'s M1 Pro chip for exceptional performance and a stunning Retina display.</p>', 1999.99, 19, 'none', NULL, '2025-11-24 13:38:15', '2025-12-06 03:46:44', 1),
-(58, 24, 1, 'Oppo A57', '<p>The Oppo A57 is a mid-range smartphone known for its sleek design and capable features. It offers a balance of performance and affordability, making it a popular choice.</p>', 249.99, 33, 'none', NULL, '2025-11-24 13:38:16', '2025-11-24 21:38:16', 1),
+(58, 24, 1, 'Oppo A57', '<p>The Oppo A57 is a mid-range smartphone known for its sleek design and capable features. It offers a balance of performance and affordability, making it a popular choice.</p>', 249.99, 32, 'none', NULL, '2025-11-24 13:38:16', '2025-12-06 04:33:57', 1),
 (59, 24, 2, 'WD 4TB Gaming Drive Works with Playstation 4 Portable External Hard Drive', '<p>Expand your PS4 gaming experience, Play anywhere Fast and easy, setup Sleek design with high capacity, 3-year manufacturer\'s limited warranty</p>', 114.00, 47, 'none', NULL, '2025-11-24 13:38:19', '2025-11-24 21:38:19', 1),
 (60, 24, 4, 'Apple HomePod Mini Cosmic Grey', '<p>The Apple HomePod Mini in Cosmic Grey is a compact smart speaker that delivers impressive audio and integrates seamlessly with the Apple ecosystem for a smart home experience.</p>', 99.99, 38, 'none', NULL, '2025-11-24 13:38:20', '2025-12-06 03:53:55', 1),
 (61, 24, 1, 'iPhone 12 Silicone Case with MagSafe Plum', '<p>The iPhone 12 Silicone Case with MagSafe in Plum is a stylish and protective case designed for the iPhone 12. It features MagSafe technology for easy attachment of accessories.</p>', 29.99, 14, 'none', NULL, '2025-11-24 13:38:23', '2025-11-24 21:38:23', 1),
 (62, 24, 4, 'Realme C35', '<p>The Realme C35 is a budget-friendly smartphone with a focus on providing essential features for everyday use. It offers a reliable performance and user-friendly experience.</p>', 149.99, 13, 'none', NULL, '2025-11-24 13:38:25', '2025-11-24 21:38:25', 1),
 (63, 24, 5, 'iPad Mini 2021 Starlight', '<p>The iPad Mini 2021 in Starlight is a compact and powerful tablet from Apple. Featuring a stunning Retina display, powerful A-series chip, and a sleek design, it offers a premium tablet experience.</p>', 499.99, 39, 'none', NULL, '2025-11-24 13:38:27', '2025-11-24 21:38:27', 1),
 (64, 24, 1, 'Acer SB220Q bi 21.5 inches Full HD (1920 x 1080) IPS Ultra-Thin', '<p>21. 5 inches Full HD (1920 x 1080) widescreen IPS display And Radeon free Sync technology. No compatibility for VESA Mount Refresh Rate: 75Hz - Using HDMI port Zero-frame design | ultra-thin | 4ms response time | IPS panel Aspect ratio - 16: 9. Color Supported - 16. 7 million colors. Brightness - 250 nit Tilt angle -5 degree to 15 degree. Horizontal viewing angle-178 degree. Vertical viewing angle-178 degree 75 hertz</p>', 599.00, 22, 'none', NULL, '2025-11-24 13:38:29', '2025-11-24 21:38:29', 1),
-(65, 24, 6, 'Apple Watch Series 4 Gold', '<p>The Apple Watch Series 4 in Gold is a stylish and advanced smartwatch with features like heart rate monitoring, fitness tracking, and a beautiful Retina display.</p>', 349.99, 28, 'none', NULL, '2025-11-24 13:38:30', '2025-12-06 04:00:47', 1),
+(65, 24, 6, 'Apple Watch Series 4 Gold', '<p>The Apple Watch Series 4 in Gold is a stylish and advanced smartwatch with features like heart rate monitoring, fitness tracking, and a beautiful Retina display.</p>', 349.99, 27, 'none', NULL, '2025-11-24 13:38:30', '2025-12-06 04:22:01', 1),
 (66, 24, 1, 'Samsung Galaxy S10', '<p>The Samsung Galaxy S10 is a flagship device featuring a dynamic AMOLED display, versatile camera system, and powerful performance. It represents innovation and excellence in smartphone technology.</p>', 699.99, 27, 'none', NULL, '2025-11-24 13:38:32', '2025-11-24 21:38:32', 1),
 (67, 24, 3, 'Apple Airpods', '<p>The Apple Airpods offer a seamless wireless audio experience. With easy pairing, high-quality sound, and Siri integration, they are perfect for on-the-go listening.</p>', 129.99, 43, 'none', NULL, '2025-11-24 13:38:33', '2025-12-06 00:25:52', 1),
 (68, 24, 2, 'Silicon Power 256GB SSD 3D NAND A55 SLC Cache Performance Boost SATA III 2.5', '<p>3D NAND flash are applied to deliver high transfer speeds Remarkable transfer speeds that enable faster bootup and improved overall system performance. The advanced SLC Cache Technology allows performance boost and longer lifespan 7mm slim design suitable for Ultrabooks and Ultra-slim notebooks. Supports TRIM command, Garbage Collection technology, RAID, and ECC (Error Checking & Correction) to provide the optimized performance and enhanced reliability.</p>', 109.00, 35, 'none', NULL, '2025-11-24 13:38:35', '2025-12-06 00:25:52', 1),
@@ -781,7 +799,7 @@ ALTER TABLE `wishlists`
 -- AUTO_INCREMENT for table `addresses`
 --
 ALTER TABLE `addresses`
-  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `address_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -811,25 +829,25 @@ ALTER TABLE `delivery_partners`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `order_id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `order_items_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT for table `order_suborders`
 --
 ALTER TABLE `order_suborders`
-  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `suborder_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `payments`

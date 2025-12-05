@@ -80,13 +80,16 @@
                                     {% endif %}
                                     <span class="badge rounded-pill bg-success-subtle text-success small mb-2">In Stock</span>
                                     <div class="d-flex align-items-center">
-                                        <div class="quantity-selector me-3" style="width: 80px;">
+                                        <div class="quantity-selector me-3" style="width: 96px;">
                                             <input type="number" 
                                                    id="quantity-{{ item.get('order_items_id') }}" 
                                                    value="{{ item.get('quantity', 1) }}" 
                                                    class="form-control form-control-sm text-center quantity-input" 
+                                                   style="padding-inline: 0.35rem; font-size: 0.8rem;"
                                                    min="1"
+                                                   max="{{ item.get('stock', 9999) }}"
                                                    data-price="{{ item.get('price', 0) }}"
+                                                   data-max-stock="{{ item.get('stock', 9999) }}"
                                                    data-order-item-id="{{ item.get('order_items_id') }}"
                                                    oninput="updateItemTotal(this)"
                                                    onkeypress="return handleQuantityKeyPress(event, this)"
@@ -342,9 +345,17 @@
     function updateItemTotal(input) {
         // Store the current value before changing it
         input.setAttribute('data-old-value', input.value);
-        
-        // Ensure quantity is at least 1
-        const quantity = Math.max(1, parseInt(input.value) || 1);
+
+        // Determine max stock limit if provided
+        const maxStockAttr = input.dataset.maxStock || input.getAttribute('max');
+        const maxStock = maxStockAttr ? parseInt(maxStockAttr, 10) : null;
+
+        // Ensure quantity is at least 1 and does not exceed stock
+        let quantity = Math.max(1, parseInt(input.value) || 1);
+        if (maxStock && quantity > maxStock) {
+            quantity = maxStock;
+        }
+
         if (input.value !== quantity.toString()) {
             input.value = quantity;
         }
@@ -394,11 +405,19 @@
 
     function sendQuantityUpdate(input, quantityOverride) {
         const orderItemId = input ? (input.dataset.orderItemId || input.id.split('-')[1]) : null;
-        const quantity = quantityOverride !== undefined ? quantityOverride : (input ? input.value : null);
+        let quantity = quantityOverride !== undefined ? quantityOverride : (input ? input.value : null);
 
         if (!input || !orderItemId) return;
 
-        const quantityInt = Math.max(1, parseInt(quantity) || 1);
+        // Enforce min/max bounds including stock
+        const maxStockAttr = input.dataset.maxStock || input.getAttribute('max');
+        const maxStock = maxStockAttr ? parseInt(maxStockAttr, 10) : null;
+
+        let quantityInt = Math.max(1, parseInt(quantity) || 1);
+        if (maxStock && quantityInt > maxStock) {
+            quantityInt = maxStock;
+        }
+
         if (input.value !== quantityInt.toString()) {
             input.value = quantityInt;
         }

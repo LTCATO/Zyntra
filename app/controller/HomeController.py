@@ -291,6 +291,7 @@ def get_cart_items_for_user(user_id):
             oi.status,
             p.product_name,
             p.price,
+            p.qty AS stock,
             sd.store_name,
             (
                 SELECT pa.attachment

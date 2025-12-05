@@ -299,7 +299,9 @@ def get_cart_items_for_user(user_id):
                 ORDER BY pa.updated_at DESC, pa.product_attachment_id DESC
                 LIMIT 1
             ) AS attachment,
-            p.user_id AS seller_id
+            p.user_id AS seller_id,
+            oi.variant_type,
+            oi.variant_value
         FROM order_items oi
         LEFT JOIN products p ON oi.product_id = p.product_id
         LEFT JOIN seller_details sd ON sd.user_id = p.user_id

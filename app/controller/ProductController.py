@@ -734,23 +734,48 @@ def addToCart():
 
     product_id = request.form.get('product_id', type=int)
     quantity = request.form.get('quantity', type=int)
+    selected_variant_value = (request.form.get('variant_selection') or '').strip()
 
     if not product_id or not quantity or quantity <= 0:
         return responseData("error", "Invalid product or quantity.", "", 400)
 
-    # Validate product availability
-    product_rows = executeGet("SELECT qty FROM products WHERE product_id = %s AND status = 1", (product_id,))
+    # Validate product availability and fetch variant metadata
+    product_rows = executeGet(
+        "SELECT qty, variant_type, variant_values FROM products WHERE product_id = %s AND status = 1",
+        (product_id,)
+    )
     if isinstance(product_rows, tuple):  # Propagate DB errors
         return product_rows
 
     if not product_rows:
         return responseData("error", "Product is unavailable or no longer exists.", "", 404)
 
-    available_qty = int(product_rows[0].get('qty') or 0)
+    product_row = product_rows[0]
+    available_qty = int(product_row.get('qty') or 0)
     if available_qty <= 0:
         return responseData("error", "This product is currently out of stock.", "", 400)
 
-    # Load existing cart entry
+    product_variant_type = (product_row.get('variant_type') or 'none').lower()
+    normalized_variant_type = product_variant_type if product_variant_type in ALLOWED_VARIANT_TYPES else 'none'
+    normalized_variant_value = None
+
+    if normalized_variant_type != 'none':
+        raw_values = product_row.get('variant_values') or ''
+        allowed_values = [value.strip() for value in raw_values.split(',') if value.strip()]
+        if not selected_variant_value:
+            return responseData("error", f"Please select a {normalized_variant_type[:-1] if normalized_variant_type.endswith('s') else normalized_variant_type}.", "", 400)
+
+        matched_value = next(
+            (value for value in allowed_values if value.lower() == selected_variant_value.lower()),
+            None
+        )
+        if not matched_value:
+            return responseData("error", "Selected variant option is invalid.", "", 400)
+        normalized_variant_value = matched_value
+    else:
+        normalized_variant_type = 'none'
+
+    # Load existing cart entry for same product + variant
     check_query = """
         SELECT order_items_id, quantity
         FROM order_items
@@ -758,8 +783,14 @@ def addToCart():
           AND user_id = %s
           AND status = 1
           AND (reference = '' OR reference IS NULL)
+          AND variant_type = %s
+          AND (
+                (variant_value IS NULL AND %s IS NULL)
+                OR variant_value = %s
+          )
     """
-    existing_item = executeGet(check_query, (product_id, user_id))
+    check_params = (product_id, user_id, normalized_variant_type, normalized_variant_value, normalized_variant_value)
+    existing_item = executeGet(check_query, check_params)
     if isinstance(existing_item, tuple):
         return existing_item
 
@@ -778,10 +809,13 @@ def addToCart():
             return update_result
     else:
         insert_query = """
-            INSERT INTO order_items (product_id, user_id, quantity, reference, status)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO order_items (product_id, user_id, quantity, reference, status, variant_type, variant_value)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        insert_result = executePost(insert_query, (product_id, user_id, quantity, '', 1))
+        insert_result = executePost(
+            insert_query,
+            (product_id, user_id, quantity, '', 1, normalized_variant_type, normalized_variant_value)
+        )
         if isinstance(insert_result, tuple):
             return insert_result
 
@@ -792,34 +826,38 @@ def addToCart():
     return responseData("success", "Product added to cart", counts, 200)
 
 def removeFromCart():
-    product_id = request.form.get('product_id')
+    order_item_id = request.form.get('order_item_id', type=int)
     user_id = g.authenticated.get('user_id')
+
+    if not order_item_id or not user_id:
+        return redirect(url_for('cart_page'))
+
     query = """
         DELETE FROM order_items
-        WHERE product_id = %s
+        WHERE order_items_id = %s
           AND user_id = %s
           AND status = 1
           AND (reference = '' OR reference IS NULL)
     """
-    executePost(query, (product_id, user_id))
+    executePost(query, (order_item_id, user_id))
     return redirect(url_for('cart_page'))
 def updateCart():
     data = request.get_json()
-    product_id = data.get('product_id')
+    order_item_id = data.get('order_item_id')
     quantity = data.get('quantity')
     user_id = g.authenticated.get('user_id')
 
-    if user_id and product_id and quantity is not None:
+    if user_id and order_item_id and quantity is not None:
         # Update the quantity in the order_items table
         update_query = """
             UPDATE order_items
             SET quantity = %s
-            WHERE product_id = %s
+            WHERE order_items_id = %s
               AND user_id = %s
               AND status = 1
               AND (reference = '' OR reference IS NULL)
         """
-        executePost(update_query, (quantity, product_id, user_id))
+        executePost(update_query, (quantity, order_item_id, user_id))
 
         # Get the updated price for the cart item
         total_price_query = """

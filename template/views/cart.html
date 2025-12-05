@@ -53,7 +53,7 @@
             <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
                 <div class="card-body p-0">
                     {% for item in cart_items %}
-                    <div class="cart-item p-4 border-bottom" data-product-id="{{ item.get('product_id', '') }}">
+                    <div class="cart-item p-4 border-bottom" data-order-item-id="{{ item.get('order_items_id') }}">
                         <div class="row align-items-center">
                             <div class="col-3 col-md-2">
                                 <a href="/product/view/{{ item.get('product_id', '') }}" class="d-block">
@@ -70,33 +70,42 @@
                                             {{ item.get('product_name', '') }}
                                         </a>
                                     </h5>
+                                    {% if item.get('variant_type') and item.get('variant_type') != 'none' and item.get('variant_value') %}
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill small">
+                                            {{ item.get('variant_type')|capitalize|replace('s','',1) if item.get('variant_type') != 'sizes' else 'Size' }}:
+                                            <strong>{{ item.get('variant_value') }}</strong>
+                                        </span>
+                                    </div>
+                                    {% endif %}
                                     <span class="badge rounded-pill bg-success-subtle text-success small mb-2">In Stock</span>
                                     <div class="d-flex align-items-center">
                                         <div class="quantity-selector me-3" style="width: 80px;">
                                             <input type="number" 
-                                                   id="quantity-{{ item.get('product_id', '') }}" 
+                                                   id="quantity-{{ item.get('order_items_id') }}" 
                                                    value="{{ item.get('quantity', 1) }}" 
                                                    class="form-control form-control-sm text-center quantity-input" 
                                                    min="1"
                                                    data-price="{{ item.get('price', 0) }}"
+                                                   data-order-item-id="{{ item.get('order_items_id') }}"
                                                    oninput="updateItemTotal(this)"
                                                    onkeypress="return handleQuantityKeyPress(event, this)"
-                                                   onchange="sendQuantityUpdate(this.id.split('-')[1], this.value)">
+                                                   onchange="sendQuantityUpdate(this)">
                                         </div>
                                         <a href="#" 
                                            class="remove-item text-danger text-decoration-none small"
-                                           data-product-id="{{ item.get('product_id', '') }}">
+                                           data-order-item-id="{{ item.get('order_items_id') }}">
                                             <i class="fas fa-trash-alt me-1"></i> Remove
                                         </a>
-                                        <form action="/remove-from-cart" method="POST" style="display: none;" data-product-id="{{ item.get('product_id', '') }}">
-                                            <input type="hidden" name="product_id" value="{{ item.get('product_id', '') }}">
+                                        <form action="/remove-from-cart" method="POST" style="display: none;" data-order-item-id="{{ item.get('order_items_id') }}">
+                                            <input type="hidden" name="order_item_id" value="{{ item.get('order_items_id') }}">
                                         </form>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12 col-md-3 text-md-end mt-3 mt-md-0">
-                                <div class="fw-bold h4 mb-0 item-total text-primary" data-product-id="{{ item.get('product_id', '') }}">₱{{ item.get('total_price', 0) }}</div>
-                                <div class="text-muted small item-price" data-product-id="{{ item.get('product_id', '') }}">₱{{ item.get('formatted_price', '0.00') }} each</div>
+                                <div class="fw-bold h4 mb-0 item-total text-primary" data-order-item-id="{{ item.get('order_items_id') }}">₱{{ item.get('total_price', 0) }}</div>
+                                <div class="text-muted small item-price" data-order-item-id="{{ item.get('order_items_id') }}">₱{{ item.get('formatted_price', '0.00') }} each</div>
                             </div>
                         </div>
                     </div>
@@ -340,8 +349,8 @@
             input.value = quantity;
         }
         
-        const productId = input.id.split('-')[1];
-        const priceElement = document.querySelector(`.item-price[data-product-id="${productId}"]`);
+        const orderItemId = input.dataset.orderItemId || input.id.split('-')[1];
+        const priceElement = document.querySelector(`.item-price[data-order-item-id="${orderItemId}"]`);
         
         // Get the price from the data attribute or parse it from the price element
         let price = parseFloat(input.dataset.price);
@@ -371,10 +380,10 @@
         const formattedTotal = formatNumberWithCommas(total);
         
         // Debug log
-        console.log(`Updating item ${productId}: ${quantity} x ${price} = ${total}`);
+        console.log(`Updating item ${orderItemId}: ${quantity} x ${price} = ${total}`);
         
         // Update the displayed total for this item
-        const totalElement = document.querySelector(`.item-total[data-product-id="${productId}"]`);
+        const totalElement = document.querySelector(`.item-total[data-order-item-id="${orderItemId}"]`);
         if (totalElement) {
             totalElement.textContent = `₱${formattedTotal}`;
         }
@@ -383,17 +392,17 @@
         updateCartTotal();
     }
 
-    function sendQuantityUpdate(productId, quantity) {
-        const input = document.getElementById(`quantity-${productId}`);
-        if (!input) return;
+    function sendQuantityUpdate(input, quantityOverride) {
+        const orderItemId = input ? (input.dataset.orderItemId || input.id.split('-')[1]) : null;
+        const quantity = quantityOverride !== undefined ? quantityOverride : (input ? input.value : null);
 
-        // Validate and normalize quantity
-        quantity = Math.max(1, parseInt(quantity) || 1);
-        if (input.value !== quantity.toString()) {
-            input.value = quantity;
+        if (!input || !orderItemId) return;
+
+        const quantityInt = Math.max(1, parseInt(quantity) || 1);
+        if (input.value !== quantityInt.toString()) {
+            input.value = quantityInt;
         }
         
-        // Ensure we have the latest price
         updateItemTotal(input);
 
         // Show loading state
@@ -403,7 +412,7 @@
         // Get the current price from the data attribute or price element
         let price = parseFloat(input.dataset.price);
         if (isNaN(price)) {
-            const priceElement = document.querySelector(`.item-price[data-product-id="${productId}"]`);
+            const priceElement = document.querySelector(`.item-price[data-order-item-id="${orderItemId}"]`);
             if (priceElement) {
                 const priceText = priceElement.textContent.replace(/[^0-9.-]+/g, '');
                 price = parseFloat(priceText) || 0;
@@ -413,9 +422,9 @@
         }
 
         // Update the UI immediately for better responsiveness
-        const total = (price * quantity).toFixed(2);
+        const total = (price * quantityInt).toFixed(2);
         const formattedTotal = formatNumberWithCommas(total);
-        const totalElement = document.querySelector(`.item-total[data-product-id="${productId}"]`);
+        const totalElement = document.querySelector(`.item-total[data-order-item-id="${orderItemId}"]`);
         if (totalElement) {
             totalElement.textContent = `₱${formattedTotal}`;
         }
@@ -427,8 +436,8 @@
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                product_id: productId,
-                quantity: quantity
+                order_item_id: orderItemId,
+                quantity: quantityInt
             })
         })
         .then(response => response.json())
@@ -478,9 +487,9 @@
         
         // Calculate subtotal from all items (price * quantity)
         document.querySelectorAll('.cart-item').forEach(item => {
-            const productId = item.getAttribute('data-product-id');
-            const quantityInput = document.getElementById(`quantity-${productId}`);
-            const priceElement = document.querySelector(`.item-price[data-product-id="${productId}"]`);
+            const orderItemId = item.getAttribute('data-order-item-id');
+            const quantityInput = document.getElementById(`quantity-${orderItemId}`);
+            const priceElement = document.querySelector(`.item-price[data-order-item-id="${orderItemId}"]`);
             
             if (quantityInput && priceElement) {
                 const quantity = parseInt(quantityInput.value) || 0;
@@ -573,8 +582,7 @@
     function handleQuantityKeyPress(event, input) {
         if (event.key === 'Enter') {
             event.preventDefault();
-            const productId = input.id.split('-')[1];
-            sendQuantityUpdate(productId, input.value);
+            sendQuantityUpdate(input, input.value);
             return false;
         }
         return true;
@@ -584,8 +592,8 @@
     document.addEventListener('click', function(e) {
         if (e.target.closest('.remove-item')) {
             e.preventDefault();
-            const productId = e.target.closest('.remove-item').getAttribute('data-product-id');
-            const form = document.querySelector(`form[data-product-id="${productId}"]`);
+            const orderItemId = e.target.closest('.remove-item').getAttribute('data-order-item-id');
+            const form = document.querySelector(`form[data-order-item-id="${orderItemId}"]`);
             if (form) {
                 form.submit();
             }
@@ -612,16 +620,14 @@
             
             // Add event listeners for input changes
             input.addEventListener('change', function() {
-                const productId = this.id.split('-')[1];
-                sendQuantityUpdate(productId, this.value);
+                sendQuantityUpdate(this, this.value);
             });
             
             // Add event listener for Enter key
             input.addEventListener('keypress', function(event) {
                 if (event.key === 'Enter') {
                     event.preventDefault();
-                    const productId = this.id.split('-')[1];
-                    sendQuantityUpdate(productId, this.value);
+                    sendQuantityUpdate(this, this.value);
                     return false;
                 }
                 return true;

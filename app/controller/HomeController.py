@@ -839,6 +839,11 @@ def submitCheckout():
     if not payment_method:
         return responseData("error", "Please select a payment method.", "", 200)
 
+    # Ensure the user has a saved shipping address before allowing checkout
+    _, formatted_address, _ = get_user_address_details(user_id)
+    if not formatted_address:
+        return responseData("error", "Please add a shipping address before checking out.", "", 200)
+
     cart_items = get_cart_items_for_user(user_id)
     if not cart_items:
         return responseData("error", "Your cart is empty.", "", 200)

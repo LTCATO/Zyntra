@@ -1348,7 +1348,7 @@ def get_suborders_for_order(order_id):
         FROM order_suborders os
         INNER JOIN users seller ON os.seller_id = seller.user_id
         LEFT JOIN seller_details sd ON sd.user_id = seller.user_id
-        LEFT JOIN delivery_partners dp ON os.pickup_rider_id = dp.partner_id
+        LEFT JOIN delivery_partners dp ON os.pickup_rider_id = dp.user_id
         INNER JOIN order_items oi ON oi.suborder_id = os.suborder_id
         INNER JOIN products p ON oi.product_id = p.product_id
         WHERE os.order_id = %s
@@ -1548,11 +1548,12 @@ def orderTracking(reference):
             primary_seller_id = seller_id
             primary_seller_name = item.get('store_name') or item.get('product_name') or 'Seller'
 
-    # Determine rider chat target: first suborder that is shipped or out for delivery and has a rider
+    # Determine rider chat target: first suborder that has an assigned rider and is at least shipped.
+    # This allows buyer↔rider chat for Shipped, Out for Delivery, and Delivered shipments.
     rider_chat = None
     for sub in suborders or []:
         status = int(sub.get('status') or 1)
-        if status in (2, 3) and sub.get('rider_user_id'):
+        if status >= 2 and status <= 4 and sub.get('rider_user_id'):
             rider_chat = {
                 'rider_user_id': sub.get('rider_user_id'),
                 'rider_name': sub.get('rider_name'),

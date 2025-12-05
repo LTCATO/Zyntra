@@ -28,6 +28,8 @@
         </div>
     </div>
 
+
+
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="status-panel card border-0 shadow-sm rounded-4">
@@ -222,7 +224,7 @@
                 </div>
             </div>
 
-            {% if g.authenticated and g.authenticated.role_id == 2 and rider_chat %}
+            {% if g.authenticated and g.authenticated.role_id == 2 and rider_chat and order_summary.status != 5 %}
             <div class="support-card border-0 shadow-sm">
                 <div class="card-body">
                     <p class="text-muted small mb-1">Rider Support</p>
@@ -327,7 +329,6 @@
         });
     });
 </script>
-
 {% if g.authenticated and g.authenticated.role_id == 2 and seller_chat_seller_id %}
 <!-- Seller Chat Modal -->
 <div class="modal fade" id="orderSellerChatModal" tabindex="-1" aria-labelledby="orderSellerChatModalLabel" aria-hidden="true">
@@ -363,7 +364,7 @@
 </div>
 {% endif %}
 
-{% if g.authenticated and g.authenticated.role_id == 2 and rider_chat %}
+{% if g.authenticated and g.authenticated.role_id == 2 and rider_chat and order_summary.status != 5 %}
 <!-- Rider Chat Modal -->
 <div class="modal fade" id="orderRiderChatModal" tabindex="-1" aria-labelledby="orderRiderChatModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">

@@ -1,6 +1,7 @@
 from flask import render_template, request, g
 from helpers.QueryHelpers import executeGet, executePost
 from helpers.HelperFunction import responseData
+from controller.HomeController import get_user_address_details, build_product_image_url
 
 
 def _ensure_rider_auth():
@@ -277,29 +278,14 @@ def getPickupDetail(suborder_id):
             'quantity': quantity,
             'unit_price': price,
             'line_total': price * quantity,
-            'product_image': row.get('product_image'),
+            'product_image': build_product_image_url(row.get('product_image')),
         })
 
     buyer_address = None
     buyer_id = summary.get('buyer_id')
     if buyer_id:
-        addr_rows = executeGet(
-            "SELECT * FROM addresses WHERE user_id = %s ORDER BY updated_at DESC LIMIT 1",
-            (buyer_id,),
-        )
-        if isinstance(addr_rows, list) and addr_rows:
-            addr = addr_rows[0]
-            buyer_address = ", ".join(
-                filter(
-                    None,
-                    [
-                        addr.get('street'),
-                        addr.get('barangay'),
-                        addr.get('city_municipality'),
-                        addr.get('province'),
-                    ],
-                )
-            )
+        _, formatted_address, _ = get_user_address_details(buyer_id)
+        buyer_address = formatted_address
 
     payload = dict(summary)
     payload['items'] = items

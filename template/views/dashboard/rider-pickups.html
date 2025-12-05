@@ -109,6 +109,19 @@
               <p class="mb-0 small" data-detail="buyer-address">-</p>
               <hr class="my-3">
               <p class="mb-1 small"><strong>Store:</strong> <span data-detail="seller-store">-</span></p>
+              <hr class="my-3">
+              <h6 class="mb-2">Status Overview</h6>
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                <button type="button" class="btn btn-sm btn-warning" data-detail="status-btn" data-status="3">Mark as In Transit</button>
+                <button type="button" class="btn btn-sm btn-success" data-detail="status-btn" data-status="4">Mark as Delivered</button>
+              </div>
+              <small class="text-muted small" data-detail="status-hint"></small>
+              <hr class="my-3">
+              <h6 class="mb-2">Need Help?</h6>
+              <p class="text-muted small mb-2">Message the buyer about this delivery.</p>
+              <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#riderBuyerChatModal">
+                <i class="bi bi-chat-dots me-2"></i>Message Buyer
+              </button>
             </div>
           </div>
         </div>
@@ -116,8 +129,43 @@
     </div>
   </div>
 </div>
+{% if g.authenticated and g.authenticated.role_id == 4 %}
+<!-- Rider → Buyer Chat Modal -->
+<div class="modal fade" id="riderBuyerChatModal" tabindex="-1" aria-labelledby="riderBuyerChatModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title" id="riderBuyerChatModalLabel">Chat with buyer</h5>
+          <small class="text-muted">Questions about this delivery.</small>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="riderBuyerChatWidget" class="store-chat-modal-body d-flex flex-column"
+             data-chat-role="{{ g.authenticated.role_id }}"
+             data-chat-user="{{ g.authenticated.user_id }}"
+             data-chat-buyer=""
+             data-chat-order="">
+          <div class="alert alert-warning py-2 px-3 d-none" data-chat="status"></div>
+          <div class="chat-messages flex-grow-1 mb-3" data-chat="messages"></div>
+          <form data-chat="message-form">
+            <div class="input-group chat-input-group">
+              <input type="text" class="form-control" placeholder="Type your message" data-chat="message-input" autocomplete="off">
+              <button class="btn btn-primary" type="submit">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
+<script src="{{ url_for('static', filename='js/chat-widget.js') }}"></script>
 <script src="{{ url_for('static', filename='js/rider-pickups.js') }}"></script>
 {% endblock %}

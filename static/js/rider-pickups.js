@@ -17,15 +17,9 @@
            Claim Pickup
          </button>`
       );
-    } else if (data.pickup_status === 2) {
+    } else {
       actions.push(
-        `<button class="btn btn-sm btn-warning" data-action="move-status" data-status="3" data-id="${data.suborder_id}">Mark as In Transit</button>`
-      );
-    }
-
-    if (!isAvailable && data.pickup_status >= 3 && data.pickup_status < 4) {
-      actions.push(
-        `<button class="btn btn-sm btn-success" data-action="move-status" data-status="4" data-id="${data.suborder_id}">Mark Delivered</button>`
+        `<button class="btn btn-sm btn-outline-primary" data-action="show-detail" data-id="${data.suborder_id}">View</button>`
       );
     }
 
@@ -148,35 +142,9 @@
       });
     });
 
-    container.querySelectorAll('[data-action="move-status"]').forEach((btn) => {
+    container.querySelectorAll('[data-action="show-detail"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const suborderId = btn.dataset.id;
-        const status = btn.dataset.status;
-        if (!suborderId || !status) return;
-        setButtonLoading(btn, true);
-        const formData = new FormData();
-        formData.append('status', status);
-        fetch(`${API_BASE}/${suborderId}/status`, { method: 'POST', body: formData })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.status === 'success') {
-              refreshLists();
-            } else {
-              alert(data.message || 'Unable to update status.');
-            }
-          })
-          .catch(() => alert('Network error while updating status.'))
-          .finally(() => setButtonLoading(btn, false));
-      });
-    });
-
-    container.querySelectorAll('.list-group-item[data-scope="mine"]').forEach((item) => {
-      item.addEventListener('click', (event) => {
-        if (event.target.closest('[data-action]')) {
-          return;
-        }
-
-        const suborderId = item.getAttribute('data-suborder-id');
         if (!suborderId) return;
 
         const modalEl = document.getElementById('riderAssignmentDetailModal');
@@ -186,6 +154,10 @@
 
         const bodyEl = modalEl.querySelector('[data-detail="body"]');
         if (bodyEl) {
+          // Cache the original body template the first time so we can restore it
+          if (!modalEl.dataset.bodyTemplate) {
+            modalEl.dataset.bodyTemplate = bodyEl.innerHTML;
+          }
           bodyEl.innerHTML = '<div class="text-center py-4 text-muted small">Loading details...</div>';
         }
 
@@ -196,9 +168,17 @@
           .then((res) => res.json())
           .then((data) => {
             if (data.status !== 'success' || !data.data) {
-              throw new Error(data.message || 'Unable to load details');
+              const message = data.message || 'Unable to load details';
+              if (bodyEl) {
+                bodyEl.innerHTML = `<div class="text-center py-4 text-danger small">${message}</div>`;
+              }
+              return;
             }
-            renderAssignmentDetail(modalEl, data.data);
+            if (bodyEl && modalEl.dataset.bodyTemplate) {
+              bodyEl.innerHTML = modalEl.dataset.bodyTemplate;
+            }
+            modalEl.dataset.suborderId = suborderId;
+            renderAssignmentDetail(modalEl, data.data, suborderId);
           })
           .catch(() => {
             if (bodyEl) {
@@ -209,7 +189,7 @@
     });
   }
 
-  function renderAssignmentDetail(modalEl, detail) {
+  function renderAssignmentDetail(modalEl, detail, suborderId) {
     if (!modalEl) return;
 
     const orderRefEl = modalEl.querySelector('[data-detail="order-ref"]');
@@ -219,6 +199,8 @@
     const buyerAddressEl = modalEl.querySelector('[data-detail="buyer-address"]');
     const sellerStoreEl = modalEl.querySelector('[data-detail="seller-store"]');
     const itemsRoot = modalEl.querySelector('[data-detail="items"]');
+    const statusHintEl = modalEl.querySelector('[data-detail="status-hint"]');
+    const statusButtons = modalEl.querySelectorAll('[data-detail="status-btn"]');
 
     if (orderRefEl) orderRefEl.textContent = detail.order_reference || '-';
     if (subRefEl) subRefEl.textContent = detail.sub_reference || '-';
@@ -226,6 +208,85 @@
     if (buyerPhoneEl) buyerPhoneEl.textContent = detail.buyer_phone || 'N/A';
     if (buyerAddressEl) buyerAddressEl.textContent = detail.buyer_address || 'No address on file';
     if (sellerStoreEl) sellerStoreEl.textContent = detail.seller_store || detail.seller_name || 'Seller';
+
+    const pickupStatus = detail.pickup_status || 0;
+    if (statusHintEl) {
+      const labels = {
+        2: 'Claimed - ready to pick up from the seller.',
+        3: 'In Transit - on the way to the buyer.',
+        4: 'Delivered - completed delivery.',
+      };
+      statusHintEl.textContent = labels[pickupStatus] || '';
+    }
+
+    statusButtons.forEach((btn) => {
+      const targetStatus = parseInt(btn.dataset.status || '0', 10);
+      if (!targetStatus) {
+        btn.setAttribute('disabled', 'disabled');
+        return;
+      }
+      // Control visibility based on current pickup status:
+      // - When claimed (2): show only "Mark as In Transit" (3)
+      // - When in transit (3): show only "Mark as Delivered" (4)
+      // - When delivered/completed (4+): hide all buttons
+      // - Other states: hide both (no rider action expected)
+      let shouldShow = false;
+      if (pickupStatus === 2 && targetStatus === 3) {
+        shouldShow = true;
+      } else if (pickupStatus === 3 && targetStatus === 4) {
+        shouldShow = true;
+      }
+
+      if (shouldShow) {
+        btn.classList.remove('d-none');
+        btn.removeAttribute('disabled');
+      } else {
+        btn.classList.add('d-none');
+        btn.setAttribute('disabled', 'disabled');
+      }
+
+      btn.onclick = function () {
+        if (!suborderId) return;
+        const formData = new FormData();
+        formData.append('status', String(targetStatus));
+        setButtonLoading(btn, true);
+        fetch(`${API_BASE}/${suborderId}/status`, { method: 'POST', body: formData })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status === 'success') {
+              const bsModal = window.bootstrap.Modal.getInstance(modalEl);
+              if (bsModal) {
+                bsModal.hide();
+              }
+              refreshLists();
+            } else {
+              alert(data.message || 'Unable to update status.');
+            }
+          })
+          .catch(() => {
+            alert('Network error while updating status.');
+          })
+          .finally(() => {
+            setButtonLoading(btn, false);
+          });
+      };
+    });
+
+    // Populate rider→buyer chat context for the separate modal
+    const chatRoot = document.getElementById('riderBuyerChatWidget');
+    if (chatRoot) {
+      if (detail.buyer_id) {
+        chatRoot.dataset.chatBuyer = String(detail.buyer_id);
+      }
+      if (detail.order_id) {
+        chatRoot.dataset.chatOrder = String(detail.order_id);
+      }
+
+      const chatModalLabel = document.getElementById('riderBuyerChatModalLabel');
+      if (chatModalLabel && detail.buyer_name) {
+        chatModalLabel.textContent = `Chat with ${detail.buyer_name}`;
+      }
+    }
 
     if (!itemsRoot) return;
 
@@ -318,9 +379,82 @@
       });
   }
 
+  let riderBuyerChat = null;
+  let riderBuyerChatInitialized = false;
+
   document.addEventListener('DOMContentLoaded', function () {
     const root = document.getElementById('riderPickupRoot');
     if (!root) return;
+
+    // Load Available Pickups and My Assignments
     refreshLists();
+
+    // Wire up the Rider → Buyer chat modal if present
+    const chatRoot = document.getElementById('riderBuyerChatWidget');
+    const chatModal = document.getElementById('riderBuyerChatModal');
+    if (!chatRoot || !chatModal || !window.ChatWidget || !window.bootstrap) {
+      return;
+    }
+
+    const roleId = parseInt(chatRoot.dataset.chatRole || '0', 10);
+    const riderUserId = parseInt(chatRoot.dataset.chatUser || '0', 10);
+    if (!roleId || !riderUserId) {
+      return;
+    }
+
+    riderBuyerChat = new ChatWidget({
+      root: chatRoot,
+      // Treat rider as the "seller" side in conversations
+      roleId: 3,
+      userId: riderUserId,
+      counterpartLabel: 'Buyer',
+      counterpartListEnabled: false,
+      fixedCounterpartId: null,
+      fixedCounterpartName: 'Buyer',
+      conversationFilter(conversation) {
+        const buyerId = parseInt(chatRoot.dataset.chatBuyer || '0', 10);
+        const orderId = parseInt(chatRoot.dataset.chatOrder || '0', 10);
+        return (
+          conversation &&
+          conversation.buyer_id === buyerId &&
+          conversation.seller_id === riderUserId &&
+          conversation.order_id === orderId
+        );
+      },
+    });
+
+    async function ensureRiderBuyerChatSession() {
+      const buyerId = parseInt(chatRoot.dataset.chatBuyer || '0', 10);
+      const orderId = parseInt(chatRoot.dataset.chatOrder || '0', 10);
+      if (!buyerId || !orderId) return;
+
+      if (!riderBuyerChatInitialized) {
+        riderBuyerChat.init();
+        riderBuyerChatInitialized = true;
+      }
+
+      try {
+        const payload = new URLSearchParams();
+        payload.append('buyer_id', String(buyerId));
+        payload.append('seller_id', String(riderUserId));
+        payload.append('order_id', String(orderId));
+
+        const res = await fetch('/api/chat/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: payload.toString(),
+        });
+        const data = await res.json();
+        if (data.status === 'success' && data.data && data.data.conversation_id) {
+          await riderBuyerChat.openConversation(data.data.conversation_id);
+        }
+      } catch (e) {
+        // Optional: log error but don't break rider flow
+        // console.error('Unable to start rider-buyer chat conversation', e);
+      }
+    }
+
+    chatModal.addEventListener('shown.bs.modal', ensureRiderBuyerChatSession);
   });
+
 })(window, document);

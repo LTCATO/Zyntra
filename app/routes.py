@@ -37,6 +37,7 @@ from controller.RiderController import (
     getRiderPickups,
     claimPickupAssignment,
     updatePickupStatus,
+    getPickupDetail,
 )
 from controller.PaymentController import paymentDashboard
 

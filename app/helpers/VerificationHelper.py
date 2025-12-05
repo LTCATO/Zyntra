@@ -1,33 +1,24 @@
+# VerificationHelper.py (or whatever file)
 import random
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
-from typing import Optional
 from flask import current_app, session
 from flask_mail import Message
-
 from extensions import mail
 
-
-# ----------------------
-# OTP / EMAIL HELPERS
-# ----------------------
 def generate_otp() -> str:
     return f"{random.randint(100000, 999999)}"
-
 
 def hash_otp(otp: str) -> str:
     return bcrypt.hashpw(otp.encode(), bcrypt.gensalt()).decode()
 
-
 def verify_otp(otp: str, hashed: str) -> bool:
     return bcrypt.checkpw(otp.encode(), hashed.encode())
-
 
 def get_otp_expiry() -> datetime:
     ttl_minutes = current_app.config.get('OTP_TTL_MINUTES', 5)
     return datetime.utcnow() + timedelta(minutes=ttl_minutes)
-
 
 def send_email_code(email: str, otp: str) -> bool:
     subject = 'Your Zyntra email verification code'
@@ -49,14 +40,8 @@ def send_email_code(email: str, otp: str) -> bool:
         current_app.logger.error(f"Email failed: {e}")
         return False
 
-
-# ----------------------
-# SESSION-BASED OTP FLOW
-# ----------------------
 def store_email_otp(email: str):
-    """Generate OTP and store hashed version + expiry in session."""
     if 'email_otp_hash' in session:
-        # Don't overwrite existing OTP unless you want to resend
         return
 
     otp = generate_otp()
@@ -67,9 +52,7 @@ def store_email_otp(email: str):
     session['email_otp_attempts'] = 3
     session['email_for_verification'] = email
 
-    # Send email
     send_email_code(email, otp)
-
 
 def check_email_otp(user_input: str) -> dict:
     hashed = session.get('email_otp_hash')
@@ -89,20 +72,17 @@ def check_email_otp(user_input: str) -> dict:
         return {'success': False, 'message': "No attempts left."}
 
     if verify_otp(user_input, hashed):
-        # Clear session on success
         session.pop('email_otp_hash', None)
         session.pop('email_otp_expiry', None)
         session.pop('email_otp_attempts', None)
         session.pop('email_for_verification', None)
         return {'success': True, 'message': "Email verified!"}
 
-    # Wrong OTP
     session['email_otp_attempts'] = attempts - 1
     return {
         'success': False,
         'message': f"Invalid email code. You have {attempts-1} attempt(s) left."
     }
-
 
 def seconds_until_resend(last_sent_at: Optional[datetime]) -> int:
     if not last_sent_at:

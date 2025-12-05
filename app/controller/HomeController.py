@@ -187,6 +187,7 @@ def get_order_items_by_reference(reference):
             oi.reference,
             p.product_name,
             p.price,
+            p.user_id AS seller_id,
             os.reference AS sub_reference,
             os.status AS sub_status,
             os.shipping_fee AS sub_shipping_fee,
@@ -265,6 +266,7 @@ def build_order_summary(order_row):
     estimated_delivery = (created_at_dt + timedelta(days=5)).strftime("%B %d, %Y")
 
     return {
+        'order_id': order_row.get('order_id'),
         'reference': order_row.get('reference'),
         'subtotal': locale.format_string("%0.2f", subtotal_value, grouping=True),
         'shipping_fee': locale.format_string("%0.2f", shipping_fee_raw, grouping=True),
@@ -1323,6 +1325,12 @@ def get_suborders_for_order(order_id):
             os.updated_at,
             os.created_at,
             os.seller_id,
+            os.pickup_rider_id,
+            dp.user_id AS rider_user_id,
+            dp.full_name AS rider_full_name,
+            dp.phone AS rider_phone,
+            dp.vehicle_type AS rider_vehicle_type,
+            dp.plate_number AS rider_plate_number,
             seller.firstname AS seller_firstname,
             seller.lastname AS seller_lastname,
             sd.store_name,
@@ -1340,6 +1348,7 @@ def get_suborders_for_order(order_id):
         FROM order_suborders os
         INNER JOIN users seller ON os.seller_id = seller.user_id
         LEFT JOIN seller_details sd ON sd.user_id = seller.user_id
+        LEFT JOIN delivery_partners dp ON os.pickup_rider_id = dp.partner_id
         INNER JOIN order_items oi ON oi.suborder_id = os.suborder_id
         INNER JOIN products p ON oi.product_id = p.product_id
         WHERE os.order_id = %s
@@ -1367,6 +1376,11 @@ def get_suborders_for_order(order_id):
                 'updated_at': row.get('updated_at') or row.get('created_at'),
                 'seller_name': seller_name or 'Seller',
                 'store_name': store_name,
+                'rider_user_id': row.get('rider_user_id'),
+                'rider_name': row.get('rider_full_name'),
+                'rider_phone': row.get('rider_phone'),
+                'rider_vehicle': row.get('rider_vehicle_type'),
+                'rider_plate': row.get('rider_plate_number'),
                 'items': [],
                 'shipping_fee': float(row.get('sub_shipping_fee') or 0)
             }
@@ -1525,6 +1539,29 @@ def orderTracking(reference):
     if isinstance(suborders, tuple):
         suborders = []
 
+    # Determine primary seller for buyer<>seller chat (first seller in this order)
+    primary_seller_id = None
+    primary_seller_name = None
+    for item in items or []:
+        seller_id = item.get('seller_id')
+        if seller_id and primary_seller_id is None:
+            primary_seller_id = seller_id
+            primary_seller_name = item.get('store_name') or item.get('product_name') or 'Seller'
+
+    # Determine rider chat target: first suborder that is shipped or out for delivery and has a rider
+    rider_chat = None
+    for sub in suborders or []:
+        status = int(sub.get('status') or 1)
+        if status in (2, 3) and sub.get('rider_user_id'):
+            rider_chat = {
+                'rider_user_id': sub.get('rider_user_id'),
+                'rider_name': sub.get('rider_name'),
+                'rider_phone': sub.get('rider_phone'),
+                'rider_vehicle': sub.get('rider_vehicle'),
+                'rider_plate': sub.get('rider_plate'),
+            }
+            break
+
     user_address, formatted_address, _ = get_user_address_details(user_id)
     categories = getCategoriesInHome("WHERE status = 1")
 
@@ -1541,7 +1578,10 @@ def orderTracking(reference):
         timeline_steps=timeline_steps,
         shipping_address=formatted_address,
         user_address=user_address,
-        can_cancel=summary['status'] == 1
+        can_cancel=summary['status'] == 1,
+        seller_chat_seller_id=primary_seller_id,
+        seller_chat_seller_name=primary_seller_name,
+        rider_chat=rider_chat
     )
 
 

@@ -30,6 +30,7 @@ def _pickup_query(scope):
             os.updated_at,
             o.reference AS order_reference,
             o.created_at AS order_created_at,
+            buyer.user_id AS buyer_id,
             buyer.firstname AS buyer_firstname,
             buyer.lastname AS buyer_lastname,
             buyer.phone AS buyer_phone,
@@ -65,6 +66,7 @@ def _serialize_pickup(row):
     pickup_state = row.get('pickup_status') or 0
     return {
         "suborder_id": row.get('suborder_id'),
+        "order_id": row.get('order_id'),
         "order_reference": row.get('order_reference'),
         "sub_reference": row.get('sub_reference'),
         "order_created_at": row.get('order_created_at'),
@@ -76,6 +78,7 @@ def _serialize_pickup(row):
         "seller_name": seller_name or row.get('store_name') or 'Seller',
         "seller_store": row.get('store_name') or seller_name or 'Seller',
         "seller_location": ", ".join(filter(None, [row.get('seller_street'), row.get('seller_city'), row.get('seller_province')])),
+        "buyer_id": row.get('buyer_id'),
         "buyer_name": buyer_name or 'Buyer',
         "buyer_phone": row.get('buyer_phone'),
     }
@@ -204,6 +207,7 @@ def _fetch_pickup_detail(suborder_id):
             os.updated_at,
             o.reference AS order_reference,
             o.created_at AS order_created_at,
+            buyer.user_id AS buyer_id,
             buyer.firstname AS buyer_firstname,
             buyer.lastname AS buyer_lastname,
             buyer.phone AS buyer_phone,
@@ -226,3 +230,79 @@ def _fetch_pickup_detail(suborder_id):
         return None
 
     return _serialize_pickup(rows[0])
+
+
+def getPickupDetail(suborder_id):
+    rider, error = _ensure_rider_auth()
+    if error:
+        return error
+
+    summary = _fetch_pickup_detail(suborder_id)
+    if not summary:
+        return responseData("error", "Pickup not found.", "", 404)
+
+    if summary.get('pickup_rider_id') != rider['user_id']:
+        return responseData("error", "You are not assigned to this pickup.", "", 403)
+
+    items_query = """
+        SELECT
+            oi.order_items_id,
+            oi.quantity,
+            p.product_name,
+            p.price,
+            (
+                SELECT pa.attachment
+                FROM product_attachments pa
+                WHERE pa.product_id = p.product_id AND pa.status = 1
+                ORDER BY pa.updated_at DESC, pa.product_attachment_id DESC
+                LIMIT 1
+            ) AS product_image
+        FROM order_items oi
+        INNER JOIN products p ON oi.product_id = p.product_id
+        WHERE oi.suborder_id = %s
+        ORDER BY oi.order_items_id ASC
+    """
+
+    item_rows = executeGet(items_query, (suborder_id,))
+    if isinstance(item_rows, tuple):
+        return item_rows
+
+    items = []
+    for row in item_rows or []:
+        price = float(row.get('price') or 0)
+        quantity = int(row.get('quantity') or 0)
+        items.append({
+            'order_items_id': row.get('order_items_id'),
+            'product_name': row.get('product_name'),
+            'quantity': quantity,
+            'unit_price': price,
+            'line_total': price * quantity,
+            'product_image': row.get('product_image'),
+        })
+
+    buyer_address = None
+    buyer_id = summary.get('buyer_id')
+    if buyer_id:
+        addr_rows = executeGet(
+            "SELECT * FROM addresses WHERE user_id = %s ORDER BY updated_at DESC LIMIT 1",
+            (buyer_id,),
+        )
+        if isinstance(addr_rows, list) and addr_rows:
+            addr = addr_rows[0]
+            buyer_address = ", ".join(
+                filter(
+                    None,
+                    [
+                        addr.get('street'),
+                        addr.get('barangay'),
+                        addr.get('city_municipality'),
+                        addr.get('province'),
+                    ],
+                )
+            )
+
+    payload = dict(summary)
+    payload['items'] = items
+    payload['buyer_address'] = buyer_address
+
+    return responseData("success", "Pickup details fetched.", payload, 200)

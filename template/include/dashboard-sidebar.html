@@ -82,6 +82,7 @@
           </ul>
         </li>
 
+        {% if role_id != 1 %}
         <li class="menu-item">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-cart"></i>
@@ -139,6 +140,7 @@
             </div>
           </a>
         </li>
+        {% endif %}
 
         {% if role_id == 1 %}
           <li class="menu-header small text-uppercase"><span class="menu-header-text">User Management</span></li>

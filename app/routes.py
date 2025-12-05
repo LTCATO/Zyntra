@@ -409,6 +409,11 @@ def setup_routes(app: Flask):
     def api_rider_pickups():
         return getRiderPickups()
 
+    @app.route('/api/rider/pickups/<int:suborder_id>/details', methods=['GET'])
+    @login_required
+    def api_rider_pickup_detail(suborder_id):
+        return getPickupDetail(suborder_id)
+
     @app.route('/api/rider/pickups/<int:suborder_id>/claim', methods=['POST'])
     @login_required
     def api_rider_claim_pickup(suborder_id):

@@ -11,11 +11,29 @@ def str_to_bool(value: str, default: bool = True) -> bool:
     return value.lower() in {'1', 'true', 't', 'yes', 'y'}
 
 def create_app():
-    app = Flask(__name__, template_folder='../template', static_folder='../static')
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(project_root, 'template'),
+        static_folder=os.path.join(project_root, 'static'),
+        static_url_path='/static',
+    )
     
     # Core config
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'change-me-in-prod')
     app.config['SESSION_TYPE'] = 'filesystem'
+
+    session_dir = os.environ.get('SESSION_FILE_DIR')
+    if not session_dir:
+        if os.access(project_root, os.W_OK):
+            session_dir = os.path.join(project_root, 'flask_session')
+        else:
+            session_dir = '/tmp/flask_session'
+
+    os.makedirs(session_dir, exist_ok=True)
+    app.config['SESSION_FILE_DIR'] = session_dir
+    app.config['SESSION_PERMANENT'] = False
+    app.config['SESSION_FILE_THRESHOLD'] = int(os.environ.get('SESSION_FILE_THRESHOLD', 500))
 
     # Mail configuration
     app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')

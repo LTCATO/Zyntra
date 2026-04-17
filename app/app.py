@@ -47,6 +47,8 @@ def create_app():
 
     return app
 
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() in {'1', 'true', 't', 'yes', 'y'}
+    app.run(host='0.0.0.0', debug=debug_mode)

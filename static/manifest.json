@@ -1,0 +1,25 @@
+{
+    "name": "Zyntra - Buy & Sell Electronics",
+    "short_name": "Zyntra",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#ffffff",
+    "theme_color": "#6366f1",
+    "description": "Zyntra is a platform that connects users with local service providers for various tasks and services.",
+    "icons": [
+        {
+            "src": "/static/images/logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/images/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+# Ignore local environment and cache files
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local database and session stores
+flask_session/
+database/
+uploads/
+
+# Ignore editor files
+.vscode/

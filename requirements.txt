@@ -1,8 +1,8 @@
-Flask==2.3.3
-flask-session==0.5.0
-mysql-connector-python==8.1.0
+Flask
+flask-session
+mysql-connector-python
 requests
-Flask-Mail==0.9.1
-itsdangerous==2.1.2
-twilio==9.2.3
+Flask-Mail
+itsdangerous
+twilio
 vercel-wsgi
